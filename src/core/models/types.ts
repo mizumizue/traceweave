@@ -1,3 +1,5 @@
+import type { TraceGraph } from '../graph/TraceGraph.js';
+
 export type DocKind =
   | 'need'
   | 'actor'
@@ -18,6 +20,7 @@ export type TestLevel =
 
 export type TestMethod =
   | 'unit_mock'
+  | 'unit_contract'
   | 'property_based'
   | 'api_contract'
   | 'scenario'
@@ -161,6 +164,7 @@ export interface PhaseCount {
 
 export interface MethodCount {
   unit_mock: number;
+  unit_contract: number;
   property_based: number;
   api_contract: number;
   scenario: number;
@@ -392,6 +396,7 @@ export interface TraceGraphStats {
 }
 
 export interface TraceGraphBuildOptions {
+  traceGraph?: TraceGraph;
   kindFilter?: Set<DocKind> | DocKind[];
   excludedKinds?: Set<DocKind> | DocKind[];
   searchQuery?: string;

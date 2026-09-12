@@ -12,6 +12,8 @@ import {
   AppTab,
   GraphHighlightMode,
   AppUrlState,
+  getHomeUrlState,
+  isOnlySearchQueryChanged,
 } from './utils/urlState.js';
 import { DecisionsCatalogBuilder } from '../../core/decisions/DecisionsCatalogBuilder.js';
 import { DecisionsBrowser } from './components/DecisionsBrowser.js';
@@ -27,6 +29,11 @@ import { Footer } from './components/Footer.js';
 import { NodeDetailModal } from './components/NodeDetailModal.js';
 import { LoadingScreen } from './components/LoadingScreen.js';
 import { ErrorScreen } from './components/ErrorScreen.js';
+import {
+  filterMatrixRows,
+  serializeMatrixCsv,
+  serializeReportJson,
+} from './utils/matrixData.js';
 
 export default function App() {
   const initialUrlState = useMemo(() => parseUrlState(), []);
@@ -198,19 +205,7 @@ export default function App() {
     const prevState = lastSyncedStateRef.current;
     lastSyncedStateRef.current = currentState;
 
-    const isOnlySearchQueryChanged =
-      prevState.searchQuery !== currentState.searchQuery &&
-      prevState.tab === currentState.tab &&
-      prevState.nodeId === currentState.nodeId &&
-      prevState.phaseFilter === currentState.phaseFilter &&
-      prevState.criticalityFilter === currentState.criticalityFilter &&
-      prevState.scoreFilter === currentState.scoreFilter &&
-      prevState.catalogKind === currentState.catalogKind &&
-      prevState.catalogTag === currentState.catalogTag &&
-      prevState.catalogStatus === currentState.catalogStatus &&
-      prevState.graphHighlight === currentState.graphHighlight;
-
-    syncBrowserHistory(currentState, { replace: isOnlySearchQueryChanged });
+    syncBrowserHistory(currentState, { replace: isOnlySearchQueryChanged(prevState, currentState) });
   }, [currentState]);
 
   // Decisions catalog data (with fallback build)
@@ -255,16 +250,17 @@ export default function App() {
 
   // Navigate to root (Header Logo click)
   const handleNavigateHome = () => {
-    setActiveTab('matrix');
-    setSelectedNodeId(null);
-    setSearchQuery('');
-    setPhaseFilter('all');
-    setCriticalityFilter('all');
-    setScoreFilter('all');
-    setCatalogKind('all');
-    setCatalogTag(null);
-    setCatalogStatus('all');
-    setGraphHighlight('all');
+    const home = getHomeUrlState();
+    setActiveTab(home.tab);
+    setSelectedNodeId(home.nodeId);
+    setSearchQuery(home.searchQuery);
+    setPhaseFilter(home.phaseFilter);
+    setCriticalityFilter(home.criticalityFilter);
+    setScoreFilter(home.scoreFilter);
+    setCatalogKind(home.catalogKind);
+    setCatalogTag(home.catalogTag);
+    setCatalogStatus(home.catalogStatus);
+    setGraphHighlight(home.graphHighlight);
   };
 
   const isFilterActive =
@@ -289,7 +285,7 @@ export default function App() {
   // Export handlers
   const handleExportJson = () => {
     if (!report) return;
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const blob = new Blob([serializeReportJson(report)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -301,13 +297,7 @@ export default function App() {
 
   const handleExportCsv = () => {
     if (!report) return;
-    const header = 'Need ID,Requirement ID,Requirement Title,Criticality,Score,Specs,Test Cases\n';
-    const rows = report.matrix.map(r => {
-      const specs = `"${r.specs.map(s => s.id).join(';')}"`;
-      const tests = `"${r.allTestCases.map(t => `${t.id}(${t.level})`).join(';')}"`;
-      return `"${r.needId || ''}","${r.requirementId}","${r.requirementTitle}","${r.criticality}","${r.score}%",${specs},${tests}`;
-    });
-    const blob = new Blob(['\uFEFF' + header + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const blob = new Blob(['\uFEFF' + serializeMatrixCsv(report.matrix)], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -357,30 +347,11 @@ export default function App() {
   }
 
   // Filter matrix rows
-  const filteredMatrix = report.matrix.filter(row => {
-    const query = searchQuery.toLowerCase().trim();
-    const matchesSearch =
-      !query ||
-      row.requirementId.toLowerCase().includes(query) ||
-      row.requirementTitle.toLowerCase().includes(query) ||
-      (row.needId && row.needId.toLowerCase().includes(query)) ||
-      (row.needTitle && row.needTitle.toLowerCase().includes(query)) ||
-      row.specs.some(s => s.id.toLowerCase().includes(query) || s.title.toLowerCase().includes(query)) ||
-      row.allTestCases.some(t => t.id.toLowerCase().includes(query) || t.title.toLowerCase().includes(query));
-
-    const matchesCriticality = criticalityFilter === 'all' || row.criticality === criticalityFilter;
-
-    const matchesPhase =
-      phaseFilter === 'all' ||
-      row.allTestCases.some(t => t.level === phaseFilter);
-
-    const matchesScore =
-      scoreFilter === 'all' ||
-      (scoreFilter === 'satisfied' && row.score >= 80) ||
-      (scoreFilter === 'partial' && row.score >= 50 && row.score < 80) ||
-      (scoreFilter === 'unsatisfied' && row.score < 50);
-
-    return matchesSearch && matchesCriticality && matchesPhase && matchesScore;
+  const filteredMatrix = filterMatrixRows(report.matrix, {
+    searchQuery,
+    criticality: criticalityFilter,
+    phase: phaseFilter,
+    score: scoreFilter,
   });
 
   const selectedNode = selectedNodeId ? nodeMap.get(selectedNodeId) : null;

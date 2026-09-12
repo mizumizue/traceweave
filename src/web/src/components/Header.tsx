@@ -17,6 +17,28 @@ interface HeaderProps {
   onNavigateHome?: () => void;
 }
 
+export function shouldUseInternalNavigation(event: {
+  metaKey?: boolean;
+  ctrlKey?: boolean;
+  shiftKey?: boolean;
+  altKey?: boolean;
+  button?: number;
+}): boolean {
+  return !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && (event.button ?? 0) === 0;
+}
+
+export function getHeaderLinkContract(pathname = '/'): {
+  href: string;
+  ariaLabel: string;
+  title: string;
+} {
+  return {
+    href: pathname || '/',
+    ariaLabel: 'TraceWeave ホームへ戻る',
+    title: 'TraceWeave トップ（ルート画面）へ戻る',
+  };
+}
+
 export function Header({
   isRefreshing,
   onRefresh,
@@ -28,7 +50,7 @@ export function Header({
 }: HeaderProps) {
   const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     // If user holds modifier keys or uses non-left click, let browser handle native navigation
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+    if (!shouldUseInternalNavigation(e)) {
       return;
     }
     if (onNavigateHome) {
@@ -37,7 +59,9 @@ export function Header({
     }
   };
 
-  const rootHref = typeof window !== 'undefined' && window.location ? window.location.pathname || '/' : '/';
+  const linkContract = getHeaderLinkContract(
+    typeof window !== 'undefined' && window.location ? window.location.pathname : '/'
+  );
 
   return (
     <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
@@ -45,11 +69,11 @@ export function Header({
       <div className="flex flex-col justify-center gap-1.5 min-w-0">
         <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
           <a
-            href={rootHref}
+            href={linkContract.href}
             onClick={handleLogoClick}
             className="flex items-center gap-2.5 shrink-0 group cursor-pointer select-none rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 pr-1.5 transition-colors"
-            title="TraceWeave トップ（ルート画面）へ戻る"
-            aria-label="TraceWeave ホームへ戻る"
+            title={linkContract.title}
+            aria-label={linkContract.ariaLabel}
           >
             <span className="text-2xl sm:text-3xl filter drop-shadow select-none shrink-0 group-hover:scale-105 transition-transform duration-200">
               🕸️

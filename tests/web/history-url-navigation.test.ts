@@ -1,7 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
 import {
   parseUrlState,
   serializeUrlState,
@@ -9,8 +7,11 @@ import {
   isUrlStateEqual,
   DEFAULT_URL_STATE,
   AppUrlState,
+  getHomeUrlState,
+  isOnlySearchQueryChanged,
 } from '../../src/web/src/utils/urlState.js';
 import { buildTraceWeaveReport } from '../../src/application/build-report.js';
+import { repositoryPath } from '../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
@@ -108,54 +109,21 @@ test('TC-0019: urlState - 状態オブジェクトからクリーンなクエリ
 
 /**
  * 【テスト概要】
- * - 対象: App.tsx および Web UI コンポーネント群における History API & URL 連携実装
- * - 条件: App.tsx, DecisionsBrowser.tsx, TraceabilityGraphView.tsx のソースコードを静的検証
- * - 期待結果: popstate イベント購読、pushState/replaceState 制御、URL共有ボタン、モーダル内リンクコピーが実装されていること
+ * - 対象: URL 状態および履歴更新分類の公開契約
+ * - 条件: ホーム状態と検索条件変更の分類関数を呼び出す
+ * - 期待結果: URL 状態の初期値と履歴更新分類が契約どおり返ること
  * - 関連文書: TC-0019, REQ-0023, REQ-0024, SPEC-0019, DSN-0010
  */
-test('TC-0019: Web UI - History API (popstate/pushState/replaceState) および URL共有ボタンの統合検証', () => {
-  const rootDir = path.resolve('.');
-
-  // 1. App.tsx
-  const appPath = path.join(rootDir, 'src/web/src/App.tsx');
-  assert.ok(fs.existsSync(appPath), 'App.tsx must exist');
-  const appContent = fs.readFileSync(appPath, 'utf-8');
-
-  // Verify URL state & History imports
-  assert.ok(appContent.includes("from './utils/urlState.js'"), 'App.tsx must import urlState utilities');
-  assert.ok(appContent.includes('parseUrlState'), 'App.tsx must use parseUrlState');
-  assert.ok(appContent.includes('syncBrowserHistory'), 'App.tsx must use syncBrowserHistory');
-  assert.ok(appContent.includes('buildFullUrl'), 'App.tsx must use buildFullUrl');
-
-  // Verify popstate listener (REQ-0023)
-  assert.ok(appContent.includes("window.addEventListener('popstate'"), 'App.tsx must listen to popstate event');
-  assert.ok(
-    appContent.includes('isNavigatingFromPopstateRef'),
-    'App.tsx must have popstate guard flag to prevent infinite loops'
+test('TC-0019: URL状態 - ホーム状態と検索条件変更の履歴更新分類契約', () => {
+  const home = getHomeUrlState();
+  assert.deepEqual(home, DEFAULT_URL_STATE);
+  assert.equal(
+    isOnlySearchQueryChanged({ ...home, searchQuery: 'before' }, { ...home, searchQuery: 'after' }),
+    true
   );
-
-  // Verify pushState vs replaceState separation (REQ-0023)
-  assert.ok(
-    appContent.includes('isOnlySearchQueryChanged'),
-    'App.tsx must distinguish text input for replaceState vs pushState'
-  );
-
-  // Verify Share URL button (REQ-0024)
-  assert.ok(appContent.includes('handleCopyShareUrl'), 'App.tsx must provide handleCopyShareUrl');
-  assert.ok(appContent.includes('URL共有'), 'App.tsx must have URL share button in toolbar');
-
-  // Verify DetailModal history & URL copy (REQ-0023, REQ-0024)
-  assert.ok(appContent.includes('window.history.back()'), 'DetailModal must support browser back navigation');
-  assert.ok(appContent.includes('window.history.forward()'), 'DetailModal must support browser forward navigation');
-
-  // 2. DecisionsBrowser & TraceabilityGraphView props integration
-  assert.ok(
-    appContent.includes('selectedKind={catalogKind as any}'),
-    'App.tsx must bind catalogKind to DecisionsBrowser'
-  );
-  assert.ok(
-    appContent.includes('highlightMode={graphHighlight}'),
-    'App.tsx must bind graphHighlight to TraceabilityGraphView'
+  assert.equal(
+    isOnlySearchQueryChanged({ ...home, searchQuery: 'before' }, { ...home, searchQuery: 'after', phaseFilter: 'unit' }),
+    false
   );
 });
 
@@ -167,7 +135,7 @@ test('TC-0019: Web UI - History API (popstate/pushState/replaceState) および 
  * - 関連文書: TC-0019, NEED-0008, REQ-0023, REQ-0024, SPEC-0019
  */
 test('TC-0019: トレーサビリティ連鎖 - NEED-0008 から REQ-0023, REQ-0024, SPEC-0019, TC-0019 の双方向追跡の検証', () => {
-  const { graph } = buildTraceWeaveReport({ docsDir: './docs', useCache: false });
+  const { graph } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
 
   // 1. NEED-0008
   const need0008 = graph.getNode('NEED-0008');

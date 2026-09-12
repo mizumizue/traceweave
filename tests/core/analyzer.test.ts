@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import { TraceGraph } from '../../src/core/graph/TraceGraph.js';
 import { BalanceAnalyzer } from '../../src/core/analyzer/BalanceAnalyzer.js';
 import { RequirementSufficiency, StratumReport } from '../../src/core/models/types.js';
+import fs from 'node:fs';
+import { TestRunnerRegistry } from '../../src/core/testing/TestRunnerRegistry.js';
+import { repositoryPath } from '../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
@@ -102,4 +105,19 @@ test('TC-0003: BalanceAnalyzer - 逆アイスクリームコーン型および�
   const res2 = analyzer.diagnosePyramid(graph, hourglassStrata, []);
   assert.equal(res2.status, 'hollow_hourglass');
   assert.ok(res2.warnings.some(w => w.includes('中間空洞化')));
+});
+
+test('TC-0003: BalanceAnalyzer - 外部パラメータセットの全診断パターンが実行結果と一致すること', () => {
+  const dataset = JSON.parse(
+    fs.readFileSync(repositoryPath('fixtures/test-cases/TC-0011.json'), 'utf8')
+  );
+  const result = TestRunnerRegistry.runDataset(dataset);
+  assert.equal(result.total, 3);
+  assert.equal(result.passed, 3);
+  assert.equal(result.failed, 0);
+  assert.deepEqual(result.results.map(item => item.actual.status), [
+    'healthy',
+    'inverted_ice_cream',
+    'hollow_hourglass',
+  ]);
 });

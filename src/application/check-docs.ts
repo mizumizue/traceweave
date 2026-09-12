@@ -23,6 +23,7 @@ const VALID_TEST_LEVELS = [
 
 const VALID_TEST_METHODS = [
   'unit_mock',
+  'unit_contract',
   'property_based',
   'api_contract',
   'scenario',

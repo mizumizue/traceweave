@@ -1,4 +1,6 @@
 import path from 'node:path';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { DocParser } from '../infrastructure/parser/DocParser.js';
 import { SQLiteCache } from '../infrastructure/storage/SQLiteCache.js';
 import { SufficiencyScorer } from '../core/sufficiency/SufficiencyScorer.js';
@@ -18,8 +20,17 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
   graph: TraceGraph;
   nodes: DocNode[];
 } {
-  const docsDir = path.resolve(options.docsDir || './docs');
-  const cachePath = options.useCache !== false ? options.cacheDbPath || './.cache/traceweave.sqlite' : undefined;
+  const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+  const docsDir = options.docsDir
+    ? path.resolve(options.docsDir)
+    : path.join(projectRoot, 'docs');
+  if (!fs.existsSync(docsDir) || !fs.statSync(docsDir).isDirectory()) {
+    throw new Error(`Docs directory not found: ${docsDir}`);
+  }
+  const cachePath =
+    options.useCache !== false
+      ? options.cacheDbPath || path.join(projectRoot, '.cache/traceweave.sqlite')
+      : undefined;
 
   let cache: SQLiteCache | undefined;
   if (cachePath) {

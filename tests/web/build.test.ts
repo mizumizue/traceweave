@@ -2,18 +2,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { repositoryPath } from '../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
- * - 対象: Webダッシュボード静的ビルド機構
- * - 条件: 静的ビルド成果物ディレクトリ（src/web/dist）を検査
- * - 期待結果: index.htmlおよびdata.jsonが存在し、要件定義・テストケース実測値（execution_status/actual_result）および円形ゲージ用スコアが含まれていること
+ * - 対象: Webダッシュボード静的ビルド成果物
+ * - 条件: 事前に生成された静的ビルド成果物ディレクトリ（src/web/dist）を検査
+ * - 期待結果: 既存のindex.htmlおよびdata.jsonが存在し、要件定義・テストケース実測値（execution_status/actual_result）および円形ゲージ用スコアが含まれていること
  * - 関連文書: TC-0006, REQ-0006, SPEC-0006
  */
-test('TC-0006: Webダッシュボードビルド - index.htmlおよびdata.jsonが正常に生成され、要件・TC実測値が含まれること', () => {
-  const distWeb = fs.existsSync(path.resolve('./src/web/dist'))
-    ? path.resolve('./src/web/dist')
-    : path.resolve('./dist/web');
+test('TC-0006: Webダッシュボードビルド成果物 - index.htmlおよびdata.jsonの契約を検証すること', () => {
+  const distWeb = fs.existsSync(repositoryPath('src/web/dist'))
+    ? repositoryPath('src/web/dist')
+    : repositoryPath('dist/web');
   assert.ok(fs.existsSync(distWeb), 'src/web/dist should exist');
 
   const indexHtml = path.join(distWeb, 'index.html');
@@ -32,6 +33,9 @@ test('TC-0006: Webダッシュボードビルド - index.htmlおよびdata.json�
   const tcWithActual = parsedData.nodes.find((n: any) => n.kind === 'test_case' && n.actual_result);
   assert.ok(tcWithActual, 'At least one test case should have actual_result');
   assert.equal(tcWithActual.execution_status, 'passed');
+  assert.ok(tcWithActual.objective, 'Test case objective should be included');
+  assert.ok(tcWithActual.steps, 'Test case steps should be included');
+  assert.ok(tcWithActual.expected_result, 'Test case expected result should be included');
 
   // Verify REQ-0010 (Circular Gauge sufficiency visualization requirement)
   const req0010 = parsedData.matrix.find((r: any) => r.requirementId === 'REQ-0010');

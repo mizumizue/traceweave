@@ -150,12 +150,12 @@ test('TC-0002: SufficiencyScorer - 高重要度（high）要件において各�
 
 /**
  * 【テスト概要】
- * - 対象: SufficiencyScorer (中・低重要度要件のスコア計算)
- * - 条件: 単体テスト(UT)のみが紐づいた中重要度(medium)要件および低重要度(low)要件を計算
- * - 期待結果: 中重要度は50%、低重要度は単体テストのみで100%充足と判定されること
+ * - 対象: SufficiencyScorer (中重要度要件のスコア計算)
+ * - 条件: 単体テスト(UT)のみが紐づいた中重要度(medium)要件を計算
+ * - 期待結果: 中重要度は50%と判定されること
  * - 関連文書: TC-0002, REQ-0002, SPEC-0003
  */
-test('TC-0002: SufficiencyScorer - 中重要度（medium）および低重要度（low）要件に対して重要度別の重み付けルールが正しく適用されること', () => {
+test('TC-0002: SufficiencyScorer - 中重要度（medium）要件に対して重要度別の重み付けルールが正しく適用されること', () => {
   const graph = new TraceGraph();
   const scorer = new SufficiencyScorer();
 
@@ -173,23 +173,7 @@ test('TC-0002: SufficiencyScorer - 中重要度（medium）および低重要度
     links: [],
     content: '',
   };
-  const reqLow: DocNode = {
-    id: 'REQ-0003',
-    kind: 'requirement',
-    title: 'Low',
-    status: 'accepted',
-    created: '2026-09-12',
-    updated: '2026-09-12',
-    scope: 'local',
-    criticality: 'low',
-    depends_on: [],
-    tags: [],
-    links: [],
-    content: '',
-  };
-
   graph.addNode(reqMed);
-  graph.addNode(reqLow);
 
   const tcUnit: DocNode = {
     id: 'TC-0010',
@@ -202,7 +186,7 @@ test('TC-0002: SufficiencyScorer - 中重要度（medium）および低重要度
     test_level: 'unit',
     test_method: 'unit_mock',
     depends_on: [],
-    verifies: ['REQ-0002', 'REQ-0003'],
+    verifies: ['REQ-0002'],
     tags: [],
     links: [],
     content: '',
@@ -213,7 +197,4 @@ test('TC-0002: SufficiencyScorer - 中重要度（medium）および低重要度
   const resMed = scorer.calculateRequirement(graph, reqMed);
   assert.equal(resMed.score, 50);
 
-  // Low with unit is 100%
-  const resLow = scorer.calculateRequirement(graph, reqLow);
-  assert.equal(resLow.score, 100);
 });

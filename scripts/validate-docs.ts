@@ -73,6 +73,7 @@ const VALID_TEST_LEVELS = [
 
 const VALID_TEST_METHODS = [
   'unit_mock',
+  'unit_contract',
   'property_based',
   'api_contract',
   'scenario',
@@ -289,6 +290,20 @@ export function validateDocs(docsDir: string = DOCS_DIR): { passed: boolean; err
       }
     }
 
+    // External interface tags check
+    if (meta.tags?.includes('interface') && !meta.tags?.includes('external')) {
+      errors.push(`${filePath}: tags contains "interface" but missing "external" (Interface Control Document standard)`);
+    }
+
+    // Out-of-Scope boundary guard for active REQ/SPEC
+    if ((kind === 'requirement' || kind === 'specification') && meta.status !== 'deprecated') {
+      const outOfScopeTags = ['clean-root', 'encapsulation', 'bin-wrapper', 'repository-structure'];
+      const matchedOosTags = (meta.tags || []).filter((t: string) => outOfScopeTags.includes(t));
+      if (matchedOosTags.length > 0) {
+        errors.push(`${filePath}: Active ${kind} must not manage out-of-scope concerns (${matchedOosTags.join(', ')}). Use ADR instead.`);
+      }
+    }
+
     // Headings check
     const contentSplit = body.split(/^## Content\s*$/m);
     if (contentSplit.length < 2) {
@@ -317,6 +332,32 @@ export function validateDocs(docsDir: string = DOCS_DIR): { passed: boolean; err
           `${filePath}: Headings mismatch for kind "${kind}".\n  Expected: ${expectedHeadings.join(', ')}\n  Found:    ${foundHeadings.join(', ')}`
         );
       }
+    }
+  }
+
+  // Check DSN coverage for active specifications
+  const activeSpecIds = new Set<string>();
+  const specCoveredByDsn = new Set<string>();
+
+  for (const doc of docs) {
+    if (doc.meta.kind === 'specification' && doc.meta.status !== 'deprecated') {
+      activeSpecIds.add(doc.meta.id);
+    }
+    if (doc.meta.kind === 'design') {
+      for (const dep of (doc.meta.depends_on || [])) {
+        specCoveredByDsn.add(dep);
+      }
+      for (const link of (doc.meta.links || [])) {
+        if (link.startsWith('SPEC-')) {
+          specCoveredByDsn.add(link);
+        }
+      }
+    }
+  }
+
+  for (const specId of activeSpecIds) {
+    if (!specCoveredByDsn.has(specId)) {
+      errors.push(`Coverage gap: Active specification "${specId}" has no matching design (DSN-) depending on or linking it.`);
     }
   }
 

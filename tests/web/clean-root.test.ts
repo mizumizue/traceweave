@@ -2,21 +2,22 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { repositoryPath } from '../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
  * - 対象: リポジトリ構成ガバナンス（クリーンルート規約および資産カプセル化）
  * - 条件: ワークスペースルート、src/、src/web/、bin/ ディレクトリのファイル配置を検査
  * - 期待結果: ルート直下に禁止資材（node_modules, dist, HTML/CSS設定）が存在せず、実装資材がsrc/に、Web資材がsrc/web/に完全集約されていること
- * - 関連文書: TC-0014, TC-0016, REQ-0014, REQ-0016, ADR-0004
+ * - 関連文書: TC-0014, TC-0016, ADR-0004, ADR-0005
  */
 test('TC-0014 & TC-0016: クリーンルート規約 - ルート直下の禁止資材非存在、src/webへの資材カプセル化、およびbin/ラッパー配置の検証', () => {
-  const rootDir = path.resolve('.');
+  const rootDir = repositoryPath();
 
   // 1. Prohibited development assets directly in root (clean root)
+  assert.equal(fs.existsSync(path.join(rootDir, 'node_modules')), false);
+  assert.equal(fs.existsSync(path.join(rootDir, 'dist')), false);
   const prohibitedInRoot = [
-    'node_modules',
-    'dist',
     'dist-web',
     'index.html',
     'vite.config.ts',

@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { TestRunnerRegistry } from '../../src/core/testing/TestRunnerRegistry.js';
 import { TestCaseDataset } from '../../src/core/models/types.js';
+import { repositoryPath } from '../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
@@ -13,7 +14,7 @@ import { TestCaseDataset } from '../../src/core/models/types.js';
  * - 関連文書: TC-0010, REQ-0008, SPEC-0008
  */
 test('TC-0010: TestRunnerRegistry - 外部パラメータファイルからデータセットを読み込み、事前定義全パターンのバッチ実行が合格すること', () => {
-  const fixturePath = path.resolve('fixtures/test-cases/TC-0010.json');
+  const fixturePath = repositoryPath('fixtures/test-cases/TC-0010.json');
   assert.ok(fs.existsSync(fixturePath), 'Fixture file TC-0010.json should exist');
 
   const dataset: TestCaseDataset = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));

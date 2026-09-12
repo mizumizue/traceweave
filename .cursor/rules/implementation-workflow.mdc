@@ -1,103 +1,37 @@
 ---
-description: 実装作業時の起点決定（docs/needs, requirements, decisions, または直接実装）と文書先行の実装ルール
+description: 実装作業時の起点決定（パスA〜D）とスキルへの委譲ルール
 globs: **/*
 alwaysApply: true
 ---
 
 # Implementation Workflow
 
-機能追加・修正・リファクタリング等の実装作業を行う際は、まず `docs/SYSTEM_OVERVIEW.md` のシステム境界（In-Scope / Out-of-Scope）および判定基準（または `ARCHITECTURE.md`）を参照して指示の性質を判別し、適切な起点（Entrypoint）を選択して進める。
-
-無理にすべての作業を要求（NEED）に押し込める過剰形式主義（Over-specification）や同語反復（Tautology）を避け、適切な抽象度で記録・検証する。特にリポジトリ構成・ファイル配置・スクリプト管理などの内部都合・構成管理はシステム要求（NEED）ではなく、決定（ADR: パスC）または直接実装（パスD）として扱う。
+実装作業時は `docs/SYSTEM_OVERVIEW.md` のシステム境界（In-Scope / Out-of-Scope）を参照して指示の性質を判別し、適切な起点（Entrypoint）を選択して対応するスキルへ委譲する。
 
 ## 1. Entrypoint（起点の判定）
 
-指示内容を以下の基準で分類し、起点（Entrypoint）となるパスを決定する。
+| パス | 種別 | 指示の特徴 | 記録先 | 起動スキル |
+|---|---|---|---|---|
+| **パスA** | **要求起点** (`need`) | 背景・動機・ユーザー課題（Why）、複数成果に分解される抽象度の高い要望 | `docs/needs/NEED-xxxx.md` | `document-authoring` |
+| **パスB** | **要件起点** (`requirement`) | 具体的・観測可能な成果、単一の振る舞い、バグ修正、入出力仕様 | `docs/requirements/REQ-xxxx.md` | `document-authoring` |
+| **パスC** | **決定起点** (`decision` / ADR) | アーキテクチャ方針、構成管理・ファイル配置（クリーンルート規約等）の意思決定 | `docs/decisions/ADR-xxxx.md` | `document-authoring` |
+| **パスD** | **直接実装** (`chore` / `cleanup`) | デッドコード削除、軽微なスクリプト調整、独立要求ツリーが同語反復となる作業 | 文書起票不要 | 直接実装・テスト |
 
-| パス | 種別 | 指示の特徴 | 記録先 |
-|---|---|---|---|
-| **パスA** | **要求起点** (`need`) | 背景・動機・ユーザー課題（Why）、大まかな要望（「〜したい」「〜で困っている」）、または複数の独立した成果に分解される抽象度の高いシステム要求（実行時ソフトウェアの振る舞い・機能） | `docs/needs/NEED-xxxx.md` |
-| **パスB** | **要件起点** (`requirement`) | 具体的・観測可能な成果、単一の振る舞い、バグ修正、入出力仕様や非機能要件など、独立して閉じたシステム要件 | `docs/requirements/REQ-xxxx.md`<br>(`depends_on: []`) |
-| **パスC** | **決定起点** (`decision` / ADR) | システム全体の方針、アーキテクチャ上のトレードオフ、リポジトリ構成や配置（クリーンルート規約等）に関する構造的・方針的な意思決定 | `docs/decisions/ADR-xxxx.md`<br>(`depends_on: []`) |
-| **パスD** | **直接実装** (`chore` / `cleanup`) | デッドコード削除、軽微なスクリプト調整、独立した要求ツリーを作成することが同語反復となるリファクタリングや片付け | 文書起票不要<br>（直接コード・テスト・コミットへ） |
+※ リポジトリ構成・ファイル配置・依存関係管理等の内部都合はシステム要求（NEED/REQ）ではなく、決定（ADR: パスC）または直接実装（パスD）とする（`SYSTEM_OVERVIEW.md` 参照）。
 
-※ 判断に迷う場合は `docs/SYSTEM_OVERVIEW.md` の「3. システム要求判定クライテリア」を参照すること。
+## 2. スキル委譲と実行フロー
 
-## 2. Refinement & Steps（手順）
+1. **ドキュメント起票・改訂 (パスA, B, C)**:
+   - `document-authoring` スキルを起動し、V字モデル（NEED -> REQ -> SPEC -> DSN）の起票、抽象度防壁（What vs Contract vs How）、および DSN カバレッジを完了させる。
+2. **テストケース起票・監査**:
+   - `test-case-review` スキルを起動し、テストケース（`TC-`）のオラクル正当性、テスト可能性、論理無矛盾を検証する。
+3. **実装と検証**:
+   - 仕様（SPEC）および設計（DSN）に沿ってコードとテストを実装する。
 
-### パスA: 要求起点 (`need`)
-1. **要求の起票 (`NEED-`)**:
- - `docs/needs/` に `NEED-xxxx.md` を1ファイル作成する（1ファイル1要求）。
- - 見出し（`### Background`、`### Problem`、`### Desired Outcome`）に沿って背景・課題・期待成果を記述する。
- - `depends_on: []` とする。
-2. **要件への分解 (1:N)**:
- - 要求を満たす観測可能な成果ごとに、1つ以上の独立した要件 `docs/requirements/REQ-yyyy.md` に分解する。
- - 各要件のフロントマターで `depends_on: [NEED-xxxx]` を指定し、要求 1 に対する要件 N の追跡関係を結ぶ。
- - **抽象度防壁**: 要件にはクラス名、特定ライブラリ名、内部実装手段（How）を記述せず、観測可能な振る舞い（What）に純化する。受入条件は `- AC-xxx: Given ... When ... Then ...` を遵守する。
-3. **仕様・設計の精緻化**:
- - 必要に応じて `docs/specifications/SPEC-zzzz.md`、`docs/design/DSN-aaaa.md` を作成する。
-4. **検証ゲート (Gate)**:
- - `npm --prefix src run lint`（`tsx scripts/validate-docs.ts`）を実行し、全文書がスキーマに適合することを確認する。
- - **SubAgent レビューゲート**: ドキュメント起票・変更後、SubAgent を起動して「要件・仕様への実装詳細の漏れ出し（Implementation Leakage）」「AC 書式規律（Given-When-Then）」「スキーマ適合」を独立視点で検証・承認させる。
-5. **実装とテスト**:
- - 定義した受入条件（AC）および仕様に基づき、テスト（必要に応じて `docs/test-cases/TC-xxxx.md` を起票）とコードを実装する。
+## 3. ガードレールと完了条件
 
-### パスB: 要件起点 (`requirement`)
-1. **要件の起票 (`REQ-`)**:
- - `docs/requirements/` に `REQ-xxxx.md` を作成する。
- - `depends_on: []` とする。
- - **抽象度防壁**: 要件にはクラス名、特定ライブラリ名、内部実装手段（How）を記述せず、観測可能な振る舞い（What）に純化する。受入条件は `- AC-xxx: Given ... When ... Then ...` を遵守する。
-2. **仕様・設計の精緻化**:
- - 必要に応じて `docs/specifications/SPEC-zzzz.md`、`docs/design/DSN-aaaa.md` を作成する。
-3. **検証ゲート (Gate)**:
- - `npm --prefix src run lint`（`tsx scripts/validate-docs.ts`）を実行し、全文書がスキーマに適合することを確認する。
- - **SubAgent レビューゲート**: SubAgent を起動し、実装詳細の漏れ出しがないこと、および AC 書式を検証・承認させる。
-4. **実装とテスト**:
- - 定義した受入条件（AC）および仕様に基づき、テスト（必要に応じて `docs/test-cases/TC-xxxx.md` を起票）とコードを実装する。
-
-### パスC: 決定起点 (`decision` / ADR)
-1. **意思決定の記録 (`ADR-`)**:
- - `docs/decisions/` に `ADR-xxxx.md` を作成する。
- - 見出し（`### Context`、`### Decision`、`### Consequences`）に沿って文脈・決定内容・影響を記述する。
- - `depends_on: []` とする。関連する設計がある場合は `links: [DSN-...]` を付与する。
-2. **検証ゲート (Gate)**:
- - `npm --prefix src run lint`（`tsx scripts/validate-docs.ts`）を実行し、全文書がスキーマに適合することを確認する。
- - **SubAgent レビューゲート**: アーキテクチャ決定とトレードオフの網羅性を SubAgent に検証させる。
-3. **実装とテスト**:
- - 決定に基づき、必要なコード・スクリプト・設定の変更とテストを実施する。
-
-### パスD: 直接実装 (`chore` / `cleanup`)
-1. **影響範囲の特定**:
- - 変更対象のコード・スクリプトおよび関連テストを特定する。
-2. **実装とテスト**:
- - テストファーストまたはリファクタリングの原則に基づき、コード変更とテストを実施する。
- - 必要に応じて `npm --prefix src run lint`（`tsx scripts/validate-docs.ts`）を実行し、既存文書に意図しない不整合が生じていないことを確認する（SubAgent レビューは任意）。
-
-### 外部システムインターフェース（外部 IF）を伴う場合の精緻化ルール
-外部 API、CLI、MCP サーバーなど外部システムとの接続や連携仕様を追加・変更する場合は、以下を実施する。
-1. **外部アクター確認**: `docs/actors/ACT-xxxx.md` に相手先（外部システム）が存在することを確認する（未定義なら起票）。
-2. **インターフェース仕様（ICD）起票**: `docs/specifications/SPEC-xxxx.md` に通信プロトコル、入出力スキーマ、エラー表現、制約を記述し、フロントマターに `tags: [interface, external, <対象名>]` を付与する。
-3. **接続設計起票**: 必要に応じて `docs/design/DSN-xxxx.md` にポート＆アダプタ構造、リトライ、タイムアウト、フォールバック設計を記述する。
-
-## 3. SubAgent レビューゲート運用基準 (Review Gate Standard)
-
-ドキュメント起票・大規模リファクタリング・機能実装完了時、親エージェントのコンテキストバイアス（自己の記述に対する盲点）を排除するため、Task ツールを用いて独立した SubAgent にレビューを依頼する。
-
-- **トリガー**: パスA, B, C のドキュメント作成・改訂時、およびマイルストーンとなる機能実装完了時（パスDの軽微な修正は任意）。
-- **SubAgent 種別**: `generalPurpose` または `code-review`
-- **レビュー観点**:
-  1. **Abstraction Guard（抽象度防壁）**: `REQ` や `SPEC` にクラス名、ファイルパス、特定ライブラリ名、内部実装手段（How）が漏れ出していないか？
-  2. **AC Format Guard（受入条件規律）**: AC が `- AC-xxx: Given ... When ... Then ...` の厳格な形式になっているか？（チェックボックスや番号リストの混入がないか）
-  3. **Boundary Guard（境界防壁）**: `SYSTEM_OVERVIEW.md` の Out-of-Scope（リポジトリ構成管理など）が無理に REQ 化されていないか？
-  4. **Traceability & Schema**: `npm --prefix src run lint` が exit code 0 でパスし、依存関係（`depends_on`）が一方向かつ適正か？
-
-## 4. Completion Criterion（完了条件）
-
-- 指示の性質に応じたパス（A〜D）が正しく選択されている。
-- パスAの場合、要求（1ファイル）に対して要件が 1:N で紐づいている（`REQ` の `depends_on` が `NEED` を参照）。
-- パスBの場合、単一の要件（`REQ`）に明確な受入条件（AC）が定義されている。
-- パスCの場合、アーキテクチャ上の決定とトレードオフが `ADR` に明文化されている。
-- 外部システムIFを伴う場合、`SPEC-` に `tags: [interface, external, ...]` が付与され、外部境界の契約が明文化されている。
-- 文書の追加・変更を行った場合、`npm --prefix src run lint`（`tsx scripts/validate-docs.ts`）が成功（exit code 0）している。
-- 起点文書に定義された受入条件（AC）・仕様・設計、またはコード変更意図を満たす実装とテストが存在する。
-- パスA, B, C の場合、SubAgent レビューゲートが完了し、指摘事項がすべて解消されていること。
+- **境界ガード**: `SYSTEM_OVERVIEW.md` の Out-of-Scope 事項が REQ/SPEC 化されていないこと。
+- **DSN カバレッジ**: 全ての有効な仕様（`SPEC-`）に対応する設計（`DSN-`）が存在すること。
+- **機械的検証**: `npm --prefix src run lint`（`scripts/validate-docs.ts`）が exit code 0 で成功すること。
+- **独立監査**: パスA, B, C のドキュメント作成・改訂時、`Task` ツールによる SubAgent レビューゲートを通過していること。
+- **実装・テスト整合**: 定義された受入条件（AC）・仕様・設計を満たす実装とテストが存在し、`npm --prefix src test` が成功すること。

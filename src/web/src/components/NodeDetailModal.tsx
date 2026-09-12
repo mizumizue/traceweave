@@ -8,6 +8,13 @@ import {
 import { buildFullUrl } from '../utils/urlState.js';
 import { CircularGauge } from './CircularGauge.js';
 import { InteractiveTestRunner } from './InteractiveTestRunner.js';
+import {
+  appendModalHistory,
+  getNodeCopyText,
+  isModalEscapeKey,
+  isModalOverlayClick,
+  moveModalHistory,
+} from './modalNavigation.js';
 import { toast } from 'sonner';
 import {
   ChevronLeft,
@@ -59,9 +66,10 @@ export function NodeDetailModal({
 
   // When external node prop changes from outside
   useEffect(() => {
-    if (history[historyIndex] !== node.id) {
-      setHistory(prev => [...prev.slice(0, historyIndex + 1), node.id]);
-      setHistoryIndex(prev => prev + 1);
+    const next = appendModalHistory({ history, index: historyIndex }, node.id);
+    if (next.index !== historyIndex) {
+      setHistory(next.history);
+      setHistoryIndex(next.index);
     }
   }, [node.id]);
 
@@ -78,8 +86,9 @@ export function NodeDetailModal({
       if (typeof window !== 'undefined' && window.history) {
         window.history.back();
       } else {
-        const prevId = history[historyIndex - 1];
-        setHistoryIndex(historyIndex - 1);
+        const next = moveModalHistory({ history, index: historyIndex }, 'back');
+        const prevId = next.history[next.index];
+        setHistoryIndex(next.index);
         onSelectNode(prevId);
       }
     }
@@ -94,8 +103,9 @@ export function NodeDetailModal({
       if (typeof window !== 'undefined' && window.history) {
         window.history.forward();
       } else {
-        const nextId = history[historyIndex + 1];
-        setHistoryIndex(historyIndex + 1);
+        const next = moveModalHistory({ history, index: historyIndex }, 'forward');
+        const nextId = next.history[next.index];
+        setHistoryIndex(next.index);
         onSelectNode(nextId);
       }
     }
@@ -104,7 +114,7 @@ export function NodeDetailModal({
   // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (isModalEscapeKey(e.key)) {
         onClose();
       }
     };
@@ -153,7 +163,7 @@ export function NodeDetailModal({
   return (
     <div
       onClick={e => {
-        if (e.target === e.currentTarget) onClose();
+        if (isModalOverlayClick(e.target, e.currentTarget)) onClose();
       }}
       className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 z-50 animate-fadeIn"
     >
@@ -196,7 +206,7 @@ export function NodeDetailModal({
               <div className="flex items-center gap-1">
                 <span className="text-xl font-bold font-mono text-slate-100">{node.id}</span>
                 <button
-                  onClick={() => copyToClipboard(node.id, 'ID', 'modal-id')}
+                  onClick={() => copyToClipboard(getNodeCopyText(node, 'id'), 'ID', 'modal-id')}
                   className="text-slate-500 hover:text-slate-200 p-1 rounded transition"
                   title="IDをコピー"
                 >
@@ -548,7 +558,7 @@ export function NodeDetailModal({
             <span className="font-mono text-[11px] truncate">{node.filePath || node.id}</span>
             {node.filePath && (
               <button
-                onClick={() => copyToClipboard(node.filePath!, 'ファイルパス', 'modal-path')}
+                onClick={() => copyToClipboard(getNodeCopyText(node, 'filePath'), 'ファイルパス', 'modal-path')}
                 className="text-slate-500 hover:text-slate-300 p-0.5 rounded transition shrink-0"
                 title="ファイルパスをコピー"
               >
@@ -560,7 +570,7 @@ export function NodeDetailModal({
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => {
-                const md = `# ${node.id}: ${node.title}\n\n${node.content}`;
+                const md = getNodeCopyText(node, 'markdown');
                 copyToClipboard(md, 'ノード内容(Markdown)');
               }}
               className="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-lg font-semibold transition flex items-center gap-1.5"

@@ -60,6 +60,10 @@ export const DEFAULT_URL_STATE: AppUrlState = {
   graphHighlight: 'all',
 };
 
+export function getHomeUrlState(): AppUrlState {
+  return { ...DEFAULT_URL_STATE };
+}
+
 /**
  * クエリ文字列または URL から AppUrlState をパースする。
  * 不正値は安全にデフォルト値へフォールバックする。
@@ -229,6 +233,21 @@ export function isUrlStateEqual(a: AppUrlState, b: AppUrlState): boolean {
     a.catalogTag === b.catalogTag &&
     a.catalogStatus === b.catalogStatus &&
     a.graphHighlight === b.graphHighlight
+  );
+}
+
+export function isOnlySearchQueryChanged(previous: AppUrlState, current: AppUrlState): boolean {
+  return (
+    previous.searchQuery !== current.searchQuery &&
+    previous.tab === current.tab &&
+    previous.nodeId === current.nodeId &&
+    previous.phaseFilter === current.phaseFilter &&
+    previous.criticalityFilter === current.criticalityFilter &&
+    previous.scoreFilter === current.scoreFilter &&
+    previous.catalogKind === current.catalogKind &&
+    previous.catalogTag === current.catalogTag &&
+    previous.catalogStatus === current.catalogStatus &&
+    previous.graphHighlight === current.graphHighlight
   );
 }
 

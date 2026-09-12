@@ -126,10 +126,14 @@ export class DocParser {
 
       let parameters = undefined;
       if (data.parameter_file && typeof data.parameter_file === 'string') {
-        const paramFilePath = path.isAbsolute(data.parameter_file)
-          ? data.parameter_file
-          : path.resolve(process.cwd(), data.parameter_file);
-        if (fs.existsSync(paramFilePath)) {
+        const candidates = path.isAbsolute(data.parameter_file)
+          ? [data.parameter_file]
+          : [
+              path.resolve(process.cwd(), data.parameter_file),
+              path.resolve(path.dirname(filePath), '..', '..', data.parameter_file),
+            ];
+        const paramFilePath = candidates.find(candidate => fs.existsSync(candidate));
+        if (paramFilePath) {
           try {
             parameters = JSON.parse(fs.readFileSync(paramFilePath, 'utf-8'));
           } catch {

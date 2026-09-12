@@ -16,17 +16,24 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 function resolveDocsDir(requestedPath?: string): string {
-  if (requestedPath && requestedPath !== './docs' && fs.existsSync(requestedPath)) {
-    return requestedPath;
+  if (requestedPath) {
+    const resolved = path.resolve(requestedPath);
+    if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) {
+      throw new Error(`Docs directory not found: ${resolved}`);
+    }
+    return resolved;
   }
   const candidateDirs = [
-    requestedPath || './docs',
-    path.resolve(process.cwd(), requestedPath || './docs'),
     path.resolve(__dirname, '../../docs'),
     path.resolve(__dirname, '../docs'),
+    path.resolve(process.cwd(), requestedPath || './docs'),
     path.resolve(process.cwd(), '../docs'),
   ];
-  return candidateDirs.find(d => fs.existsSync(d) && fs.statSync(d).isDirectory()) || (requestedPath || './docs');
+  const resolved = candidateDirs.find(d => fs.existsSync(d) && fs.statSync(d).isDirectory());
+  if (!resolved) {
+    throw new Error('Docs directory not found');
+  }
+  return resolved;
 }
 
 const program = new Command();
@@ -40,7 +47,7 @@ program
 program
   .command('check')
   .description('Validate docs schema, links, cycles, and test coverage (CI friendly)')
-  .option('-d, --docs <dir>', 'Docs directory path', './docs')
+  .option('-d, --docs <dir>', 'Docs directory path')
   .option('-s, --strict', 'Fail if any requirement is untested or not fully satisfied', false)
   .action((options) => {
     const docsDir = resolveDocsDir(options.docs);
@@ -73,7 +80,7 @@ program
 program
   .command('report')
   .description('Generate quality sufficiency and phase stratum report')
-  .option('-d, --docs <dir>', 'Docs directory path', './docs')
+  .option('-d, --docs <dir>', 'Docs directory path')
   .option('-f, --format <format>', 'Output format (text, json, markdown)', 'text')
   .option('-o, --out <file>', 'Output file path (optional)')
   .action((options) => {
@@ -105,7 +112,7 @@ program
 program
   .command('matrix')
   .description('Display or export requirement-to-test traceability matrix')
-  .option('-d, --docs <dir>', 'Docs directory path', './docs')
+  .option('-d, --docs <dir>', 'Docs directory path')
   .option('-f, --format <format>', 'Output format (text, json, markdown, csv)', 'text')
   .option('-o, --out <file>', 'Output file path (optional)')
   .action((options) => {
@@ -152,7 +159,7 @@ program
   .command('test-inputs')
   .alias('inputs')
   .description('Deterministically analyze test case input modifiability and classify UI executability via script')
-  .option('-d, --docs <dir>', 'Docs directory path', './docs')
+  .option('-d, --docs <dir>', 'Docs directory path')
   .option('-f, --format <format>', 'Output format (text, json, markdown)', 'text')
   .option('-o, --out <file>', 'Output file path (optional)')
   .action((options) => {
@@ -197,7 +204,7 @@ program
 program
   .command('catalog')
   .description('Display or export cross-cutting decisions & architecture documents catalog')
-  .option('-d, --docs <dir>', 'Docs directory path', './docs')
+  .option('-d, --docs <dir>', 'Docs directory path')
   .option('-k, --kind <kind>', 'Filter by document kind (actor, use_case, requirement, specification, design, decision, quality_assurance, need, test_case, all)', 'all')
   .option('-t, --tag <tag>', 'Filter by tag')
   .option('-q, --query <query>', 'Search keyword in title, id, or content')
@@ -266,7 +273,7 @@ program
 program
   .command('decisions')
   .description('Display architectural decisions (ADR) and design specifications (DSN)')
-  .option('-d, --docs <dir>', 'Docs directory path', './docs')
+  .option('-d, --docs <dir>', 'Docs directory path')
   .option('-f, --format <format>', 'Output format (text, json)', 'text')
   .option('-o, --out <file>', 'Output file path (optional)')
   .action((options) => {
@@ -293,7 +300,7 @@ program
 program
   .command('build')
   .description('Build static web dashboard with embedded traceability data')
-  .option('-d, --docs <dir>', 'Docs directory path', './docs')
+  .option('-d, --docs <dir>', 'Docs directory path')
   .option('-o, --out <dir>', 'Output directory', './src/web/dist')
   .action((options) => {
     const docsDir = resolveDocsDir(options.docs);
@@ -325,7 +332,7 @@ program
   .command('serve')
   .description('Serve interactive web dashboard locally')
   .option('-p, --port <port>', 'Server port', '3000')
-  .option('-d, --docs <dir>', 'Docs directory path', './docs')
+  .option('-d, --docs <dir>', 'Docs directory path')
   .action((options) => {
     const port = parseInt(options.port, 10);
     const docsDir = resolveDocsDir(options.docs);
@@ -431,7 +438,7 @@ program
 program
   .command('mcp')
   .description('Start TraceWeave MCP server for Cursor / AI Agent integration')
-  .option('-d, --docs <dir>', 'Docs directory path', './docs')
+  .option('-d, --docs <dir>', 'Docs directory path')
   .action(async (options) => {
     const docsDir = resolveDocsDir(options.docs);
     const { startMcpServer } = await import('../mcp/server.js');

@@ -12,6 +12,45 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+export interface PyramidLayer {
+  level: TestLevel;
+  shortLabel: string;
+  name: string;
+  widthPercent: number;
+}
+
+export const PYRAMID_LAYERS: readonly PyramidLayer[] = [
+  { level: 'acceptance', shortLabel: 'UAT', name: '受入テスト (Acceptance)', widthPercent: 35 },
+  { level: 'system', shortLabel: 'ST', name: '総合テスト (System)', widthPercent: 50 },
+  { level: 'integration_external', shortLabel: 'ITb', name: '外部結合テスト (Integration Ext)', widthPercent: 65 },
+  { level: 'integration_internal', shortLabel: 'ITa', name: '内部結合テスト (Integration Int)', widthPercent: 80 },
+  { level: 'unit', shortLabel: 'UT', name: '単体テスト (Unit)', widthPercent: 96 },
+];
+
+export interface PyramidLayerMetrics extends PyramidLayer {
+  count: number;
+  ratioPercent: number;
+  coveragePercent: number;
+}
+
+export function calculatePyramidLayerMetrics(strata: StratumReport[]): PyramidLayerMetrics[] {
+  const strataMap = new Map(strata.map(stratum => [stratum.level, stratum]));
+  const totalTests = strata.reduce((total, stratum) => total + stratum.count, 0);
+  return PYRAMID_LAYERS.map(layer => {
+    const data = strataMap.get(layer.level);
+    return {
+      ...layer,
+      count: data?.count || 0,
+      ratioPercent: totalTests > 0 ? Math.round(((data?.count || 0) / totalTests) * 100) : 0,
+      coveragePercent: Math.round((data?.coverageRatio || 0) * 100),
+    };
+  });
+}
+
+export function createPyramidLayerClickHandler(onFilterPhase: (phase: TestLevel) => void) {
+  return (phase: TestLevel) => onFilterPhase(phase);
+}
+
 interface VisualTestPyramidProps {
   strata: StratumReport[];
   pyramid: PyramidHealthReport;
@@ -28,13 +67,12 @@ export function VisualTestPyramid({ strata, pyramid, onFilterPhase }: VisualTest
   }
 
   // Layers from top of pyramid to base (V-Model descending order)
-  const pyramidLayers: { level: TestLevel; shortLabel: string; name: string; widthPercent: number }[] = [
-    { level: 'acceptance', shortLabel: 'UAT', name: '受入テスト (Acceptance)', widthPercent: 35 },
-    { level: 'system', shortLabel: 'ST', name: '総合テスト (System)', widthPercent: 50 },
-    { level: 'integration_external', shortLabel: 'ITb', name: '外部結合テスト (Integration Ext)', widthPercent: 65 },
-    { level: 'integration_internal', shortLabel: 'ITa', name: '内部結合テスト (Integration Int)', widthPercent: 80 },
-    { level: 'unit', shortLabel: 'UT', name: '単体テスト (Unit)', widthPercent: 96 },
-  ];
+  const pyramidLayers = PYRAMID_LAYERS;
+  const selectLayer = createPyramidLayerClickHandler((phase: TestLevel) => {
+    const layer = pyramidLayers.find(item => item.level === phase);
+    onFilterPhase?.(phase);
+    if (layer) toast.info(`マトリクスを "${layer.name}" で絞り込みました`);
+  });
 
   const statusConfig = {
     healthy: {
@@ -90,8 +128,7 @@ export function VisualTestPyramid({ strata, pyramid, onFilterPhase }: VisualTest
 
   const handleLayerClick = (level: string, label: string) => {
     if (onFilterPhase) {
-      onFilterPhase(level);
-      toast.info(`マトリクスを "${label}" で絞り込みました`);
+      selectLayer(level as TestLevel);
     }
   };
 

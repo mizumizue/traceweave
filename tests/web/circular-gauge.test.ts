@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { calculateCircularGauge, getScoreColor } from '../../src/web/src/components/CircularGauge.js';
 import { buildTraceWeaveReport } from '../../src/application/build-report.js';
+import { repositoryPath } from '../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
@@ -84,7 +85,7 @@ test('TC-0012: CircularGauge - スコア閾値（80%以上: teal、50%〜79%: am
  * - 関連文書: TC-0013, REQ-0010, SPEC-0010
  */
 test('TC-0013: CircularGauge - ダッシュボード全体の各指標（全体スコア、要件行、テスト層カバレッジ）への円形ゲージ統合およびトレーサビリティの検証', () => {
-  const { report, graph } = buildTraceWeaveReport({ docsDir: './docs', useCache: false });
+  const { report, graph } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
 
   // 1. Header Global Scores
   assert.ok(

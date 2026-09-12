@@ -89,6 +89,8 @@ Problem text
 Desired outcome text
 `
   );
+  const cacheMtime = new Date('2020-01-01T00:00:00.000Z');
+  fs.utimesSync(sampleFile, cacheMtime, cacheMtime);
 
   const cache = new SQLiteCache(':memory:');
   const parser = new DocParser(cache);
@@ -100,10 +102,16 @@ Desired outcome text
   assert.equal(nodes1[0].sections?.['Background'], 'Background text');
   assert.equal(cache.count(), 1);
 
+  const originalContents = fs.readFileSync(sampleFile, 'utf8');
+  fs.writeFileSync(sampleFile, `${originalContents}\nchanged after first parse`);
+  fs.utimesSync(sampleFile, cacheMtime, cacheMtime);
+
   // Second parse (cache hit)
   const nodes2 = parser.parseDirectory(tmpDir);
   assert.equal(nodes2.length, 1);
   assert.equal(nodes2[0].id, 'NEED-0001');
+  assert.equal(nodes2[0].content, nodes1[0].content);
+  assert.equal(nodes2[0].sections?.['Background'], 'Background text');
 
   cache.close();
   fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -173,6 +181,9 @@ Log outputs confirmed.
   assert.equal(node.expected_result, 'Return value is true.');
   assert.equal(node.actual_result, 'Return value was true. Execution took 0.5ms.');
   assert.ok(node.steps?.includes('1. Run test function.'));
+  assert.equal(node.sections?.['Objective'], 'Verify that units pass accurately.');
+  assert.equal(node.sections?.['Expected Results'], 'Return value is true.');
+  assert.equal(node.sections?.['Actual Results'], 'Return value was true. Execution took 0.5ms.');
   assert.equal(node.sections?.['Evidence'], 'Log outputs confirmed.');
 
   fs.rmSync(tmpDir, { recursive: true, force: true });

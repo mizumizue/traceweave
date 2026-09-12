@@ -4,6 +4,7 @@ import path from 'node:path';
 import { DocParser } from '../../src/infrastructure/parser/DocParser.js';
 import { TraceabilityGraphBuilder, GRAPH_RANKS } from '../../src/core/graph/TraceabilityGraphBuilder.js';
 import { DocNode } from '../../src/core/models/types.js';
+import { repositoryPath } from '../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
@@ -402,7 +403,7 @@ test('TC-0018: TraceabilityGraphBuilder - 循環参照を含むグラフの安�
  */
 test('TC-0018: TraceabilityGraphBuilder - 実際のdocsディレクトリを対象とした全階層レイアウトおよびエッジ接続の結合検証', () => {
   const parser = new DocParser();
-  const nodes = parser.parseDirectory(path.resolve('docs'));
+  const nodes = parser.parseDirectory(repositoryPath('docs'));
   assert.ok(nodes.length >= 80);
 
   const graph = TraceabilityGraphBuilder.buildGraph(nodes);
