@@ -14,6 +14,7 @@ interface HeaderProps {
   onCopyShareUrl: () => void;
   onExportCsv: () => void;
   onExportJson: () => void;
+  onNavigateHome?: () => void;
 }
 
 export function Header({
@@ -23,27 +24,51 @@ export function Header({
   onCopyShareUrl,
   onExportCsv,
   onExportJson,
+  onNavigateHome,
 }: HeaderProps) {
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // If user holds modifier keys or uses non-left click, let browser handle native navigation
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+      return;
+    }
+    if (onNavigateHome) {
+      e.preventDefault();
+      onNavigateHome();
+    }
+  };
+
+  const rootHref = typeof window !== 'undefined' && window.location ? window.location.pathname || '/' : '/';
+
   return (
-    <header className="flex items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+    <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
       {/* Brand Identity & Subtitle */}
-      <div className="flex items-center gap-3 min-w-0">
-        <span className="text-2xl sm:text-3xl filter drop-shadow select-none shrink-0">🕸️</span>
-        <div className="flex items-center gap-2.5 min-w-0">
-          <h1 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-teal-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent tracking-tight shrink-0">
-            TraceWeave
-          </h1>
-          <span className="text-[11px] font-mono px-2 py-0.5 bg-teal-950/80 text-teal-300 border border-teal-700/60 rounded-full font-semibold shadow-sm shrink-0">
+      <div className="flex flex-col justify-center gap-1.5 min-w-0">
+        <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+          <a
+            href={rootHref}
+            onClick={handleLogoClick}
+            className="flex items-center gap-2.5 shrink-0 group cursor-pointer select-none rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 pr-1.5 transition-colors"
+            title="TraceWeave トップ（ルート画面）へ戻る"
+            aria-label="TraceWeave ホームへ戻る"
+          >
+            <span className="text-2xl sm:text-3xl filter drop-shadow select-none shrink-0 group-hover:scale-105 transition-transform duration-200">
+              🕸️
+            </span>
+            <h1 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-teal-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent shrink-0 group-hover:opacity-90 transition-opacity">
+              TraceWeave
+            </h1>
+          </a>
+          <span className="text-[11px] font-mono px-2.5 py-0.5 bg-teal-950/80 text-teal-300 border border-teal-700/60 rounded-full font-semibold shadow-sm shrink-0 whitespace-nowrap tracking-wide">
             v0.1.0 Live Matrix
           </span>
-          <span className="hidden xl:inline text-xs text-slate-400 font-normal border-l border-slate-800 pl-3 ml-1 truncate">
-            要求からテストまでの一貫した縦糸 × 工程・手法の横糸で織りなすV字モデル品質トレーサビリティ
-          </span>
         </div>
+        <p className="text-xs text-slate-400 font-normal leading-relaxed max-w-2xl">
+          要求からテストまでの一貫した縦糸 × 工程・手法の横糸で織りなすV字モデル品質トレーサビリティ
+        </p>
       </div>
 
       {/* Quick Action Toolbar */}
-      <div className="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800 shrink-0 shadow-sm">
+      <div className="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800 shrink-0 shadow-sm self-start sm:self-auto overflow-x-auto max-w-full">
         <button
           onClick={onRefresh}
           disabled={isRefreshing}

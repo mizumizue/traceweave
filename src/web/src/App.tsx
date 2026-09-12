@@ -253,6 +253,20 @@ export default function App() {
     toast.info('すべてのフィルターを解除しました');
   };
 
+  // Navigate to root (Header Logo click)
+  const handleNavigateHome = () => {
+    setActiveTab('matrix');
+    setSelectedNodeId(null);
+    setSearchQuery('');
+    setPhaseFilter('all');
+    setCriticalityFilter('all');
+    setScoreFilter('all');
+    setCatalogKind('all');
+    setCatalogTag(null);
+    setCatalogStatus('all');
+    setGraphHighlight('all');
+  };
+
   const isFilterActive =
     searchQuery.trim() !== '' ||
     phaseFilter !== 'all' ||
@@ -383,6 +397,7 @@ export default function App() {
           onCopyShareUrl={handleCopyShareUrl}
           onExportCsv={handleExportCsv}
           onExportJson={handleExportJson}
+          onNavigateHome={handleNavigateHome}
         />
 
         {/* Quality Sufficiency & Core Metrics Grid */}
