@@ -13,18 +13,6 @@ export interface CheckResult {
   report?: TraceWeaveReport;
 }
 
-const KINDS: Record<string, { kind: string; prefix: string }> = {
-  needs: { kind: 'need', prefix: 'NEED' },
-  actors: { kind: 'actor', prefix: 'ACT' },
-  usecases: { kind: 'use_case', prefix: 'UC' },
-  requirements: { kind: 'requirement', prefix: 'REQ' },
-  specifications: { kind: 'specification', prefix: 'SPEC' },
-  design: { kind: 'design', prefix: 'DSN' },
-  decisions: { kind: 'decision', prefix: 'ADR' },
-  quality: { kind: 'quality_assurance', prefix: 'QA' },
-  'test-cases': { kind: 'test_case', prefix: 'TC' },
-};
-
 const VALID_TEST_LEVELS = [
   'unit',
   'integration_internal',
@@ -53,8 +41,6 @@ export function checkDocs(options: CheckOptions = {}): CheckResult {
       docsDir: options.docsDir,
       useCache: false,
     });
-
-    const allIds = new Set(nodes.map(n => n.id));
 
     // 1. Basic node validation
     for (const node of nodes) {

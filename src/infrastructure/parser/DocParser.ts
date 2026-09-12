@@ -3,7 +3,6 @@ import path from 'node:path';
 import matter from 'gray-matter';
 import { DocNode } from '../../core/models/types.js';
 import { SQLiteCache } from '../storage/SQLiteCache.js';
-import { TraceGraph } from '../../core/graph/TraceGraph.js';
 import { TestCaseInputAnalyzer } from '../../core/analyzer/TestCaseInputAnalyzer.js';
 
 export class DocParser {
@@ -149,31 +148,8 @@ export class DocParser {
       }
 
       return node;
-
-      return node;
     } catch {
       return null;
     }
-  }
-
-  public static buildGraph(docsDir: string = './docs', cacheDbPath?: string): { graph: TraceGraph; nodes: DocNode[] } {
-    let cache: SQLiteCache | undefined;
-    if (cacheDbPath) {
-      cache = new SQLiteCache(cacheDbPath);
-    }
-
-    const parser = new DocParser(cache);
-    const nodes = parser.parseDirectory(docsDir);
-
-    const graph = new TraceGraph();
-    for (const node of nodes) {
-      graph.addNode(node);
-    }
-
-    if (cache) {
-      cache.close();
-    }
-
-    return { graph, nodes };
   }
 }

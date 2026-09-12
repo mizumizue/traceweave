@@ -25,11 +25,6 @@ import {
 import { toast } from 'sonner';
 import { TestCaseInputAnalyzer } from '../../../core/analyzer/TestCaseInputAnalyzer.js';
 
-export function isTestUiExecutable(node: DocNode): boolean {
-  const analysis = node.inputAnalysis || TestCaseInputAnalyzer.analyze(node);
-  return analysis.isModifiable;
-}
-
 interface InteractiveTestRunnerProps {
   node: DocNode;
   onTestExecuted?: (result: TestRunResult) => void;

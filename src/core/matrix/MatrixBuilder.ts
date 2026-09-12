@@ -1,5 +1,6 @@
 import { TraceGraph } from '../graph/TraceGraph.js';
 import {
+  DocNode,
   MatrixRow,
   RequirementSufficiency,
   StratumReport,
@@ -12,6 +13,17 @@ import { TestCaseInputAnalyzer } from '../analyzer/TestCaseInputAnalyzer.js';
 import { DecisionsCatalogBuilder } from '../decisions/DecisionsCatalogBuilder.js';
 import { TraceabilityGraphBuilder } from '../graph/TraceabilityGraphBuilder.js';
 
+function mapTestCase(tc: DocNode) {
+  return {
+    id: tc.id,
+    title: tc.title,
+    level: tc.test_level || ('unit' as TestLevel),
+    method: tc.test_method || ('unit_mock' as TestMethod),
+    execution_status: tc.execution_status || 'pending',
+    actual_result: tc.actual_result,
+  };
+}
+
 export class MatrixBuilder {
   public buildMatrix(graph: TraceGraph, sufficiencies: RequirementSufficiency[]): MatrixRow[] {
     const rows: MatrixRow[] = [];
@@ -22,39 +34,14 @@ export class MatrixBuilder {
       const need = upstreams.find(n => n.kind === 'need');
       const suff = suffMap.get(req.id);
 
-      const specs = graph.getSpecsForRequirement(req.id).map(spec => {
-        const specTcs = graph.getDirectTestCases(spec.id).map(tc => ({
-          id: tc.id,
-          title: tc.title,
-          level: tc.test_level || ('unit' as TestLevel),
-          method: tc.test_method || ('unit_mock' as TestMethod),
-          execution_status: tc.execution_status || 'pending',
-          actual_result: tc.actual_result,
-        }));
-        return {
-          id: spec.id,
-          title: spec.title,
-          testCases: specTcs,
-        };
-      });
-
-      const directTcs = graph.getDirectTestCases(req.id).map(tc => ({
-        id: tc.id,
-        title: tc.title,
-        level: tc.test_level || ('unit' as TestLevel),
-        method: tc.test_method || ('unit_mock' as TestMethod),
-        execution_status: tc.execution_status || 'pending',
-        actual_result: tc.actual_result,
+      const specs = graph.getSpecsForRequirement(req.id).map(spec => ({
+        id: spec.id,
+        title: spec.title,
+        testCases: graph.getDirectTestCases(spec.id).map(mapTestCase),
       }));
 
-      const allTcs = graph.getAllTestCasesForRequirement(req.id).map(tc => ({
-        id: tc.id,
-        title: tc.title,
-        level: tc.test_level || ('unit' as TestLevel),
-        method: tc.test_method || ('unit_mock' as TestMethod),
-        execution_status: tc.execution_status || 'pending',
-        actual_result: tc.actual_result,
-      }));
+      const directTcs = graph.getDirectTestCases(req.id).map(mapTestCase);
+      const allTcs = graph.getAllTestCasesForRequirement(req.id).map(mapTestCase);
 
       rows.push({
         needId: need?.id,

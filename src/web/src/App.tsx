@@ -9,7 +9,7 @@ import {
   MatrixRow,
   DecisionsCatalog,
 } from '../../core/models/types.js';
-import { CircularGauge, PieChart } from './components/CircularGauge.js';
+import { CircularGauge } from './components/CircularGauge.js';
 import { InteractiveTestRunner } from './components/InteractiveTestRunner.js';
 import { VisualTestPyramid } from './components/VisualTestPyramid.js';
 import { DecisionsBrowser } from './components/DecisionsBrowser.js';

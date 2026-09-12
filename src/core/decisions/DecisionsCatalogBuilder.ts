@@ -116,20 +116,6 @@ export class DecisionsCatalogBuilder {
       level: node.test_level,
     });
 
-    const resolveRefs = (ids: string[] | undefined): DecisionsReferenceItem[] => {
-      if (!ids) return [];
-      const result: DecisionsReferenceItem[] = [];
-      for (const id of ids) {
-        const target = nodeMap.get(id);
-        if (target) {
-          result.push(toRefItem(target));
-        } else {
-          result.push({ id, title: id });
-        }
-      }
-      return result;
-    };
-
     const items: DecisionsCatalogItem[] = nodes.map(node => {
       const relatedActorsMap = new Map<string, DecisionsReferenceItem>();
       const relatedUseCasesMap = new Map<string, DecisionsReferenceItem>();
