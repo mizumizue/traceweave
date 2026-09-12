@@ -13,6 +13,32 @@ export class DocParser {
   }
 
   /**
+   * Converts a file path to a portable repository-relative path (using forward slashes)
+   * to avoid leaking absolute local user profile paths into cache or serialized outputs.
+   */
+  public static toPortablePath(filePath: string): string {
+    const normalized = filePath.replace(/\\/g, '/');
+    const docsIdx = normalized.lastIndexOf('/docs/');
+    if (docsIdx !== -1) {
+      return normalized.slice(docsIdx + 1);
+    }
+    if (normalized.startsWith('docs/')) {
+      return normalized;
+    }
+
+    const rel = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+    if (!rel.startsWith('..') && !path.isAbsolute(rel)) {
+      return rel;
+    }
+    const relFromParent = path.relative(path.resolve(process.cwd(), '..'), filePath).replace(/\\/g, '/');
+    if (!relFromParent.startsWith('..') && !path.isAbsolute(relFromParent)) {
+      return relFromParent;
+    }
+
+    return path.basename(filePath);
+  }
+
+  /**
    * Scans the docs directory and parses all Markdown files, using SQLite cache if available.
    */
   public parseDirectory(docsDir: string): DocNode[] {
@@ -33,7 +59,7 @@ export class DocParser {
         if (!file.endsWith('.md') || file.startsWith('.')) continue;
 
         const filePath = path.join(fullSubdir, file);
-        const normalizedPath = path.resolve(filePath);
+        const normalizedPath = DocParser.toPortablePath(filePath);
         validPaths.add(normalizedPath);
 
         const stat = fs.statSync(filePath);
@@ -136,7 +162,7 @@ export class DocParser {
         requirement_refs: Array.isArray(data.requirement_refs) ? data.requirement_refs : undefined,
         tags: Array.isArray(data.tags) ? data.tags : [],
         links: Array.isArray(data.links) ? data.links : [],
-        filePath: path.resolve(filePath),
+        filePath: DocParser.toPortablePath(filePath),
         content: parsed.content,
         sections,
       };
