@@ -1,0 +1,179 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import { SQLiteCache } from '../../src/infrastructure/storage/SQLiteCache.js';
+import { DocParser } from '../../src/infrastructure/parser/DocParser.js';
+
+/**
+ * 【テスト概要】
+ * - 対象: SQLiteCache (ファイル更新日時によるSQLiteインメモリキャッシュ)
+ * - 条件: パース済みDocNodeを同一mtime(1000)で保存し、同一mtimeおよび異なるmtime(2000)で取得
+ * - 期待結果: 同一mtimeではキャッシュヒットしてノードが正しく復元され、異なるmtimeではキャッシュミス(null)となること
+ * - 関連文書: TC-0004, REQ-0004, SPEC-0004
+ */
+test('TC-0004: SQLiteCache - ファイル更新日時（mtime）に基づくパース済みノードの保存・取得およびキャッシュミス検知ができること', () => {
+  const cache = new SQLiteCache(':memory:');
+
+  const filePath = 'C:/dummy/REQ-0001.md';
+  const node = {
+    id: 'REQ-0001',
+    kind: 'requirement' as const,
+    title: 'Req 1',
+    status: 'accepted' as const,
+    created: '2026-09-12',
+    updated: '2026-09-12',
+    scope: 'local' as const,
+    criticality: 'high' as const,
+    depends_on: ['NEED-0001'],
+    tags: [],
+    links: [],
+    content: 'test content',
+  };
+
+  // Initially empty
+  assert.equal(cache.get(filePath, 1000), null);
+
+  // Set
+  cache.set(filePath, 1000, node);
+  assert.equal(cache.count(), 1);
+
+  // Get with exact mtime
+  const retrieved = cache.get(filePath, 1000);
+  assert.ok(retrieved);
+  assert.equal(retrieved.id, 'REQ-0001');
+  assert.equal(retrieved.criticality, 'high');
+
+  // Get with different mtime returns null (cache miss)
+  assert.equal(cache.get(filePath, 2000), null);
+
+  cache.close();
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: DocParser & SQLiteCache 連携
+ * - 条件: 一時ディレクトリにMarkdownドキュメントを作成し、同一パーサーで2回パースを実行
+ * - 期待結果: 1回目のパースでファイルが読み込まれてキャッシュ登録され、2回目のパースではキャッシュから取得されること
+ * - 関連文書: TC-0004, REQ-0004, SPEC-0004
+ */
+test('TC-0004: DocParser - ディレクトリ全体のパースにおいてSQLiteキャッシュが機能し高速化されること', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'traceweave-test-'));
+  const needsDir = path.join(tmpDir, 'needs');
+  fs.mkdirSync(needsDir);
+
+  const sampleFile = path.join(needsDir, 'NEED-0001.md');
+  fs.writeFileSync(
+    sampleFile,
+    `---
+schema_version: 3
+id: NEED-0001
+kind: need
+title: Test Need
+status: draft
+created: "2026-09-12"
+updated: "2026-09-12"
+scope: local
+depends_on: []
+tags: []
+links: []
+---
+## Content
+
+### Background
+Background text
+### Problem
+Problem text
+### Desired Outcome
+Desired outcome text
+`
+  );
+
+  const cache = new SQLiteCache(':memory:');
+  const parser = new DocParser(cache);
+
+  // First parse (cache miss)
+  const nodes1 = parser.parseDirectory(tmpDir);
+  assert.equal(nodes1.length, 1);
+  assert.equal(nodes1[0].id, 'NEED-0001');
+  assert.equal(nodes1[0].sections?.['Background'], 'Background text');
+  assert.equal(cache.count(), 1);
+
+  // Second parse (cache hit)
+  const nodes2 = parser.parseDirectory(tmpDir);
+  assert.equal(nodes2.length, 1);
+  assert.equal(nodes2[0].id, 'NEED-0001');
+
+  cache.close();
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: DocParser (test_case 文書の拡張メタデータおよびセクションパース)
+ * - 条件: execution_status、Objective、Expected Results、Actual Results、Steps を含む test_case マークダウンをパース
+ * - 期待結果: execution_status(passed)や各セクション内容が正しく抽出され、DocNodeオブジェクトにマッピングされること
+ * - 関連文書: TC-0008, REQ-0007, SPEC-0007
+ */
+test('TC-0008: DocParser - test_case文書の実測値（actual_results）、合否ステータス（execution_status）、および各Markdownセクションを正しくパースできること', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'traceweave-tc-'));
+  const tcDir = path.join(tmpDir, 'test-cases');
+  fs.mkdirSync(tcDir);
+
+  const tcFile = path.join(tcDir, 'TC-0001.md');
+  fs.writeFileSync(
+    tcFile,
+    `---
+schema_version: 3
+id: TC-0001
+kind: test_case
+title: Sample TC
+status: accepted
+created: "2026-09-12"
+updated: "2026-09-12"
+scope: local
+test_level: unit
+test_method: unit_mock
+verifies: [REQ-0001]
+depends_on: []
+tags: [unit]
+links: []
+execution_status: passed
+---
+## Content
+
+### Objective
+Verify that units pass accurately.
+
+### Preconditions
+System is ready.
+
+### Steps
+1. Run test function.
+2. Check result.
+
+### Expected Results
+Return value is true.
+
+### Actual Results
+Return value was true. Execution took 0.5ms.
+
+### Evidence
+Log outputs confirmed.
+`
+  );
+
+  const parser = new DocParser();
+  const node = parser.parseFile(tcFile);
+  assert.ok(node);
+  assert.equal(node.id, 'TC-0001');
+  assert.equal(node.execution_status, 'passed');
+  assert.equal(node.objective, 'Verify that units pass accurately.');
+  assert.equal(node.expected_result, 'Return value is true.');
+  assert.equal(node.actual_result, 'Return value was true. Execution took 0.5ms.');
+  assert.ok(node.steps?.includes('1. Run test function.'));
+  assert.equal(node.sections?.['Evidence'], 'Log outputs confirmed.');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});

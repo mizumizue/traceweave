@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+# Ensure NODE_PATH includes src/node_modules
+export NODE_PATH="$ROOT/src/node_modules${NODE_PATH:+:$NODE_PATH}"
+
+# Check dependencies
+if [[ ! -d "$ROOT/src/node_modules" ]]; then
+  echo '{"ok":false,"error":"Dependencies not found. Please run \"npm --prefix src install\" first."}' >&2
+  exit 1
+fi
+
+# Prefer compiled CLI if exists, else run via tsx
+if [[ -f "$ROOT/src/dist/cli/index.js" ]]; then
+  exec node "$ROOT/src/dist/cli/index.js" "$@"
+else
+  exec "$ROOT/src/node_modules/.bin/tsx" "$ROOT/src/cli/index.ts" "$@"
+fi

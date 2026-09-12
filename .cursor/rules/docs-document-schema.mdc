@@ -1,0 +1,151 @@
+---
+description: TraceWeave docs 配下の要求・要件・仕様・設計・ADR・品質保証・テストケース文書スキーマ
+globs: docs/**/*.md
+alwaysApply: false
+---
+
+# TraceWeave Documentation Schema
+
+`docs/` 配下の文書は、1ファイル1成果物とし、機械的にパースできる形式を守る。
+
+## Directory and identity
+
+| Directory | `kind` | ID prefix |
+|---|---|---|
+| `docs/needs/` | `need` | `NEED-` |
+| `docs/actors/` | `actor` | `ACT-` |
+| `docs/usecases/` | `use_case` | `UC-` |
+| `docs/requirements/` | `requirement` | `REQ-` |
+| `docs/specifications/` | `specification` | `SPEC-` |
+| `docs/design/` | `design` | `DSN-` |
+| `docs/decisions/` | `decision` | `ADR-` |
+| `docs/quality/` | `quality_assurance` | `QA-` |
+| `docs/test-cases/` | `test_case` | `TC-` |
+
+- ファイル名は ID と一致させる（例: `docs/needs/NEED-0001.md`, `docs/requirements/REQ-0001.md`）。
+- ID は `docs/` 配下で一意にし、形式は `<PREFIX>-<4桁以上の連番>` とする。
+- 1ファイルには1つの要求、アクター、ユースケース、要件、仕様、設計事項、ADR、品質保証事項、またはテストケースだけを記載する。
+
+## File format
+
+すべてのファイルは YAML フロントマターと Markdown 本文で構成する。フロントマターの終了
+`---` より前には定義済みメタデータだけを置き、終了後は必ず `## Content` を1つ置く。
+
+### 必須共通メタデータ
+
+```yaml
+---
+schema_version: 3
+id: REQ-0001
+kind: requirement
+title: 利用者がトレーサビリティマトリクスを閲覧できる
+status: draft
+created: "2026-09-12"
+updated: "2026-09-12"
+scope: local
+criticality: high # requirement のみ任意（high, medium, low。省略時 medium）
+depends_on: [NEED-0001]
+tags: [traceability, matrix]
+links: []
+---
+## Content
+
+### Statement
+...
+```
+
+### test_case (TC) の拡張メタデータ
+
+テストケース定義には、検証対象の工程と手法を識別するため `test_level` と `test_method`、および検証対象 `verifies` が必須。また、実測・合否観測のため `execution_status`（任意: `passed`, `failed`, `pending`, `skipped`）および `actual_result`（任意）を指定可能。
+
+```yaml
+---
+schema_version: 3
+id: TC-0001
+kind: test_case
+title: トレーサビリティグラフの循環参照検知テスト
+status: draft
+created: "2026-09-12"
+updated: "2026-09-12"
+scope: local
+test_level: unit
+test_method: unit_mock
+verifies: [REQ-0001, SPEC-0002]
+execution_status: passed # 任意: passed | failed | pending | skipped
+actual_result: "全3件のアサーションが成功し、多段循環が正常に検出された" # 任意
+depends_on: []
+tags: [core, graph]
+links: []
+---
+## Content
+
+### Objective
+...
+### Preconditions
+...
+### Steps
+...
+### Expected Results
+...
+### Actual Results
+...
+### Evidence
+...
+```
+
+### 工程区分 (`test_level`)
+- `unit`: 単体テスト (UT)
+- `integration_internal`: 内部結合テスト (ITa)
+- `integration_external`: 外部結合テスト (ITb)
+- `system`: システムテスト (ST)
+- `acceptance`: 受入テスト (UAT)
+
+### 手法区分 (`test_method`)
+- `unit_mock`: モック/スタブを用いた単体テスト
+- `property_based`: プロパティベース/境界値網羅
+- `api_contract`: API コントラクトテスト
+- `scenario`: シナリオ結合テスト
+- `e2e`: E2E テスト
+- `performance_load`: 性能・負荷テスト
+- `security`: セキュリティ・脆弱性テスト
+- `exploratory_manual`: 探索的テスト・手動受け入れ
+
+## Headings after `## Content`
+
+各 kind の見出し（順序固定）:
+
+- `need`: `### Background`, `### Problem`, `### Desired Outcome`
+- `actor`: `### Role`, `### Responsibilities`, `### Interactions`
+- `use_case`: `### Goal`, `### Trigger`, `### Preconditions`, `### Main Flow`, `### Alternative Flows`, `### Postconditions`
+- `requirement`: `### Statement`, `### Acceptance Criteria`
+- `specification`: `### Contract`, `### Inputs`, `### Outputs`, `### Errors`, `### Constraints`
+- `design`: `### Decision`, `### Structure`, `### Data Flow`, `### Trade-offs`
+- `decision`: `### Context`, `### Decision`, `### Consequences`
+- `quality_assurance`: `### Objective`, `### Quality Criteria`, `### Verification`, `### Evidence`, `### Exit Criteria`
+- `test_case`: `### Objective`, `### Preconditions`, `### Steps`, `### Expected Results`, `### Actual Results`（実測観測セクション。省略時は `### Expected Results` 直後に `### Evidence`）, `### Evidence`
+
+### quality_assurance (QA) の記載責務と実装非依存原則
+
+`quality_assurance`（`QA-`）は、**「どの要件・仕様に対して、どのような品質基準・検証戦略を適用するか」** という品質保証方針・ガバナンスを定義する文書である。
+
+- **実装コード・テストコードの参照禁止**:
+  - `tests/**/*.test.ts` や `src/...` などの具体的なファイルパス、クラス名、関数名を記述してはならない（実装への抽象度漏れ出し・密結合の防止）。
+  - 個別のテストステップ、テスト入力データ、アサーション手順、個別スクリプトの実行ログは `test_case`（`TC-`）の責務とし、`QA-` には記述しない。
+- **見出しごとの記載基準**:
+  - `### Objective`: 保証する品質特性（正確性、堅牢性、決定論的動作、性能等）の目的。
+  - `### Quality Criteria`: 定量的・客観的な合否判定基準（許容誤差、境界値保証、性能指標など）。
+  - `### Verification`: 検証戦略・アプローチ（適用する `test_level`、`test_method` の方針）。
+  - `### Evidence`: 集約された品質証跡（関連 `TC-` の All Passed ステータス、充足度スコア 100%、CIサマリー等）。
+  - `### Exit Criteria`: 品質保証完了判定基準（全TC合格、欠陥ゼロ件等）。
+- **参照関係**:
+  - `depends_on`: 保証対象の上位成果物（`REQ-xxxx` または `SPEC-xxxx`）。
+  - `links`: 検証を具体化するテストケース群（`[TC-xxxx, ...]`）。
+
+## Traceability & Dependency Direction
+
+- `need` <- `requirement` <- `specification` <- `design`
+- `requirement` は親の `NEED-` を `depends_on` に持つ (1:N)。
+- `specification` は対象の `REQ-` を `depends_on` に持つ。
+- `design` は対象の `SPEC-` を `depends_on` に持つ（全体設計は `scope: cross_cutting` で `depends_on: []` 許可）。
+- `quality_assurance` は検証対象の `REQ-` または `SPEC-` を `depends_on` に持つ。
+- `test_case` は検証対象の `REQ-`, `SPEC-`, `UC-`, `DSN-` を `verifies` 配列に持つ。

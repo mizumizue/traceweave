@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+src/node_modules/
+
+# Build distributions
+dist/
+src/dist/
+src/web/dist/
+dist-web/
+
+# Cache & database
+.cache/
+.db/
+*.local
+*.log
+.DS_Store
