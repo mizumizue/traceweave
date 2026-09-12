@@ -27,46 +27,51 @@ alwaysApply: true
 
 ### パスA: 要求起点 (`need`)
 1. **要求の起票 (`NEED-`)**:
-   - `docs/needs/` に `NEED-xxxx.md` を1ファイル作成する（1ファイル1要求）。
-   - 見出し（`### Background`、`### Problem`、`### Desired Outcome`）に沿って背景・課題・期待成果を記述する。
-   - `depends_on: []` とする。
+ - `docs/needs/` に `NEED-xxxx.md` を1ファイル作成する（1ファイル1要求）。
+ - 見出し（`### Background`、`### Problem`、`### Desired Outcome`）に沿って背景・課題・期待成果を記述する。
+ - `depends_on: []` とする。
 2. **要件への分解 (1:N)**:
-   - 要求を満たす観測可能な成果ごとに、1つ以上の独立した要件 `docs/requirements/REQ-yyyy.md` に分解する。
-   - 各要件のフロントマターで `depends_on: [NEED-xxxx]` を指定し、要求 1 に対する要件 N の追跡関係を結ぶ。
+ - 要求を満たす観測可能な成果ごとに、1つ以上の独立した要件 `docs/requirements/REQ-yyyy.md` に分解する。
+ - 各要件のフロントマターで `depends_on: [NEED-xxxx]` を指定し、要求 1 に対する要件 N の追跡関係を結ぶ。
+ - **抽象度防壁**: 要件にはクラス名、特定ライブラリ名、内部実装手段（How）を記述せず、観測可能な振る舞い（What）に純化する。受入条件は `- AC-xxx: Given ... When ... Then ...` を遵守する。
 3. **仕様・設計の精緻化**:
-   - 必要に応じて `docs/specifications/SPEC-zzzz.md`、`docs/design/DSN-aaaa.md` を作成する。
+ - 必要に応じて `docs/specifications/SPEC-zzzz.md`、`docs/design/DSN-aaaa.md` を作成する。
 4. **検証ゲート (Gate)**:
-   - `npm run lint`（`tsx scripts/validate-docs.ts`）を実行し、全文書がスキーマに適合することを確認する。
+ - `npm --prefix src run lint`（`tsx scripts/validate-docs.ts`）を実行し、全文書がスキーマに適合することを確認する。
+ - **SubAgent レビューゲート**: ドキュメント起票・変更後、SubAgent を起動して「要件・仕様への実装詳細の漏れ出し（Implementation Leakage）」「AC 書式規律（Given-When-Then）」「スキーマ適合」を独立視点で検証・承認させる。
 5. **実装とテスト**:
-   - 定義した受入条件（AC）および仕様に基づき、テスト（必要に応じて `docs/test-cases/TC-xxxx.md` を起票）とコードを実装する。
+ - 定義した受入条件（AC）および仕様に基づき、テスト（必要に応じて `docs/test-cases/TC-xxxx.md` を起票）とコードを実装する。
 
 ### パスB: 要件起点 (`requirement`)
 1. **要件の起票 (`REQ-`)**:
-   - `docs/requirements/` に `REQ-xxxx.md` を作成する。
-   - `depends_on: []` とする。
+ - `docs/requirements/` に `REQ-xxxx.md` を作成する。
+ - `depends_on: []` とする。
+ - **抽象度防壁**: 要件にはクラス名、特定ライブラリ名、内部実装手段（How）を記述せず、観測可能な振る舞い（What）に純化する。受入条件は `- AC-xxx: Given ... When ... Then ...` を遵守する。
 2. **仕様・設計の精緻化**:
-   - 必要に応じて `docs/specifications/SPEC-zzzz.md`、`docs/design/DSN-aaaa.md` を作成する。
+ - 必要に応じて `docs/specifications/SPEC-zzzz.md`、`docs/design/DSN-aaaa.md` を作成する。
 3. **検証ゲート (Gate)**:
-   - `npm run lint`（`tsx scripts/validate-docs.ts`）を実行し、全文書がスキーマに適合することを確認する。
+ - `npm --prefix src run lint`（`tsx scripts/validate-docs.ts`）を実行し、全文書がスキーマに適合することを確認する。
+ - **SubAgent レビューゲート**: SubAgent を起動し、実装詳細の漏れ出しがないこと、および AC 書式を検証・承認させる。
 4. **実装とテスト**:
-   - 定義した受入条件（AC）および仕様に基づき、テスト（必要に応じて `docs/test-cases/TC-xxxx.md` を起票）とコードを実装する。
+ - 定義した受入条件（AC）および仕様に基づき、テスト（必要に応じて `docs/test-cases/TC-xxxx.md` を起票）とコードを実装する。
 
 ### パスC: 決定起点 (`decision` / ADR)
 1. **意思決定の記録 (`ADR-`)**:
-   - `docs/decisions/` に `ADR-xxxx.md` を作成する。
-   - 見出し（`### Context`、`### Decision`、`### Consequences`）に沿って文脈・決定内容・影響を記述する。
-   - `depends_on: []` とする。関連する設計がある場合は `links: [DSN-...]` を付与する。
+ - `docs/decisions/` に `ADR-xxxx.md` を作成する。
+ - 見出し（`### Context`、`### Decision`、`### Consequences`）に沿って文脈・決定内容・影響を記述する。
+ - `depends_on: []` とする。関連する設計がある場合は `links: [DSN-...]` を付与する。
 2. **検証ゲート (Gate)**:
-   - `npm run lint`（`tsx scripts/validate-docs.ts`）を実行し、全文書がスキーマに適合することを確認する。
+ - `npm --prefix src run lint`（`tsx scripts/validate-docs.ts`）を実行し、全文書がスキーマに適合することを確認する。
+ - **SubAgent レビューゲート**: アーキテクチャ決定とトレードオフの網羅性を SubAgent に検証させる。
 3. **実装とテスト**:
-   - 決定に基づき、必要なコード・スクリプト・設定の変更とテストを実施する。
+ - 決定に基づき、必要なコード・スクリプト・設定の変更とテストを実施する。
 
 ### パスD: 直接実装 (`chore` / `cleanup`)
 1. **影響範囲の特定**:
-   - 変更対象のコード・スクリプトおよび関連テストを特定する。
+ - 変更対象のコード・スクリプトおよび関連テストを特定する。
 2. **実装とテスト**:
-   - テストファーストまたはリファクタリングの原則に基づき、コード変更とテストを実施する。
-   - 必要に応じて `npm run lint`（`tsx scripts/validate-docs.ts`）を実行し、既存文書に意図しない不整合が生じていないことを確認する。
+ - テストファーストまたはリファクタリングの原則に基づき、コード変更とテストを実施する。
+ - 必要に応じて `npm --prefix src run lint`（`tsx scripts/validate-docs.ts`）を実行し、既存文書に意図しない不整合が生じていないことを確認する（SubAgent レビューは任意）。
 
 ### 外部システムインターフェース（外部 IF）を伴う場合の精緻化ルール
 外部 API、CLI、MCP サーバーなど外部システムとの接続や連携仕様を追加・変更する場合は、以下を実施する。
@@ -74,12 +79,25 @@ alwaysApply: true
 2. **インターフェース仕様（ICD）起票**: `docs/specifications/SPEC-xxxx.md` に通信プロトコル、入出力スキーマ、エラー表現、制約を記述し、フロントマターに `tags: [interface, external, <対象名>]` を付与する。
 3. **接続設計起票**: 必要に応じて `docs/design/DSN-xxxx.md` にポート＆アダプタ構造、リトライ、タイムアウト、フォールバック設計を記述する。
 
-## 3. Completion Criterion（完了条件）
+## 3. SubAgent レビューゲート運用基準 (Review Gate Standard)
+
+ドキュメント起票・大規模リファクタリング・機能実装完了時、親エージェントのコンテキストバイアス（自己の記述に対する盲点）を排除するため、Task ツールを用いて独立した SubAgent にレビューを依頼する。
+
+- **トリガー**: パスA, B, C のドキュメント作成・改訂時、およびマイルストーンとなる機能実装完了時（パスDの軽微な修正は任意）。
+- **SubAgent 種別**: `generalPurpose` または `code-review`
+- **レビュー観点**:
+  1. **Abstraction Guard（抽象度防壁）**: `REQ` や `SPEC` にクラス名、ファイルパス、特定ライブラリ名、内部実装手段（How）が漏れ出していないか？
+  2. **AC Format Guard（受入条件規律）**: AC が `- AC-xxx: Given ... When ... Then ...` の厳格な形式になっているか？（チェックボックスや番号リストの混入がないか）
+  3. **Boundary Guard（境界防壁）**: `SYSTEM_OVERVIEW.md` の Out-of-Scope（リポジトリ構成管理など）が無理に REQ 化されていないか？
+  4. **Traceability & Schema**: `npm --prefix src run lint` が exit code 0 でパスし、依存関係（`depends_on`）が一方向かつ適正か？
+
+## 4. Completion Criterion（完了条件）
 
 - 指示の性質に応じたパス（A〜D）が正しく選択されている。
 - パスAの場合、要求（1ファイル）に対して要件が 1:N で紐づいている（`REQ` の `depends_on` が `NEED` を参照）。
 - パスBの場合、単一の要件（`REQ`）に明確な受入条件（AC）が定義されている。
 - パスCの場合、アーキテクチャ上の決定とトレードオフが `ADR` に明文化されている。
 - 外部システムIFを伴う場合、`SPEC-` に `tags: [interface, external, ...]` が付与され、外部境界の契約が明文化されている。
-- 文書の追加・変更を行った場合、`npm run lint`（`tsx scripts/validate-docs.ts`）が成功（exit code 0）している。
+- 文書の追加・変更を行った場合、`npm --prefix src run lint`（`tsx scripts/validate-docs.ts`）が成功（exit code 0）している。
 - 起点文書に定義された受入条件（AC）・仕様・設計、またはコード変更意図を満たす実装とテストが存在する。
+- パスA, B, C の場合、SubAgent レビューゲートが完了し、指摘事項がすべて解消されていること。

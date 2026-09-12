@@ -124,6 +124,19 @@ links: []
 - `quality_assurance`: `### Objective`, `### Quality Criteria`, `### Verification`, `### Evidence`, `### Exit Criteria`
 - `test_case`: `### Objective`, `### Preconditions`, `### Steps`, `### Expected Results`, `### Actual Results`（実測観測セクション。省略時は `### Expected Results` 直後に `### Evidence`）, `### Evidence`
 
+### requirement (REQ) の記載責務と技術詳細非依存原則（What vs How）
+
+`requirement`（`REQ-`）は、**「アクターやシステム利用者が観測可能な振る舞い・成果（What）」** を定義する文書であり、**「それをどのように実現するか（How）」** という技術詳細を記述してはならない。
+
+- **実装技術詳細の流入禁止（Implementation Detail Leak Prevention）**:
+  - 特定のサードパーティライブラリ名（例: `sonner`）、ソースコードファイル名（例: `App.tsx`）、内部クラス名・関数名、特定フレームワークの内部コンポーネント（例: `<Toaster />`）、ブラウザネイティブ API 名（例: `History API`, `popstate`, `pushState`）、HTML タグ名（例: `<a>` タグ）を記述してはならない。
+  - 実現手段やインターフェース契約は `specification`（`SPEC-`）へ、コンポーネント構造やトレードオフは `design`（`DSN-`）へ委ねる。
+- **システム外部の構成管理事項（Out-of-Scope）の起票禁止**:
+  - リポジトリのディレクトリ構成・ファイル配置変更、依存パッケージの移動、ビルド出力先ディレクトリの整理、ラッパースクリプトの微調整などはシステム要件ではなく、決定事項（`ADR-`）または直接実装（Chore）として扱う（`SYSTEM_OVERVIEW.md` 参照）。
+- **受入条件（Acceptance Criteria）の書式規律**:
+  - `### Acceptance Criteria` の各項目は、必ず `- AC-xxx: Given <前提条件> When <トリガー・操作> Then <観測可能な期待結果>` の Given-When-Then 形式で記述する。
+  - チェックボックス形式（`- [ ]`, `- [x]`）や番号付きリスト（`1.`, `2.`）を用いてはならない。
+
 ### quality_assurance (QA) の記載責務と実装非依存原則
 
 `quality_assurance`（`QA-`）は、**「どの要件・仕様に対して、どのような品質基準・検証戦略を適用するか」** という品質保証方針・ガバナンスを定義する文書である。
