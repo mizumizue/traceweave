@@ -5,6 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { SQLiteCache } from '../../src/infrastructure/storage/SQLiteCache.js';
 import { DocParser } from '../../src/infrastructure/parser/DocParser.js';
+import { repositoryPath } from '../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
@@ -54,7 +55,7 @@ test('TC-0004: SQLiteCache - ファイル更新日時（mtime）に基づくパ�
 /**
  * 【テスト概要】
  * - 対象: DocParser & SQLiteCache 連携
- * - 条件: 一時ディレクトリにMarkdownドキュメントを作成し、同一パーサーで2回パースを実行
+ * - 条件: フィクスチャから取得したMarkdownドキュメントを一時ディレクトリに展開し、同一パーサーで2回パースを実行
  * - 期待結果: 1回目のパースでファイルが読み込まれてキャッシュ登録され、2回目のパースではキャッシュから取得されること
  * - 関連文書: TC-0004, REQ-0004, SPEC-0004
  */
@@ -64,31 +65,9 @@ test('TC-0004: DocParser - ディレクトリ全体のパースにおいてSQLit
   fs.mkdirSync(needsDir);
 
   const sampleFile = path.join(needsDir, 'NEED-0001.md');
-  fs.writeFileSync(
-    sampleFile,
-    `---
-schema_version: 3
-id: NEED-0001
-kind: need
-title: Test Need
-status: draft
-created: "2026-09-12"
-updated: "2026-09-12"
-scope: local
-depends_on: []
-tags: []
-links: []
----
-## Content
+  const fixtureFile = repositoryPath('tests/fixtures/docs/storage/needs/NEED-0001.md');
+  fs.copyFileSync(fixtureFile, sampleFile);
 
-### Background
-Background text
-### Problem
-Problem text
-### Desired Outcome
-Desired outcome text
-`
-  );
   const cacheMtime = new Date('2020-01-01T00:00:00.000Z');
   fs.utimesSync(sampleFile, cacheMtime, cacheMtime);
 
@@ -120,58 +99,12 @@ Desired outcome text
 /**
  * 【テスト概要】
  * - 対象: DocParser (test_case 文書の拡張メタデータおよびセクションパース)
- * - 条件: execution_status、Objective、Expected Results、Actual Results、Steps を含む test_case マークダウンをパース
+ * - 条件: execution_status、Objective、Expected Results、Actual Results、Steps を含む test_case マークダウンフィクスチャをパース
  * - 期待結果: execution_status(passed)や各セクション内容が正しく抽出され、DocNodeオブジェクトにマッピングされること
  * - 関連文書: TC-0008, REQ-0007, SPEC-0007
  */
 test('TC-0008: DocParser - test_case文書の実測値（actual_results）、合否ステータス（execution_status）、および各Markdownセクションを正しくパースできること', () => {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'traceweave-tc-'));
-  const tcDir = path.join(tmpDir, 'test-cases');
-  fs.mkdirSync(tcDir);
-
-  const tcFile = path.join(tcDir, 'TC-0001.md');
-  fs.writeFileSync(
-    tcFile,
-    `---
-schema_version: 3
-id: TC-0001
-kind: test_case
-title: Sample TC
-status: accepted
-created: "2026-09-12"
-updated: "2026-09-12"
-scope: local
-test_level: unit
-test_method: unit_mock
-verifies: [REQ-0001]
-depends_on: []
-tags: [unit]
-links: []
-execution_status: passed
----
-## Content
-
-### Objective
-Verify that units pass accurately.
-
-### Preconditions
-System is ready.
-
-### Steps
-1. Run test function.
-2. Check result.
-
-### Expected Results
-Return value is true.
-
-### Actual Results
-Return value was true. Execution took 0.5ms.
-
-### Evidence
-Log outputs confirmed.
-`
-  );
-
+  const tcFile = repositoryPath('tests/fixtures/docs/storage/test-cases/TC-0001.md');
   const parser = new DocParser();
   const node = parser.parseFile(tcFile);
   assert.ok(node);
@@ -185,6 +118,4 @@ Log outputs confirmed.
   assert.equal(node.sections?.['Expected Results'], 'Return value is true.');
   assert.equal(node.sections?.['Actual Results'], 'Return value was true. Execution took 0.5ms.');
   assert.equal(node.sections?.['Evidence'], 'Log outputs confirmed.');
-
-  fs.rmSync(tmpDir, { recursive: true, force: true });
 });

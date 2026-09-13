@@ -5,11 +5,12 @@ import path from 'node:path';
 import os from 'node:os';
 import { DocParser } from '../../src/infrastructure/parser/DocParser.js';
 import { SQLiteCache } from '../../src/infrastructure/storage/SQLiteCache.js';
+import { repositoryPath } from '../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
  * - 対象: DocParser & SQLiteCache（詳細セクション抽出・TC実測値保持・キャッシュ永続化の外部結合）
- * - 条件: テンポラリディレクトリに作成した test_case Markdown 文書を SQLite キャッシュ有効状態でパース
+ * - 条件: フィクスチャから取得した test_case Markdown 文書を SQLite キャッシュ有効状態でパース
  * - 期待結果: フロントマター、各見出しセクション、execution_status、actual_result が正確に抽出され、キャッシュ再取得時も同一データが得られること
  * - 関連文書: TC-0027, REQ-0006, REQ-0007, SPEC-0006, SPEC-0007
  */
@@ -23,47 +24,9 @@ test('TC-0027: DocParser & SQLiteCache - 詳細セクション抽出・テスト
     const subDir = path.join(tmpDir, 'test-cases');
     fs.mkdirSync(subDir, { recursive: true });
     const docPath = path.join(subDir, 'TC-9999.md');
-    const docContent = `---
-schema_version: 3
-id: TC-9999
-kind: test_case
-title: キャッシュ連携テストケース
-status: accepted
-created: "2026-09-13"
-updated: "2026-09-13"
-scope: local
-test_level: integration_internal
-test_method: scenario
-verifies: [REQ-0006, SPEC-0006]
-execution_status: passed
-actual_result: "全3件のアサーションが0.8msでグリーン終了"
-depends_on: []
-tags: [test, cache]
-links: []
----
-## Content
+    const fixturePath = repositoryPath('tests/fixtures/docs/docparser-cache/test-cases/TC-9999.md');
+    fs.copyFileSync(fixturePath, docPath);
 
-### Objective
-パーサーとSQLiteキャッシュの詳細抽出を検証する。
-
-### Preconditions
-DB接続が正常であること。
-
-### Steps
-1. パースを実行する。
-2. キャッシュを確認する。
-
-### Expected Results
-- データが完全であること。
-
-### Actual Results
-全3件のアサーションが0.8msでグリーン終了
-
-### Evidence
-実行ログ参照。
-`;
-
-    fs.writeFileSync(docPath, docContent, 'utf-8');
     const cacheMtime = new Date('2020-01-01T00:00:00.000Z');
     fs.utimesSync(docPath, cacheMtime, cacheMtime);
 

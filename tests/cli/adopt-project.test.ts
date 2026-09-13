@@ -10,6 +10,7 @@ import {
   rollbackAdoption,
 } from '../../src/application/adopt-project.js';
 import { validateDocs } from '../../scripts/validate-docs.js';
+import { repositoryPath } from '../helpers/repo-path.js';
 
 test.describe('TraceWeave Adoption Engine (adopt-project)', () => {
   let tempBaseDir: string;
@@ -27,23 +28,12 @@ test.describe('TraceWeave Adoption Engine (adopt-project)', () => {
   /**
    * 【テスト概要】
    * - 対象: probeProject
-   * - 条件: package.json (Jest依存あり) と README.md を含むダミープロジェクトディレクトリを解析
+   * - 条件: package.json (Jest依存あり) と README.md を含むダミープロジェクトフィクスチャを解析
    * - 期待結果: プロジェクト名、言語 (TypeScript / JavaScript)、テストランナー (jest) が正確に検出されること
    * - 関連文書: ADR-0007
    */
   test('probeProject - 既存プロジェクトの言語・フレームワーク・テストランナーが正確に検出されること', () => {
-    const dummyPkg = {
-      name: 'sample-backend-service',
-      devDependencies: {
-        typescript: '^5.0.0',
-        jest: '^29.0.0',
-      },
-      scripts: {
-        test: 'jest',
-      },
-    };
-    fs.writeFileSync(path.join(tempBaseDir, 'package.json'), JSON.stringify(dummyPkg, null, 2), 'utf-8');
-    fs.writeFileSync(path.join(tempBaseDir, 'README.md'), '# Sample Backend Service\n', 'utf-8');
+    fs.cpSync(repositoryPath('tests/fixtures/adopt/sample-backend'), tempBaseDir, { recursive: true });
 
     const probe = probeProject(tempBaseDir);
 
@@ -57,7 +47,7 @@ test.describe('TraceWeave Adoption Engine (adopt-project)', () => {
   /**
    * 【テスト概要】
    * - 対象: adoptProject (overlay モード)
-   * - 条件: 既存のコードと設定が存在するプロジェクトに対して overlay モードで適用
+   * - 条件: 既存のコードと設定が存在するプロジェクトフィクスチャに対して overlay モードで適用
    * - 期待結果:
    *   1. 既存のファイル (index.js, README.md) が破壊・変更されず維持されること
    *   2. docs/ 配下に V字モデルの全種別ドキュメントが配備されること
@@ -67,9 +57,8 @@ test.describe('TraceWeave Adoption Engine (adopt-project)', () => {
    * - 関連文書: ADR-0007
    */
   test('adoptProject - overlayモードにおいて既存資材を温存し、スキーマ準拠のV字ドキュメント群およびラッパーが安全に配備されること', () => {
-    const originalCode = 'console.log("hello world");';
-    fs.writeFileSync(path.join(tempBaseDir, 'index.js'), originalCode, 'utf-8');
-    fs.writeFileSync(path.join(tempBaseDir, 'README.md'), '# Existing Project\n', 'utf-8');
+    fs.cpSync(repositoryPath('tests/fixtures/adopt/existing-project'), tempBaseDir, { recursive: true });
+    const originalCode = fs.readFileSync(path.join(tempBaseDir, 'index.js'), 'utf-8');
 
     const result = adoptProject({
       targetDir: tempBaseDir,
@@ -115,7 +104,7 @@ test.describe('TraceWeave Adoption Engine (adopt-project)', () => {
   /**
    * 【テスト概要】
    * - 対象: adoptProject (restructure モード)
-   * - 条件: ルート直下に package.json, tsconfig.json が存在するプロジェクトを restructure モードで再構成
+   * - 条件: ルート直下に package.json, tsconfig.json が存在するプロジェクトフィクスチャを restructure モードで再構成
    * - 期待結果:
    *   1. package.json, tsconfig.json が src/ 配下にカプセル化（移動）されること
    *   2. ルートに DEVELOPER_GUIDE.md および bin/ ラッパーが配備されること
@@ -124,9 +113,7 @@ test.describe('TraceWeave Adoption Engine (adopt-project)', () => {
    * - 関連文書: ADR-0007, ADR-0004, ADR-0005
    */
   test('adoptProject - restructureモードにおいてルート資材がsrc配下へ集約され、クリーンルート規約構成へ完全再編されること', () => {
-    fs.writeFileSync(path.join(tempBaseDir, 'package.json'), '{"name":"legacy-root-app"}', 'utf-8');
-    fs.writeFileSync(path.join(tempBaseDir, 'tsconfig.json'), '{"compilerOptions":{}}', 'utf-8');
-    fs.writeFileSync(path.join(tempBaseDir, '.gitignore'), 'node_modules/\n', 'utf-8');
+    fs.cpSync(repositoryPath('tests/fixtures/adopt/legacy-root'), tempBaseDir, { recursive: true });
 
     const result = adoptProject({
       targetDir: tempBaseDir,
@@ -170,8 +157,8 @@ test.describe('TraceWeave Adoption Engine (adopt-project)', () => {
    * - 関連文書: ADR-0007
    */
   test('rollbackAdoption - バックアップマニフェストから変更前の状態へ決定論的に完全復元されること', () => {
-    const originalPkgContent = '{"name":"pre-adopt-app"}';
-    fs.writeFileSync(path.join(tempBaseDir, 'package.json'), originalPkgContent, 'utf-8');
+    fs.cpSync(repositoryPath('tests/fixtures/adopt/legacy-root'), tempBaseDir, { recursive: true });
+    const originalPkgContent = fs.readFileSync(path.join(tempBaseDir, 'package.json'), 'utf-8');
 
     const adoptResult = adoptProject({
       targetDir: tempBaseDir,
