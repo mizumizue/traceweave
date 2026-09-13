@@ -337,6 +337,7 @@ created: "${today}"
 updated: "${today}"
 scope: local
 criticality: high
+requirement_class: functional
 depends_on: [NEED-0001]
 tags: [core, execution, quality]
 links: []

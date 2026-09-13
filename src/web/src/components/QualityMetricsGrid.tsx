@@ -8,12 +8,14 @@ interface QualityMetricsGridProps {
   summary: TraceWeaveReport['summary'];
   highCriticalityCount: number;
   onNavigateTab: (tab: AppTab, message?: string) => void;
+  onSelectRequirementClass?: (cls: 'functional' | 'non_functional') => void;
 }
 
 export function QualityMetricsGrid({
   summary,
   highCriticalityCount,
   onNavigateTab,
+  onSelectRequirementClass,
 }: QualityMetricsGridProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
@@ -98,6 +100,7 @@ export function QualityMetricsGrid({
         <div
           onClick={() => onNavigateTab('matrix', 'マトリクスタブに切り替えました')}
           className="bg-slate-900/50 border border-slate-800/80 p-3.5 rounded-2xl hover:border-slate-700 hover:bg-slate-900/80 transition-all shadow-sm cursor-pointer group flex flex-col justify-between"
+          title={`High重要度: ${highCriticalityCount}件`}
         >
           <div className="text-xs text-slate-400 flex items-center justify-between font-medium">
             <span className="truncate">要件 (REQ)</span>
@@ -106,8 +109,32 @@ export function QualityMetricsGrid({
           <div className="text-2xl font-black text-teal-300 my-1 font-mono group-hover:text-teal-200 transition">
             {summary.totalRequirements}
           </div>
-          <div className="text-[10px] text-slate-500 flex items-center justify-between">
-            <span>High: {highCriticalityCount}件</span>
+          <div className="text-[10px] text-slate-500 flex items-center justify-between gap-1">
+            <span className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={e => {
+                  e.stopPropagation();
+                  onSelectRequirementClass?.('functional');
+                }}
+                className="hover:text-emerald-300 transition"
+                title="機能要件のみ表示"
+              >
+                FR {summary.functionalRequirementCount}
+              </button>
+              <span className="text-slate-600">/</span>
+              <button
+                type="button"
+                onClick={e => {
+                  e.stopPropagation();
+                  onSelectRequirementClass?.('non_functional');
+                }}
+                className="hover:text-amber-300 transition"
+                title="非機能要件のみ表示"
+              >
+                NFR {summary.nonFunctionalRequirementCount}
+              </button>
+            </span>
             <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 text-teal-400 transition" />
           </div>
         </div>

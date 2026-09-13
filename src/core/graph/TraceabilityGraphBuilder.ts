@@ -283,6 +283,7 @@ export class TraceabilityGraphBuilder {
           title: node.title,
           status: node.status,
           criticality: node.criticality,
+          requirement_class: node.requirement_class,
           test_level: node.test_level,
           test_method: node.test_method,
           x: colX,

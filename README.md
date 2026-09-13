@@ -145,7 +145,7 @@ npm --prefix src test
 | ディレクトリ                 | 種別 (`kind`)         | ID 接頭辞      | 説明                                       |
 | ---------------------- | ------------------- | ----------- | ---------------------------------------- |
 | `docs/needs/`          | `need`              | `NEED-xxxx` | 背景・課題・期待する成果（Why）                        |
-| `docs/requirements/`   | `requirement`       | `REQ-xxxx`  | 観測可能な成果・受入条件（What / AC）、重要度（criticality） |
+| `docs/requirements/`   | `requirement`       | `REQ-xxxx`  | 観測可能な成果・受入条件（What / AC）、区分（`requirement_class`: functional / non_functional）、重要度（criticality） |
 | `docs/specifications/` | `specification`     | `SPEC-xxxx` | 入出力契約・インターフェース・異常系制約                     |
 | `docs/design/`         | `design`            | `DSN-xxxx`  | モジュール構造・データフロー・トレードオフ                    |
 | `docs/quality/`        | `quality_assurance` | `QA-xxxx`   | 品質基準・検証方針・完了判定                           |
@@ -196,7 +196,16 @@ links: []
 
 TraceWeave のダッシュボード（トレーサビリティマトリクス）やレポートで表示される各要件（REQ）行の**「重要度」**および**「品質充足度（Sufficiency Score）」**は、決定論的ロジック（`SufficiencyScorer`）に基づいて算出されます。
 
-### 5.1 重要度 (`criticality`) の区分
+### 5.1 要件区分 (`requirement_class`)
+
+要件ドキュメントのフロントマターで必須指定します。重要度とは独立した軸です。
+
+- `functional`: 機能要件（FR）。システムが提供する観測可能な振る舞い・成果そのもの。
+- `non_functional`: 非機能要件（NFR）。性能、保守性、識別性などの品質特性。
+
+ダッシュボードのマトリクス・カタログ・詳細では `FR` / `NFR` として強調表示され、`reqclass` クエリで絞り込めます。
+
+### 5.2 重要度 (`criticality`) の区分
 
 要件ドキュメント（`docs/requirements/REQ-xxxx.md`）のフロントマターで指定します（省略時は `medium`）。
 
@@ -206,7 +215,7 @@ TraceWeave のダッシュボード（トレーサビリティマトリクス）
 
 
 
-### 5.2 紐づくテストケースの自動集計
+### 5.3 紐づくテストケースの自動集計
 
 各要件（`REQ`）に対して、以下のテストケース（`TC`）が自動的に集計対象となります：
 
@@ -215,7 +224,7 @@ TraceWeave のダッシュボード（トレーサビリティマトリクス）
 
 
 
-### 5.3 重要度別の配点基準と充足判定
+### 5.4 重要度別の配点基準と充足判定
 
 集計されたテストケースの工程（`test_level`）の有無に基づき、0〜100% のスコアが算出されます。
 

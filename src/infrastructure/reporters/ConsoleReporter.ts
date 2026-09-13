@@ -12,6 +12,8 @@ export class ConsoleReporter {
     console.log('\x1b[1m[1. 全体サマリー]\x1b[0m');
     console.log(`  - 総要求数 (NEED):          ${summary.totalNeeds}`);
     console.log(`  - 総要件数 (REQ):           ${summary.totalRequirements}`);
+    console.log(`  - 機能要件 (FR):            ${summary.functionalRequirementCount}`);
+    console.log(`  - 非機能要件 (NFR):         ${summary.nonFunctionalRequirementCount}`);
     console.log(`  - 総詳細仕様数 (SPEC):      ${summary.totalSpecifications}`);
     console.log(`  - 総テストケース数 (TC):    ${summary.totalTestCases}`);
     console.log(`  - 平均品質充足度スコア:     \x1b[1m\x1b[32m${summary.overallSufficiencyScore}%\x1b[0m`);
@@ -88,19 +90,21 @@ export class ConsoleReporter {
   public static printMatrixText(report: TraceWeaveReport): void {
     console.log('\n\x1b[1m[Traceability Matrix]\x1b[0m\n');
     console.log('-------------------------------------------------------------------------------------------------------------');
-    console.log('要件ID      重要度  スコア  紐づく仕様 (SPEC)       紐づくテスト (工程・手法)');
+    console.log('要件ID      区分   重要度  スコア  紐づく仕様 (SPEC)       紐づくテスト (工程・手法)');
     console.log('-------------------------------------------------------------------------------------------------------------');
 
     for (const row of report.matrix) {
       const critColor = row.criticality === 'high' ? '\x1b[31m' : row.criticality === 'medium' ? '\x1b[33m' : '\x1b[37m';
       const scoreColor = row.score >= 80 ? '\x1b[32m' : row.score >= 50 ? '\x1b[33m' : '\x1b[31m';
+      const classLabel = row.requirementClass === 'non_functional' ? 'NFR' : row.requirementClass === 'functional' ? 'FR ' : '-  ';
+      const classColor = row.requirementClass === 'non_functional' ? '\x1b[33m' : '\x1b[32m';
 
       const specsStr = row.specs.map(s => s.id).join(', ') || '(なし)';
       const testsStr =
         row.allTestCases.map(t => `${t.id}(${t.level}/${t.method})`).join(', ') || '\x1b[31m(未テスト)\x1b[0m';
 
       console.log(
-        `${row.requirementId.padEnd(11, ' ')} ${critColor}${row.criticality.padEnd(7, ' ')}\x1b[0m ${scoreColor}${String(row.score + '%').padStart(5, ' ')}\x1b[0m  ${specsStr.padEnd(22, ' ')} ${testsStr}`
+        `${row.requirementId.padEnd(11, ' ')} ${classColor}${classLabel}\x1b[0m  ${critColor}${row.criticality.padEnd(7, ' ')}\x1b[0m ${scoreColor}${String(row.score + '%').padStart(5, ' ')}\x1b[0m  ${specsStr.padEnd(22, ' ')} ${testsStr}`
       );
     }
     console.log('-------------------------------------------------------------------------------------------------------------\n');
@@ -117,11 +121,14 @@ export class ConsoleReporter {
     console.log('\x1b[1m[決め事ドキュメント統計サマリー]\x1b[0m');
     console.log(`  - 総登録数: ${totalCount} 件 (表示中: ${targetItems.length} 件)`);
     console.log(
-      `  - 内訳: ACT:${kindCounts.actor} | UC:${kindCounts.use_case} | REQ:${kindCounts.requirement} | SPEC:${kindCounts.specification} | DSN:${kindCounts.design} | ADR:${kindCounts.decision} | QA:${kindCounts.quality_assurance} | NEED:${kindCounts.need} | TC:${kindCounts.test_case}\n`
+      `  - 内訳: ACT:${kindCounts.actor} | UC:${kindCounts.use_case} | REQ:${kindCounts.requirement} | SPEC:${kindCounts.specification} | DSN:${kindCounts.design} | ADR:${kindCounts.decision} | QA:${kindCounts.quality_assurance} | NEED:${kindCounts.need} | TC:${kindCounts.test_case}`
+    );
+    console.log(
+      `  - 要件区分: FR:${catalog.requirementClassCounts.functional} | NFR:${catalog.requirementClassCounts.non_functional} | 未分類:${catalog.requirementClassCounts.unclassified}\n`
     );
 
     console.log('------------------------------------------------------------------------------------------------------------------------');
-    console.log('種別   ID         ステータス   タイトル                                      関連決め事 (相互参照)');
+    console.log('種別   ID         区分 ステータス   タイトル                                      関連決め事 (相互参照)');
     console.log('------------------------------------------------------------------------------------------------------------------------');
 
     for (const item of targetItems) {
@@ -139,7 +146,12 @@ export class ConsoleReporter {
       if (item.relatedSpecs?.length) refs.push(`SPEC:${item.relatedSpecs.map(s => s.id).join(',')}`);
       const refsStr = refs.join(' | ') || '-';
 
-      console.log(`${kindBadge} ${idStr} ${statusStr} ${titleStr}  ${refsStr}`);
+      const classStr =
+        item.kind === 'requirement'
+          ? (item.requirement_class === 'non_functional' ? 'NFR ' : item.requirement_class === 'functional' ? 'FR  ' : '-   ')
+          : '    ';
+
+      console.log(`${kindBadge} ${idStr} ${classStr}${statusStr} ${titleStr}  ${refsStr}`);
     }
     console.log('------------------------------------------------------------------------------------------------------------------------\n');
   }

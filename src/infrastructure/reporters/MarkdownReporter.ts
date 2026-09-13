@@ -12,6 +12,8 @@ export class MarkdownReporter {
     lines.push('|---|---|');
     lines.push(`| Total Needs (NEED) | ${report.summary.totalNeeds} |`);
     lines.push(`| Total Requirements (REQ) | ${report.summary.totalRequirements} |`);
+    lines.push(`| Functional Requirements (FR) | ${report.summary.functionalRequirementCount} |`);
+    lines.push(`| Non-Functional Requirements (NFR) | ${report.summary.nonFunctionalRequirementCount} |`);
     lines.push(`| Total Specifications (SPEC) | ${report.summary.totalSpecifications} |`);
     lines.push(`| Total Test Cases (TC) | ${report.summary.totalTestCases} |`);
     lines.push(`| **Overall Sufficiency Score** | **${report.summary.overallSufficiencyScore}%** |`);
@@ -36,12 +38,13 @@ export class MarkdownReporter {
     lines.push('');
 
     lines.push('## 4. Traceability Matrix\n');
-    lines.push('| Requirement | Criticality | Score | Specifications | Test Cases (Phase / Method) |');
-    lines.push('|---|---|---|---|---|');
+    lines.push('| Requirement | Class | Criticality | Score | Specifications | Test Cases (Phase / Method) |');
+    lines.push('|---|---|---|---|---|---|');
     for (const row of report.matrix) {
       const specsStr = row.specs.map(s => s.id).join(', ') || '-';
       const testsStr = row.allTestCases.map(t => `${t.id} (\`${t.level}\` / \`${t.method}\`)`).join('<br>') || '**Untested**';
-      lines.push(`| **${row.requirementId}**: ${row.requirementTitle} | \`${row.criticality}\` | ${row.score}% | ${specsStr} | ${testsStr} |`);
+      const classStr = row.requirementClass === 'non_functional' ? 'NFR' : row.requirementClass === 'functional' ? 'FR' : '-';
+      lines.push(`| **${row.requirementId}**: ${row.requirementTitle} | \`${classStr}\` | \`${row.criticality}\` | ${row.score}% | ${specsStr} | ${testsStr} |`);
     }
     lines.push('');
 

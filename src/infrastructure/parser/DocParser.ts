@@ -151,6 +151,7 @@ export class DocParser {
         updated: String(data.updated || ''),
         scope: data.scope || 'local',
         criticality: data.criticality,
+        requirement_class: data.requirement_class,
         test_level: data.test_level,
         test_method: data.test_method,
         execution_status,

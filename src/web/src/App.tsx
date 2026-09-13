@@ -45,6 +45,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState(initialUrlState.searchQuery);
   const [phaseFilter, setPhaseFilter] = useState<string>(initialUrlState.phaseFilter);
   const [criticalityFilter, setCriticalityFilter] = useState<string>(initialUrlState.criticalityFilter);
+  const [requirementClassFilter, setRequirementClassFilter] = useState<string>(initialUrlState.requirementClassFilter);
   const [scoreFilter, setScoreFilter] = useState<string>(initialUrlState.scoreFilter);
   const [catalogKind, setCatalogKind] = useState<string>(initialUrlState.catalogKind);
   const [catalogTag, setCatalogTag] = useState<string | null>(initialUrlState.catalogTag);
@@ -104,6 +105,7 @@ export default function App() {
       setSearchQuery(parsed.searchQuery);
       setPhaseFilter(parsed.phaseFilter);
       setCriticalityFilter(parsed.criticalityFilter);
+      setRequirementClassFilter(parsed.requirementClassFilter);
       setScoreFilter(parsed.scoreFilter);
       setCatalogKind(parsed.catalogKind);
       setCatalogTag(parsed.catalogTag);
@@ -165,6 +167,7 @@ export default function App() {
       searchQuery,
       phaseFilter,
       criticalityFilter,
+      requirementClassFilter,
       scoreFilter,
       catalogKind,
       catalogTag,
@@ -177,6 +180,7 @@ export default function App() {
       searchQuery,
       phaseFilter,
       criticalityFilter,
+      requirementClassFilter,
       scoreFilter,
       catalogKind,
       catalogTag,
@@ -230,6 +234,11 @@ export default function App() {
         test_case: 0,
         total: 0,
       },
+      requirementClassCounts: {
+        functional: 0,
+        non_functional: 0,
+        unclassified: 0,
+      },
       allTags: [],
       totalCount: 0,
     };
@@ -240,6 +249,7 @@ export default function App() {
     setSearchQuery('');
     setPhaseFilter('all');
     setCriticalityFilter('all');
+    setRequirementClassFilter('all');
     setScoreFilter('all');
     setCatalogKind('all');
     setCatalogTag(null);
@@ -256,6 +266,7 @@ export default function App() {
     setSearchQuery(home.searchQuery);
     setPhaseFilter(home.phaseFilter);
     setCriticalityFilter(home.criticalityFilter);
+    setRequirementClassFilter(home.requirementClassFilter);
     setScoreFilter(home.scoreFilter);
     setCatalogKind(home.catalogKind);
     setCatalogTag(home.catalogTag);
@@ -267,6 +278,7 @@ export default function App() {
     searchQuery.trim() !== '' ||
     phaseFilter !== 'all' ||
     criticalityFilter !== 'all' ||
+    requirementClassFilter !== 'all' ||
     scoreFilter !== 'all' ||
     catalogKind !== 'all' ||
     catalogTag !== null ||
@@ -314,7 +326,7 @@ export default function App() {
       `- 全体品質充足度: **${report.summary.overallSufficiencyScore}%**`,
       `- High要件充足率: **${report.summary.highCriticalityCoverage}%**`,
       `- 総要求 (Needs): ${report.summary.totalNeeds}`,
-      `- 総要件 (Requirements): ${report.summary.totalRequirements}`,
+      `- 総要件 (Requirements): ${report.summary.totalRequirements}（FR ${report.summary.functionalRequirementCount} / NFR ${report.summary.nonFunctionalRequirementCount}）`,
       `- 総仕様 (Specs): ${report.summary.totalSpecifications}`,
       `- 総テストケース: ${report.summary.totalTestCases}`,
       `- 未テスト要件: ${report.gaps.untestedRequirements.length}件 (${report.gaps.untestedRequirements.join(', ') || 'なし'})`,
@@ -350,6 +362,7 @@ export default function App() {
   const filteredMatrix = filterMatrixRows(report.matrix, {
     searchQuery,
     criticality: criticalityFilter,
+    requirementClass: requirementClassFilter,
     phase: phaseFilter,
     score: scoreFilter,
   });
@@ -379,6 +392,11 @@ export default function App() {
             setActiveTab(tab);
             if (msg) toast.info(msg);
           }}
+          onSelectRequirementClass={cls => {
+            setRequirementClassFilter(cls);
+            setActiveTab('matrix');
+            toast.info(cls === 'functional' ? '機能要件 (FR) で絞り込みました' : '非機能要件 (NFR) で絞り込みました');
+          }}
         />
 
         {/* Tab Navigation */}
@@ -400,6 +418,8 @@ export default function App() {
             onSearchQueryChange={setSearchQuery}
             criticalityFilter={criticalityFilter}
             onCriticalityFilterChange={setCriticalityFilter}
+            requirementClassFilter={requirementClassFilter}
+            onRequirementClassFilterChange={setRequirementClassFilter}
             phaseFilter={phaseFilter}
             onPhaseFilterChange={setPhaseFilter}
             scoreFilter={scoreFilter}
@@ -447,6 +467,8 @@ export default function App() {
             onTagChange={tag => setCatalogTag(tag)}
             selectedStatus={catalogStatus as any}
             onStatusChange={status => setCatalogStatus(status)}
+            selectedRequirementClass={requirementClassFilter}
+            onRequirementClassChange={setRequirementClassFilter}
           />
         )}
 

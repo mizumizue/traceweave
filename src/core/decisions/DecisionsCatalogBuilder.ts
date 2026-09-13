@@ -7,6 +7,7 @@ import {
   DecisionsFilterOptions,
   DecisionsReferenceItem,
 } from '../models/types.js';
+import { countRequirementClasses, matchesRequirementClassFilter } from '../models/requirementClass.js';
 
 export class DecisionsCatalogBuilder {
   /**
@@ -219,6 +220,7 @@ export class DecisionsCatalogBuilder {
         content: node.content,
         filePath: node.filePath,
         criticality: node.criticality,
+        requirement_class: node.requirement_class,
         test_level: node.test_level,
         test_method: node.test_method,
         relatedNeeds: Array.from(relatedNeedsMap.values()),
@@ -240,6 +242,7 @@ export class DecisionsCatalogBuilder {
     return {
       items,
       kindCounts,
+      requirementClassCounts: countRequirementClasses(items),
       allTags,
       totalCount: items.length,
     };
@@ -252,12 +255,16 @@ export class DecisionsCatalogBuilder {
     catalog: DecisionsCatalog,
     options: DecisionsFilterOptions = {}
   ): DecisionsCatalogItem[] {
-    const { kind = 'all', tag, status = 'all', query = '' } = options;
+    const { kind = 'all', tag, status = 'all', requirementClass = 'all', query = '' } = options;
     const cleanQuery = query.trim().toLowerCase();
 
     return catalog.items.filter(item => {
       // Kind filter
       if (kind !== 'all' && item.kind !== kind) {
+        return false;
+      }
+
+      if (!matchesRequirementClassFilter(item, requirementClass)) {
         return false;
       }
 

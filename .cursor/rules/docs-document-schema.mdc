@@ -15,7 +15,7 @@ alwaysApply: false
 | `docs/needs/` | `need` | `NEED-` | 背景・課題・期待成果（Why） |
 | `docs/actors/` | `actor` | `ACT-` | アクター・外部システムの役割と責務 |
 | `docs/usecases/` | `use_case` | `UC-` | ユースケース・業務シナリオ |
-| `docs/requirements/` | `requirement` | `REQ-` | 観測可能な振る舞い・成果（What。実装手段・内部名は含めない） |
+| `docs/requirements/` | `requirement` | `REQ-` | 観測可能な振る舞い・成果（What。実装手段・内部名は含めない）。必須区分 `requirement_class`（functional / non_functional） |
 | `docs/specifications/` | `specification` | `SPEC-` | 外部・モジュール境界の契約（Contract / ICD。入出力・型・プロトコル） |
 | `docs/design/` | `design` | `DSN-` | 内部モジュール構造・データフロー・選定理由・トレードオフ（How & Why） |
 | `docs/decisions/` | `decision` | `ADR-` | アーキテクチャ・構成方針の意思決定（Context, Decision, Consequences） |
@@ -39,6 +39,7 @@ created: "2026-09-12"
 updated: "2026-09-12"
 scope: local # local | cross_cutting (design, quality_assurance のみ許可)
 criticality: high # requirement のみ任意（high, medium, low。省略時 medium）
+requirement_class: functional # requirement のみ必須（functional | non_functional）
 depends_on: [NEED-0001] # 上流依存。need, actor, use_case, decision は []
 tags: [traceability, matrix]
 links: [] # 非依存の横断参照

@@ -5,11 +5,24 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # Ensure NODE_PATH includes src/node_modules
 export NODE_PATH="$ROOT/src/node_modules${NODE_PATH:+:$NODE_PATH}"
 
-# Check dependencies
-if [[ ! -d "$ROOT/src/node_modules" ]]; then
-  echo '{"ok":false,"error":"Dependencies not found. Please run \"npm --prefix src install\" first."}' >&2
-  exit 1
-fi
+install_dependencies() {
+  if [[ -f "$ROOT/src/node_modules/tsx/dist/cli.mjs" ]]; then
+    return 0
+  fi
+  if ! command -v npm >/dev/null 2>&1; then
+    echo '{"ok":false,"error":"npm not found. Install Node.js v20+ first."}' >&2
+    exit 1
+  fi
+  echo ""
+  echo "📦 Installing TraceWeave dependencies (first run)..."
+  if [[ -f "$ROOT/src/package-lock.json" ]]; then
+    npm ci --prefix "$ROOT/src"
+  else
+    npm install --prefix "$ROOT/src"
+  fi
+}
+
+install_dependencies
 
 # Prefer compiled CLI if exists, else run via tsx
 if [[ -f "$ROOT/src/dist/cli/index.js" ]]; then

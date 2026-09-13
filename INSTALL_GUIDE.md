@@ -15,23 +15,20 @@
 
 ## 2. TraceWeave 本体のセットアップ (Quick Setup)
 
-リポジトリをクローンした後、以下の手順で依存関係をインストールしビルドします。
+リポジトリをクローンした後、`./bin/traceweave` を実行するだけで初回の依存関係インストールと Web ビルドが自動で行われます。
 
-> 💡 **クリーンルート規約**: TraceWeave では `package.json` や `node_modules` がすべて `src/` 配下にカプセル化されています。ルートから直接 `npm install` するのではなく、`--prefix src` を付与して実行します。
+> 💡 **クリーンルート規約**: TraceWeave では `package.json` や `node_modules` がすべて `src/` 配下にカプセル化されています。通常は手動の `npm install` は不要です。
 
 ```bash
 # 1. リポジトリのクローン
 git clone https://github.com/your-org/traceweave.git
 cd traceweave
 
-# 2. 依存関係のインストール
-npm --prefix src install
-
-# 3. CLI および Web ダッシュボードのビルド
-npm --prefix src run build
-
-# 4. 動作確認（ドキュメント整合性・循環参照・カバレッジ検証）
+# 2. 動作確認（初回は依存関係の自動インストールが走ります）
 ./bin/traceweave check
+
+# 3. Web ダッシュボードの起動（初回は自動ビルドが走ります）
+./bin/traceweave serve
 ```
 
 Windows 環境（PowerShell / コマンドプロンプト）の場合は以下のように実行します：
@@ -193,9 +190,9 @@ AI エージェントは `.cursor/skills/traceweave-adopt/SKILL.md` を自律的
 - 引数でドキュメントの場所を明示してください：
   `./bin/traceweave check -d ./docs`
 
-### Q. "Dependencies not found. Please run 'npm --prefix src install' first." と出る
-- `src/` 配下に依存パッケージがまだインストールされていません。
-  `npm --prefix src install` を実行してください。
+### Q. 初回実行時に依存関係のインストールで失敗する
+- Node.js v20 以上と npm が PATH 上にあることを確認してください。
+- 手動で再試行する場合: `npm --prefix src install`
 
 ### Q. 完全再構成モードを実行しようとしたら "Git working directory has uncommitted changes" と怒られた
 - 破壊的変更から作業中の差分を保護するための安全装置です。作業ツリーの変更をコミットまたは `git stash` してから再実行してください。検証目的などで強制実行したい場合は `--force` オプションを指定できます。

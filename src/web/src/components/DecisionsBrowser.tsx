@@ -6,6 +6,8 @@ import {
   DocStatus,
   DecisionsReferenceItem,
 } from '../../../core/models/types.js';
+import { matchesRequirementClassFilter, partitionByRequirementClass, REQUIREMENT_CLASS_META } from '../../../core/models/requirementClass.js';
+import { RequirementClassBadge } from './RequirementClassBadge.js';
 import {
   Search,
   Filter,
@@ -42,6 +44,8 @@ interface DecisionsBrowserProps {
   onTagChange?: (tag: string | null) => void;
   selectedStatus?: DocStatus | 'all';
   onStatusChange?: (status: DocStatus | 'all') => void;
+  selectedRequirementClass?: string;
+  onRequirementClassChange?: (requirementClass: string) => void;
 }
 
 export const KIND_META: Record<
@@ -131,10 +135,13 @@ export function DecisionsBrowser({
   onTagChange,
   selectedStatus: selectedStatusProp,
   onStatusChange,
+  selectedRequirementClass: selectedRequirementClassProp,
+  onRequirementClassChange,
 }: DecisionsBrowserProps) {
   const [internalKind, setInternalKind] = useState<DocKind | 'all'>(selectedKindProp ?? 'all');
   const [internalTag, setInternalTag] = useState<string | null>(selectedTagProp ?? null);
   const [internalStatus, setInternalStatus] = useState<DocStatus | 'all'>(selectedStatusProp ?? 'all');
+  const [internalRequirementClass, setInternalRequirementClass] = useState(selectedRequirementClassProp ?? 'all');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -142,6 +149,8 @@ export function DecisionsBrowser({
   const selectedKind = selectedKindProp !== undefined ? selectedKindProp : internalKind;
   const selectedTag = selectedTagProp !== undefined ? selectedTagProp : internalTag;
   const selectedStatus = selectedStatusProp !== undefined ? selectedStatusProp : internalStatus;
+  const selectedRequirementClass =
+    selectedRequirementClassProp !== undefined ? selectedRequirementClassProp : internalRequirementClass;
 
   const handleKindSelect = (kind: DocKind | 'all') => {
     setInternalKind(kind);
@@ -156,6 +165,11 @@ export function DecisionsBrowser({
   const handleStatusSelect = (status: DocStatus | 'all') => {
     setInternalStatus(status);
     onStatusChange?.(status);
+  };
+
+  const handleRequirementClassSelect = (requirementClass: string) => {
+    setInternalRequirementClass(requirementClass);
+    onRequirementClassChange?.(requirementClass);
   };
 
   const handleCopyId = (e: React.MouseEvent, id: string) => {
@@ -173,6 +187,7 @@ export function DecisionsBrowser({
       if (selectedKind !== 'all' && item.kind !== selectedKind) return false;
       if (selectedStatus !== 'all' && item.status !== selectedStatus) return false;
       if (selectedTag && !item.tags.includes(selectedTag)) return false;
+      if (!matchesRequirementClassFilter(item, selectedRequirementClass)) return false;
 
       if (query) {
         const inId = item.id.toLowerCase().includes(query);
@@ -191,12 +206,15 @@ export function DecisionsBrowser({
 
       return true;
     });
-  }, [catalog.items, selectedKind, selectedStatus, selectedTag, searchQuery]);
+  }, [catalog.items, selectedKind, selectedStatus, selectedTag, selectedRequirementClass, searchQuery]);
+
+  const groupedItems = useMemo(() => partitionByRequirementClass(filteredItems), [filteredItems]);
 
   const resetFilters = () => {
     handleKindSelect('all');
     handleTagSelect(null);
     handleStatusSelect('all');
+    handleRequirementClassSelect('all');
     setSearchQuery('');
     toast.info('決め事カタログのフィルターをリセットしました');
   };
@@ -205,6 +223,7 @@ export function DecisionsBrowser({
     selectedKind !== 'all' ||
     selectedTag !== null ||
     selectedStatus !== 'all' ||
+    selectedRequirementClass !== 'all' ||
     searchQuery.trim() !== '';
 
   const renderRefBadge = (ref: DecisionsReferenceItem, prefixIcon?: string) => {
@@ -279,6 +298,38 @@ export function DecisionsBrowser({
             );
           })}
         </div>
+
+        <div className="flex flex-wrap items-center gap-2 mt-4">
+          <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">要件区分:</span>
+          <button
+            onClick={() => {
+              handleKindSelect('requirement');
+              handleRequirementClassSelect(selectedRequirementClass === 'functional' ? 'all' : 'functional');
+            }}
+            className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition ${
+              selectedRequirementClass === 'functional'
+                ? 'bg-emerald-950 text-emerald-200 border-emerald-600'
+                : 'bg-slate-950/70 text-slate-300 border-slate-800 hover:border-emerald-700'
+            }`}
+          >
+            FR 機能要件
+            <span className="ml-1.5 font-mono">{catalog.requirementClassCounts?.functional ?? 0}</span>
+          </button>
+          <button
+            onClick={() => {
+              handleKindSelect('requirement');
+              handleRequirementClassSelect(selectedRequirementClass === 'non_functional' ? 'all' : 'non_functional');
+            }}
+            className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition ${
+              selectedRequirementClass === 'non_functional'
+                ? 'bg-amber-950 text-amber-200 border-amber-600'
+                : 'bg-slate-950/70 text-slate-300 border-slate-800 hover:border-amber-700'
+            }`}
+          >
+            NFR 非機能要件
+            <span className="ml-1.5 font-mono">{catalog.requirementClassCounts?.non_functional ?? 0}</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
@@ -331,6 +382,16 @@ export function DecisionsBrowser({
               <option value="draft">Draft (起草中)</option>
               <option value="proposed">Proposed (提案)</option>
               <option value="deprecated">Deprecated (非推奨)</option>
+            </select>
+
+            <select
+              value={selectedRequirementClass}
+              onChange={e => handleRequirementClassSelect(e.target.value)}
+              className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-indigo-500 font-semibold"
+            >
+              <option value="all">すべての要件区分</option>
+              <option value="functional">機能要件 (FR)</option>
+              <option value="non_functional">非機能要件 (NFR)</option>
             </select>
 
             {/* View Mode Toggle */}
@@ -414,6 +475,11 @@ export function DecisionsBrowser({
               [種別: {KIND_META[selectedKind].label}]
             </span>
           )}
+          {selectedRequirementClass !== 'all' && (
+            <span className="ml-2 font-mono text-[11px] text-indigo-400">
+              [区分: {REQUIREMENT_CLASS_META[selectedRequirementClass as 'functional' | 'non_functional']?.label}]
+            </span>
+          )}
           {selectedTag && (
             <span className="ml-2 font-mono text-[11px] text-indigo-400">[タグ: #{selectedTag}]</span>
           )}
@@ -444,7 +510,7 @@ export function DecisionsBrowser({
       ) : viewMode === 'grid' ? (
         /* Grid Cards View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredItems.map(item => {
+          {[...groupedItems.functional, ...groupedItems.non_functional, ...groupedItems.other].map(item => {
             const meta = KIND_META[item.kind];
             const hasCrossRefs =
               (item.relatedActors && item.relatedActors.length > 0) ||
@@ -467,6 +533,29 @@ export function DecisionsBrowser({
               item.content.slice(0, 160);
 
             return (
+              <React.Fragment key={item.id}>
+                {groupedItems.functional[0]?.id === item.id && (
+                  <div className="col-span-full flex items-center gap-2 pt-1">
+                    <RequirementClassBadge value="functional" showLabel size="md" />
+                    <span className="text-xs font-bold text-emerald-200">
+                      {REQUIREMENT_CLASS_META.functional.label} ({groupedItems.functional.length})
+                    </span>
+                  </div>
+                )}
+                {groupedItems.non_functional[0]?.id === item.id && (
+                  <div className="col-span-full flex items-center gap-2 pt-1">
+                    <RequirementClassBadge value="non_functional" showLabel size="md" />
+                    <span className="text-xs font-bold text-amber-200">
+                      {REQUIREMENT_CLASS_META.non_functional.label} ({groupedItems.non_functional.length})
+                    </span>
+                  </div>
+                )}
+                {groupedItems.other[0]?.id === item.id &&
+                  (groupedItems.functional.length > 0 || groupedItems.non_functional.length > 0) && (
+                    <div className="col-span-full text-xs font-bold text-slate-400 uppercase tracking-wider pt-1">
+                      その他の決め事 ({groupedItems.other.length})
+                    </div>
+                  )}
               <div
                 key={item.id}
                 onClick={() => onSelectNode(item.id)}
@@ -485,6 +574,9 @@ export function DecisionsBrowser({
                       <span className="font-mono text-xs font-bold text-slate-300 group-hover:text-white transition">
                         {item.id}
                       </span>
+                      {item.kind === 'requirement' && (
+                        <RequirementClassBadge value={item.requirement_class} />
+                      )}
                       <button
                         onClick={e => handleCopyId(e, item.id)}
                         className="text-slate-500 hover:text-slate-300 p-0.5 rounded transition opacity-0 group-hover:opacity-100"
@@ -580,6 +672,7 @@ export function DecisionsBrowser({
                   )}
                 </div>
               </div>
+              </React.Fragment>
             );
           })}
         </div>
@@ -592,6 +685,7 @@ export function DecisionsBrowser({
                 <tr className="bg-slate-950/80 border-b border-slate-800 text-[11px] uppercase text-slate-400 font-semibold tracking-wider">
                   <th className="py-3 px-4 w-28">種別</th>
                   <th className="py-3 px-4 w-32">ID</th>
+                  <th className="py-3 px-4 w-24">区分</th>
                   <th className="py-3 px-4">タイトル / 概要</th>
                   <th className="py-3 px-4 w-52">関連決め事</th>
                   <th className="py-3 px-4 w-36">タグ</th>
@@ -599,7 +693,7 @@ export function DecisionsBrowser({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {filteredItems.map(item => {
+                {[...groupedItems.functional, ...groupedItems.non_functional, ...groupedItems.other].map(item => {
                   const meta = KIND_META[item.kind];
                   return (
                     <tr
@@ -618,6 +712,13 @@ export function DecisionsBrowser({
 
                       <td className="py-3 px-4 font-mono font-bold text-slate-300 group-hover:text-indigo-300 transition">
                         {item.id}
+                      </td>
+                      <td className="py-3 px-4">
+                        {item.kind === 'requirement' ? (
+                          <RequirementClassBadge value={item.requirement_class} showLabel />
+                        ) : (
+                          <span className="text-slate-600">—</span>
+                        )}
                       </td>
 
                       <td className="py-3 px-4">

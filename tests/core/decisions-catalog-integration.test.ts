@@ -32,8 +32,8 @@ test('TC-0031: DecisionsCatalogBuilder - 主要種別集約・相互参照（ACT
   const actorsWithUC = catalog.items.filter(i => i.kind === 'actor' && i.relatedUseCases && i.relatedUseCases.length > 0);
   assert.ok(actorsWithUC.length > 0, 'At least one actor must have reverse-referenced use cases');
   assert.deepEqual(
-    catalog.items.find(i => i.id === 'ACT-0001')?.relatedUseCases?.map(i => i.id),
-    ['UC-0001', 'UC-0002']
+    catalog.items.find(i => i.id === 'ACT-0001')?.relatedUseCases?.map(i => i.id).sort(),
+    ['UC-0001', 'UC-0002', 'UC-0003', 'UC-0004', 'UC-0005', 'UC-0006', 'UC-0007', 'UC-0008', 'UC-0009']
   );
   const useCasesWithRefs = catalog.items.filter(
     i => i.kind === 'use_case' && (i.relatedActors?.length || 0) > 0 && (i.relatedReqs?.length || 0) > 0
@@ -77,22 +77,30 @@ test('TC-0031: DecisionsCatalogBuilder - 主要種別集約・相互参照（ACT
     'DSN-0012',
     'DSN-0013',
     'DSN-0016',
+    'DSN-0017',
+    'DSN-0018',
     'NEED-0008',
+    'NEED-0009',
     'REQ-0005',
     'REQ-0015',
     'REQ-0016',
     'REQ-0023',
+    'REQ-0027',
+    'REQ-0028',
     'SPEC-0004',
     'SPEC-0005',
     'SPEC-0015',
     'SPEC-0019',
     'SPEC-0020',
+    'SPEC-0021',
     'TC-0006',
     'TC-0020',
     'TC-0023',
     'TC-0026',
     'TC-0031',
+    'TC-0035',
     'UC-0001',
+    'UC-0003',
   ].sort());
   for (const item of queryItems) {
     const searchableText = [

@@ -49,6 +49,7 @@ export class MatrixBuilder {
         requirementId: req.id,
         requirementTitle: req.title,
         criticality: req.criticality || 'medium',
+        requirementClass: req.requirement_class,
         score: suff?.score || 0,
         specs,
         directTestCases: directTcs,
@@ -66,6 +67,7 @@ export class MatrixBuilder {
         requirementId: spec.id,
         requirementTitle: spec.title,
         criticality: spec.criticality || 'medium',
+        requirementClass: spec.requirement_class,
         score: suff?.score || 0,
         specs: [
           {
@@ -104,6 +106,10 @@ export class MatrixBuilder {
     const highCriticalityCoverage =
       highReqs.length > 0 ? Math.round((highSatisfied / highReqs.length) * 100) : 100;
 
+    const requirementNodes = graph.getRequirements();
+    const functionalRequirementCount = requirementNodes.filter(r => r.requirement_class === 'functional').length;
+    const nonFunctionalRequirementCount = requirementNodes.filter(r => r.requirement_class === 'non_functional').length;
+
     const untestedRequirements = sufficiencies.filter(s => s.score === 0).map(s => s.requirementId);
     const missingIntegrationRequirements = sufficiencies
       .filter(s => s.phaseCounts.integration_internal === 0 && s.phaseCounts.integration_external === 0)
@@ -132,6 +138,8 @@ export class MatrixBuilder {
         totalTestCases,
         overallSufficiencyScore: avgScore,
         highCriticalityCoverage,
+        functionalRequirementCount,
+        nonFunctionalRequirementCount,
       },
       strata,
       pyramid,

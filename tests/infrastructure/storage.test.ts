@@ -27,6 +27,7 @@ test('TC-0004: SQLiteCache - ファイル更新日時（mtime）に基づくパ�
     updated: '2026-09-12',
     scope: 'local' as const,
     criticality: 'high' as const,
+    requirement_class: 'functional' as const,
     depends_on: ['NEED-0001'],
     tags: [],
     links: [],

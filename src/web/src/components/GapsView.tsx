@@ -2,6 +2,7 @@ import React from 'react';
 import { AlertTriangle, Copy, CheckCircle2 } from 'lucide-react';
 import { DocNode, TraceWeaveReport } from '../../../core/models/types.js';
 import { toast } from 'sonner';
+import { RequirementClassBadge } from './RequirementClassBadge.js';
 
 interface GapsViewProps {
   gaps: TraceWeaveReport['gaps'];
@@ -89,6 +90,9 @@ export function GapsView({
                           >
                             {reqId}
                           </button>
+                          {node?.requirement_class && (
+                            <RequirementClassBadge value={node.requirement_class} />
+                          )}
                           {node?.criticality && (
                             <span className="text-[10px] font-bold uppercase px-1.5 py-0.2 bg-rose-950 text-rose-400 rounded border border-rose-900">
                               {node.criticality}
@@ -147,6 +151,9 @@ export function GapsView({
                           >
                             {reqId}
                           </button>
+                          {node?.requirement_class && (
+                            <RequirementClassBadge value={node.requirement_class} />
+                          )}
                           {node?.criticality && (
                             <span className="text-[10px] font-bold uppercase px-1.5 py-0.2 bg-amber-950 text-amber-400 rounded border border-amber-900">
                               {node.criticality}

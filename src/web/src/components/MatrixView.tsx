@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { MatrixRow } from '../../../core/models/types.js';
 import { CircularGauge } from './CircularGauge.js';
+import { RequirementClassBadge } from './RequirementClassBadge.js';
 import { toast } from 'sonner';
 
 interface MatrixViewProps {
@@ -24,6 +25,8 @@ interface MatrixViewProps {
   onSearchQueryChange: (query: string) => void;
   criticalityFilter: string;
   onCriticalityFilterChange: (criticality: string) => void;
+  requirementClassFilter: string;
+  onRequirementClassFilterChange: (requirementClass: string) => void;
   phaseFilter: string;
   onPhaseFilterChange: (phase: string) => void;
   scoreFilter: string;
@@ -41,6 +44,8 @@ export function MatrixView({
   onSearchQueryChange,
   criticalityFilter,
   onCriticalityFilterChange,
+  requirementClassFilter,
+  onRequirementClassFilterChange,
   phaseFilter,
   onPhaseFilterChange,
   scoreFilter,
@@ -90,6 +95,19 @@ export function MatrixView({
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <div className="flex items-center gap-1.5 bg-slate-950/80 border border-slate-800 rounded-xl px-2.5 py-1.5">
               <Filter className="w-3.5 h-3.5 text-slate-500" />
+              <span className="text-slate-400 text-[11px]">区分:</span>
+              <select
+                value={requirementClassFilter}
+                onChange={e => onRequirementClassFilterChange(e.target.value)}
+                className="bg-transparent text-slate-200 focus:outline-none cursor-pointer text-xs"
+              >
+                <option value="all" className="bg-slate-900">すべて</option>
+                <option value="functional" className="bg-slate-900">機能要件 (FR)</option>
+                <option value="non_functional" className="bg-slate-900">非機能要件 (NFR)</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-slate-950/80 border border-slate-800 rounded-xl px-2.5 py-1.5">
               <span className="text-slate-400 text-[11px]">重要度:</span>
               <select
                 value={criticalityFilter}
@@ -150,6 +168,32 @@ export function MatrixView({
         <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800/80 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] text-slate-500 font-medium">クイック条件:</span>
+            <button
+              onClick={() => {
+                onRequirementClassFilterChange('functional');
+                toast.info('機能要件 (FR) で絞り込みました');
+              }}
+              className={`px-3 py-1 rounded-full text-xs border transition ${
+                requirementClassFilter === 'functional'
+                  ? 'bg-emerald-950 text-emerald-200 border-emerald-600 font-bold'
+                  : 'bg-slate-950/80 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
+              }`}
+            >
+              FR 機能要件
+            </button>
+            <button
+              onClick={() => {
+                onRequirementClassFilterChange('non_functional');
+                toast.info('非機能要件 (NFR) で絞り込みました');
+              }}
+              className={`px-3 py-1 rounded-full text-xs border transition ${
+                requirementClassFilter === 'non_functional'
+                  ? 'bg-amber-950 text-amber-200 border-amber-600 font-bold'
+                  : 'bg-slate-950/80 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
+              }`}
+            >
+              NFR 非機能要件
+            </button>
             <button
               onClick={() => {
                 onCriticalityFilterChange('high');
@@ -220,7 +264,8 @@ export function MatrixView({
             <table className="w-full text-left text-sm table-fixed">
               <thead className="bg-slate-800/90 text-slate-300 text-xs font-semibold tracking-wider sticky top-0 backdrop-blur-md z-10 border-b border-slate-700/60">
                 <tr>
-                  <th className="py-3.5 px-4 pl-5 whitespace-nowrap w-[38%]">要求 / 要件</th>
+                  <th className="py-3.5 px-4 pl-5 whitespace-nowrap w-[34%]">要求 / 要件</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap w-[9%]">区分</th>
                   <th className="py-3.5 px-4 whitespace-nowrap w-[7%]">重要度</th>
                   <th className="py-3.5 px-4 whitespace-nowrap w-[13%]">
                     <div className="flex items-center gap-1.5">
@@ -274,6 +319,11 @@ export function MatrixView({
                       >
                         {row.requirementTitle}
                       </div>
+                    </td>
+
+                    {/* Requirement class */}
+                    <td className="p-4 whitespace-nowrap">
+                      <RequirementClassBadge value={row.requirementClass} showLabel size="md" />
                     </td>
 
                     {/* Criticality */}

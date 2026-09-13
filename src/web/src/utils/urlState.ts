@@ -14,6 +14,7 @@ export interface AppUrlState {
   searchQuery: string;
   phaseFilter: string;
   criticalityFilter: string;
+  requirementClassFilter: string;
   scoreFilter: string;
   catalogKind: string;
   catalogTag: string | null;
@@ -24,6 +25,7 @@ export interface AppUrlState {
 export const VALID_TABS: readonly AppTab[] = ['matrix', 'graph', 'stratum', 'decisions', 'gaps'] as const;
 export const VALID_GRAPH_HIGHLIGHTS: readonly GraphHighlightMode[] = ['all', 'upstream', 'downstream'] as const;
 export const VALID_CRITICALITIES = ['all', 'high', 'medium', 'low'] as const;
+export const VALID_REQUIREMENT_CLASSES = ['all', 'functional', 'non_functional'] as const;
 export const VALID_SCORES = ['all', 'satisfied', 'partial', 'unsatisfied'] as const;
 export const VALID_PHASES = [
   'all',
@@ -53,6 +55,7 @@ export const DEFAULT_URL_STATE: AppUrlState = {
   searchQuery: '',
   phaseFilter: 'all',
   criticalityFilter: 'all',
+  requirementClassFilter: 'all',
   scoreFilter: 'all',
   catalogKind: 'all',
   catalogTag: null,
@@ -102,6 +105,12 @@ export function parseUrlState(queryOrUrl?: string): AppUrlState {
       ? rawCriticality
       : 'all';
 
+  const rawReqClass = params.get('reqclass');
+  const requirementClassFilter =
+    rawReqClass && (VALID_REQUIREMENT_CLASSES as readonly string[]).includes(rawReqClass)
+      ? rawReqClass
+      : 'all';
+
   // score
   const rawScore = params.get('score');
   const scoreFilter = rawScore && (VALID_SCORES as readonly string[]).includes(rawScore) ? rawScore : 'all';
@@ -130,6 +139,7 @@ export function parseUrlState(queryOrUrl?: string): AppUrlState {
     searchQuery,
     phaseFilter,
     criticalityFilter,
+    requirementClassFilter,
     scoreFilter,
     catalogKind,
     catalogTag,
@@ -169,6 +179,10 @@ export function serializeUrlState(state: Partial<AppUrlState>): string {
   // criticality
   if (merged.criticalityFilter && merged.criticalityFilter !== 'all') {
     params.set('criticality', merged.criticalityFilter);
+  }
+
+  if (merged.requirementClassFilter && merged.requirementClassFilter !== 'all') {
+    params.set('reqclass', merged.requirementClassFilter);
   }
 
   // score
@@ -228,6 +242,7 @@ export function isUrlStateEqual(a: AppUrlState, b: AppUrlState): boolean {
     a.searchQuery.trim() === b.searchQuery.trim() &&
     a.phaseFilter === b.phaseFilter &&
     a.criticalityFilter === b.criticalityFilter &&
+    a.requirementClassFilter === b.requirementClassFilter &&
     a.scoreFilter === b.scoreFilter &&
     a.catalogKind === b.catalogKind &&
     a.catalogTag === b.catalogTag &&
@@ -243,6 +258,7 @@ export function isOnlySearchQueryChanged(previous: AppUrlState, current: AppUrlS
     previous.nodeId === current.nodeId &&
     previous.phaseFilter === current.phaseFilter &&
     previous.criticalityFilter === current.criticalityFilter &&
+    previous.requirementClassFilter === current.requirementClassFilter &&
     previous.scoreFilter === current.scoreFilter &&
     previous.catalogKind === current.catalogKind &&
     previous.catalogTag === current.catalogTag &&

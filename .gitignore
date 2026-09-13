@@ -9,6 +9,9 @@ src/web/dist/
 dist-web/
 .tmp-build/
 
+# Ephemeral doc exports (DOCUMENT_INDEX, CONSOLIDATED_DESIGN)
+.export/
+
 # Cache & database
 .cache/
 .db/
