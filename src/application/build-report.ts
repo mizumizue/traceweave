@@ -32,7 +32,7 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
   }
   const cachePath =
     options.useCache !== false
-      ? options.cacheDbPath || path.join(projectRoot, '.cache/traceweave.sqlite')
+      ? options.cacheDbPath || path.join(projectRoot, 'src/.cache/traceweave.sqlite')
       : undefined;
 
   let cache: SQLiteCache | undefined;

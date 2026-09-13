@@ -11,6 +11,7 @@ dist-web/
 
 # Cache & database
 .cache/
+src/.cache/
 .db/
 reports/
 *.local

@@ -15,7 +15,10 @@
     "test:raw": "npm run build:web && tsx --test ../tests/**/*.test.ts",
     "analyze:inputs": "tsx ../scripts/analyze-test-inputs.ts",
     "typecheck": "tsc --noEmit",
-    "lint": "tsx ../scripts/validate-docs.ts"
+    "lint:docs": "tsx ../scripts/validate-docs.ts",
+    "lint:paths": "tsx ../scripts/validate-no-local-paths.ts",
+    "lint:root": "tsx ../scripts/validate-clean-root.ts",
+    "lint": "npm run lint:docs && npm run lint:paths && npm run lint:root"
   },
   "keywords": [
     "traceability",

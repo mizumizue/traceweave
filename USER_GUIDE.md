@@ -159,6 +159,9 @@ Web ダッシュボードをローカル HTTP サーバーで起動し、ブラ�
 ```bash
 ./bin/traceweave serve --port 3000
 # ブラウザで http://localhost:3000/ にアクセス
+
+# ポート競合時に先行プロセスを強制終了して再起動する場合
+./bin/traceweave serve --port 3000 --restart
 ```
 
 ### 3.9 `traceweave adopt` (異種プロジェクトへの適用・移行)

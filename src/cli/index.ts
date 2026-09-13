@@ -332,17 +332,18 @@ program
 // Command: serve
 program
   .command('serve')
-  .description('Serve interactive web dashboard locally')
+  .description('Serve interactive web dashboard locally (auto-terminates conflicting previous processes on the port)')
   .option('-p, --port <port>', 'Server port', '3000')
   .option('-d, --docs <dir>', 'Docs directory path')
+  .option('-r, --restart', 'Force restart and kill any previous process occupying the port')
   .action(async (options) => {
     const port = parseInt(options.port, 10);
     const docsDir = resolveDocsDir(options.docs);
 
     // Free port if already occupied by a previous process
     const isAvailable = await PortManager.isPortAvailable(port);
-    if (!isAvailable) {
-      console.log(`\n\x1b[33m⚡ Port ${port} is already in use. Terminating previous process...\x1b[0m`);
+    if (!isAvailable || options.restart) {
+      console.log(`\n\x1b[33m⚡ Port ${port} is in use or restart requested. Terminating previous process...\x1b[0m`);
       const result = await PortManager.ensurePortFree(port);
       if (result.killedPids.length > 0) {
         console.log(`\x1b[32m✔ Terminated previous process (PID: ${result.killedPids.join(', ')}). Port ${port} is now free.\x1b[0m`);
@@ -444,9 +445,17 @@ program
       }
     });
 
-    server.on('error', (err: NodeJS.ErrnoException) => {
-      if (err.code === 'EADDRINUSE') {
-        console.error(`\n\x1b[31m✖ Error: Port ${port} is still in use.\x1b[0m\n`);
+    let retried = false;
+    server.on('error', async (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE' && !retried) {
+        retried = true;
+        console.log(`\n\x1b[33m⚡ Port ${port} is still occupied. Retrying after force release...\x1b[0m`);
+        const result = await PortManager.ensurePortFree(port);
+        if (result.freed) {
+          server.listen(port);
+          return;
+        }
+        console.error(`\n\x1b[31m✖ Error: Failed to free port ${port}: ${result.error}\x1b[0m\n`);
       } else {
         console.error(`\n\x1b[31m✖ Server error: ${err.message}\x1b[0m\n`);
       }
