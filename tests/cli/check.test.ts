@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { repositoryPath } from '../helpers/repo-path.js';
+import { validateDocs } from '../../scripts/validate-docs.js';
 
 /**
  * 【テスト概要】
@@ -139,3 +140,89 @@ Fixture
     fs.rmSync(tempDocs, { recursive: true, force: true });
   }
 });
+
+/**
+ * 【テスト概要】
+ * - 対象: validateDocs (ドキュメントスキーマ・依存関係検証スクリプト)
+ * - 条件: 上流要件（REQ）を持たないスタンドアロン仕様（depends_on: []）とそれに対応するDSNを含むフィクスチャを検証
+ * - 期待結果: specification must depend on at least one REQ- の制約が緩和され、passed: true となること
+ */
+test('validateDocs - 上流要件を持たないスタンドアロン仕様（depends_on: []）がスキーマ検証を通過すること', () => {
+  const tempDocs = fs.mkdtempSync(path.join(os.tmpdir(), 'traceweave-standalone-spec-'));
+  try {
+    fs.mkdirSync(path.join(tempDocs, 'specifications'));
+    fs.mkdirSync(path.join(tempDocs, 'design'));
+
+    fs.writeFileSync(
+      path.join(tempDocs, 'specifications', 'SPEC-0001.md'),
+      `---
+schema_version: 3
+id: SPEC-0001
+kind: specification
+title: Standalone Specification
+status: accepted
+created: "2026-09-13"
+updated: "2026-09-13"
+scope: local
+depends_on: []
+tags: [specification]
+links: []
+---
+## Content
+
+### Contract
+Standalone API Contract
+
+### Inputs
+None
+
+### Outputs
+Success code
+
+### Errors
+None
+
+### Constraints
+None
+`
+    );
+
+    fs.writeFileSync(
+      path.join(tempDocs, 'design', 'DSN-0001.md'),
+      `---
+schema_version: 3
+id: DSN-0001
+kind: design
+title: Standalone Design
+status: accepted
+created: "2026-09-13"
+updated: "2026-09-13"
+scope: local
+depends_on: [SPEC-0001]
+tags: [design]
+links: []
+---
+## Content
+
+### Decision
+Implement directly
+
+### Structure
+Simple structure
+
+### Data Flow
+Input to output
+
+### Trade-offs
+None
+`
+    );
+
+    const result = validateDocs(tempDocs);
+    assert.equal(result.passed, true, `Validation failed with errors: ${result.errors.join(', ')}`);
+    assert.equal(result.errors.length, 0);
+  } finally {
+    fs.rmSync(tempDocs, { recursive: true, force: true });
+  }
+});
+

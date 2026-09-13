@@ -1,5 +1,5 @@
 ---
-name: test-case-review
+name: traceweave-test-case-review
 description: Audit test cases (TC) against REQ and SPEC for oracle validity, execution feasibility, logical soundness, and stratum fit. Use when reviewing test cases, auditing tests, or verifying testability.
 ---
 

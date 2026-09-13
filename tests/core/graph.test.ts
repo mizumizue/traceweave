@@ -207,3 +207,64 @@ test('TC-0001: TraceGraph - 依存先を持たない孤立ノード（orphan）�
   assert.equal(missing.length, 1);
   assert.equal(missing[0].missingId, 'DOES_NOT_EXIST');
 });
+
+/**
+ * 【テスト概要】
+ * - 対象: TraceGraph (スタンドアロン仕様ノードの検出)
+ * - 条件: REQに紐づく通常仕様と、上流REQを持たないスタンドアロン仕様（depends_on: []）を混在登録
+ * - 期待結果: getStandaloneSpecifications により上流REQのない仕様のみが正確に抽出されること
+ */
+test('TraceGraph - 上流要件（REQ）を持たないスタンドアロン仕様ノードが正確に検出されること', () => {
+  const graph = new TraceGraph();
+
+  const req: DocNode = {
+    id: 'REQ-0001',
+    kind: 'requirement',
+    title: 'Req 1',
+    status: 'accepted',
+    created: '2026-09-12',
+    updated: '2026-09-12',
+    scope: 'local',
+    depends_on: [],
+    tags: [],
+    links: [],
+    content: '',
+  };
+
+  const normalSpec: DocNode = {
+    id: 'SPEC-0001',
+    kind: 'specification',
+    title: 'Normal Spec',
+    status: 'accepted',
+    created: '2026-09-12',
+    updated: '2026-09-12',
+    scope: 'local',
+    depends_on: ['REQ-0001'],
+    tags: [],
+    links: [],
+    content: '',
+  };
+
+  const standaloneSpec: DocNode = {
+    id: 'SPEC-0002',
+    kind: 'specification',
+    title: 'Standalone Spec',
+    status: 'accepted',
+    created: '2026-09-12',
+    updated: '2026-09-12',
+    scope: 'local',
+    depends_on: [],
+    tags: [],
+    links: [],
+    content: '',
+  };
+
+  graph.addNode(req);
+  graph.addNode(normalSpec);
+  graph.addNode(standaloneSpec);
+
+  const standalones = graph.getStandaloneSpecifications();
+  assert.equal(standalones.length, 1);
+  assert.equal(standalones[0].id, 'SPEC-0002');
+});
+

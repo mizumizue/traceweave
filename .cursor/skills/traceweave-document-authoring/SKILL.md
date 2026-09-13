@@ -1,5 +1,5 @@
 ---
-name: document-authoring
+name: traceweave-document-authoring
 description: Decompose needs into strict V-model documents (NEED -> REQ -> SPEC -> DSN), guard abstraction boundaries, and audit via SubAgent. Use when authoring or revising requirements, specifications, designs, ADRs, or test cases.
 ---
 
@@ -56,7 +56,7 @@ Bind documents following strict dependency rules:
 1. **Refinement chain (`depends_on`)**:
    - `need`, `actor`, `use_case`, `decision`: `depends_on: []`
    - `requirement`: `[NEED-xxxx]` (or `[]` if requirement-originated)
-   - `specification`: 1 or more `REQ-xxxx`
+   - `specification`: 1 or more `REQ-xxxx` (or `[]` for standalone/contract-first specifications)
    - `design`: 1 or more `SPEC-xxxx` (or `scope: cross_cutting` with `depends_on: []`)
    - `quality_assurance`: 1 or more `REQ-xxxx` or `SPEC-xxxx` (optional `links: [TC-xxxx, ...]`)
    - `test_case`: 1 or more targets in `verifies: [REQ-..., SPEC-...]` (`depends_on: []`)
@@ -93,7 +93,7 @@ Resolve any detected failures:
 
 ### 6. audit (Independent SubAgent Review Gate)
 
-Launch an independent SubAgent via the `Task` tool (`generalPurpose`) to eliminate context bias.
+For major features or new multi-document trees, launch an independent SubAgent via the `Task` tool (`generalPurpose`) to eliminate context bias. (For small revisions, localized doc fixes, or lightweight changes, this SubAgent gate is optional and running `npm --prefix src run lint` is sufficient).
 
 #### SubAgent Prompt Template:
 ```text

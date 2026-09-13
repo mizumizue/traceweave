@@ -70,6 +70,13 @@ export class TraceGraph {
     return this.getNodesByKind('specification');
   }
 
+  public getStandaloneSpecifications(): DocNode[] {
+    return this.getSpecifications().filter(spec => {
+      const upstreams = this.getUpstream(spec.id);
+      return !upstreams.some(u => u.kind === 'requirement');
+    });
+  }
+
   public getTestCases(): DocNode[] {
     return this.getNodesByKind('test_case');
   }

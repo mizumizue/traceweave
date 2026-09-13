@@ -62,7 +62,8 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
   const sufficiencies = scorer.calculateAll(graph);
 
   const analyzer = new BalanceAnalyzer();
-  const strata = analyzer.analyzeStrata(sufficiencies, graph.getRequirements().length);
+  const totalItems = graph.getRequirements().length + graph.getStandaloneSpecifications().length;
+  const strata = analyzer.analyzeStrata(sufficiencies, totalItems);
   const pyramid = analyzer.diagnosePyramid(graph, strata, sufficiencies);
 
   const builder = new MatrixBuilder();

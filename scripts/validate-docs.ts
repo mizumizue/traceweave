@@ -250,9 +250,7 @@ export function validateDocs(docsDir: string = DOCS_DIR): { passed: boolean; err
         errors.push(`${filePath}: requirement cannot depend on multiple needs (must be 1:N)`);
       }
     } else if (kind === 'specification') {
-      if (deps.length === 0) {
-        errors.push(`${filePath}: specification must depend on at least one REQ-`);
-      }
+      // Standalone specifications (depends_on: []) are allowed for lightweight / contract-first patterns
       for (const dep of deps) {
         if (!dep.startsWith('REQ-')) {
           errors.push(`${filePath}: specification dependency "${dep}" must start with REQ-`);

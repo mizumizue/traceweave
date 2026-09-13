@@ -11,11 +11,58 @@ import {
 
 export class SufficiencyScorer {
   /**
-   * Calculates sufficiency scores for all requirements in the graph.
+   * Calculates sufficiency scores for all requirements and standalone specifications in the graph.
    */
   public calculateAll(graph: TraceGraph): RequirementSufficiency[] {
     const requirements = graph.getRequirements();
-    return requirements.map(req => this.calculateRequirement(graph, req));
+    const reqSufficiencies = requirements.map(req => this.calculateRequirement(graph, req));
+
+    const standaloneSpecs = graph.getStandaloneSpecifications();
+    const specSufficiencies = standaloneSpecs.map(spec => this.calculateStandaloneSpec(graph, spec));
+
+    return [...reqSufficiencies, ...specSufficiencies];
+  }
+
+  /**
+   * Calculates sufficiency score for a standalone specification (one without upstream requirement).
+   */
+  public calculateStandaloneSpec(graph: TraceGraph, spec: DocNode): RequirementSufficiency {
+    const testCases = graph.getDirectTestCases(spec.id);
+
+    const phaseCounts: PhaseCount = {
+      unit: 0,
+      integration_internal: 0,
+      integration_external: 0,
+      system: 0,
+      acceptance: 0,
+    };
+
+    const methodCounts: Partial<MethodCount> = {};
+
+    for (const tc of testCases) {
+      if (tc.test_level && tc.test_level in phaseCounts) {
+        phaseCounts[tc.test_level]++;
+      }
+      if (tc.test_method) {
+        methodCounts[tc.test_method] = (methodCounts[tc.test_method] || 0) + 1;
+      }
+    }
+
+    const criticality: Criticality = spec.criticality || 'medium';
+    const { score, missingPhases, isFullySatisfied } = SufficiencyScorer.computeScore(criticality, phaseCounts);
+
+    return {
+      requirementId: spec.id,
+      title: spec.title,
+      criticality,
+      score,
+      isFullySatisfied,
+      phaseCounts,
+      methodCounts,
+      associatedSpecs: [spec.id],
+      testCaseIds: testCases.map(t => t.id),
+      missingPhases,
+    };
   }
 
   /**

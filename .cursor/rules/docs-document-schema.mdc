@@ -84,7 +84,7 @@ links: [] # 非依存の横断参照
 - 依存方向（`depends_on`）: `need` <- `requirement` <- `specification` <- `design`
 - `need`, `actor`, `use_case`, `decision`: `depends_on: []`（最上流または独立意思決定）
 - `requirement`: `[NEED-xxxx]`（1:N）または `[]`（要件起点）
-- `specification`: 1件以上の `REQ-xxxx`
+- `specification`: 1件以上の `REQ-xxxx` または `[]`（仕様起点・スタンドアロン仕様）
 - `design`: 1件以上の `SPEC-xxxx`（全体設計は `scope: cross_cutting` で `depends_on: []` 許可）
 - `quality_assurance`: 1件以上の `REQ-xxxx` または `SPEC-xxxx`
 - `use_case`: `actor_refs: [ACT-...]`, `requirement_refs: [REQ-...]`

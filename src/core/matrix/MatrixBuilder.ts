@@ -56,6 +56,29 @@ export class MatrixBuilder {
       });
     }
 
+    for (const spec of graph.getStandaloneSpecifications()) {
+      const suff = suffMap.get(spec.id);
+      const directTcs = graph.getDirectTestCases(spec.id).map(mapTestCase);
+
+      rows.push({
+        needId: undefined,
+        needTitle: undefined,
+        requirementId: spec.id,
+        requirementTitle: spec.title,
+        criticality: spec.criticality || 'medium',
+        score: suff?.score || 0,
+        specs: [
+          {
+            id: spec.id,
+            title: spec.title,
+            testCases: directTcs,
+          },
+        ],
+        directTestCases: [],
+        allTestCases: directTcs,
+      });
+    }
+
     return rows;
   }
 

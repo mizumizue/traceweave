@@ -178,7 +178,7 @@ Web ダッシュボードをローカル HTTP サーバーで起動し、ブラ�
 # ロールバック（バックアップディレクトリから元通りに復元）
 ./bin/traceweave adopt /path/to/project --rollback /path/to/project/.traceweave-backup/20260913083000_overlay
 ```
-※ 詳細は **[INSTALL_GUIDE.md](INSTALL_GUIDE.md)** および Cursor スキル `adopt-traceweave` を参照してください。
+※ 詳細は **[INSTALL_GUIDE.md](INSTALL_GUIDE.md)** および Cursor スキル `traceweave-adopt` を参照してください。
 
 ---
 

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { TraceGraph } from '../../src/core/graph/TraceGraph.js';
 import { SufficiencyScorer } from '../../src/core/sufficiency/SufficiencyScorer.js';
+import { MatrixBuilder } from '../../src/core/matrix/MatrixBuilder.js';
 import { DocNode } from '../../src/core/models/types.js';
 
 /**
@@ -198,3 +199,132 @@ test('TC-0002: SufficiencyScorer - 中重要度（medium）要件に対して重
   assert.equal(resMed.score, 50);
 
 });
+
+/**
+ * 【テスト概要】
+ * - 対象: SufficiencyScorer (スタンドアロン仕様の充足度スコア計算)
+ * - 条件: 上流要件を持たないスタンドアロン仕様（SPEC-0002）に対してUT/ITaテストケースを紐づけてcalculateAllを実行
+ * - 期待結果: スタンドアロン仕様が充足度集計結果に含まれ、紐づくテストレベルに応じたスコアが正しく計算されること
+ */
+test('SufficiencyScorer - 上流要件を持たないスタンドアロン仕様に対しても直接紐づくテストから充足度スコアが計算されること', () => {
+  const graph = new TraceGraph();
+  const scorer = new SufficiencyScorer();
+
+  const spec: DocNode = {
+    id: 'SPEC-0002',
+    kind: 'specification',
+    title: 'Standalone Spec',
+    status: 'accepted',
+    created: '2026-09-12',
+    updated: '2026-09-12',
+    scope: 'local',
+    depends_on: [],
+    tags: [],
+    links: [],
+    content: '',
+  };
+
+  const tc1: DocNode = {
+    id: 'TC-0001',
+    kind: 'test_case',
+    title: 'Unit Test for Spec',
+    status: 'accepted',
+    created: '2026-09-12',
+    updated: '2026-09-12',
+    scope: 'local',
+    test_level: 'unit',
+    test_method: 'unit_contract',
+    verifies: ['SPEC-0002'],
+    depends_on: [],
+    tags: [],
+    links: [],
+    content: '',
+  };
+
+  const tc2: DocNode = {
+    id: 'TC-0002',
+    kind: 'test_case',
+    title: 'Integration Test for Spec',
+    status: 'accepted',
+    created: '2026-09-12',
+    updated: '2026-09-12',
+    scope: 'local',
+    test_level: 'integration_internal',
+    test_method: 'unit_contract',
+    verifies: ['SPEC-0002'],
+    depends_on: [],
+    tags: [],
+    links: [],
+    content: '',
+  };
+
+  graph.addNode(spec);
+  graph.addNode(tc1);
+  graph.addNode(tc2);
+
+  const sufficiencies = scorer.calculateAll(graph);
+  assert.equal(sufficiencies.length, 1);
+  assert.equal(sufficiencies[0].requirementId, 'SPEC-0002');
+  assert.equal(sufficiencies[0].phaseCounts.unit, 1);
+  assert.equal(sufficiencies[0].phaseCounts.integration_internal, 1);
+  assert.ok(sufficiencies[0].score > 0);
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: MatrixBuilder (スタンドアロン仕様のマトリクス行生成)
+ * - 条件: 上流要件を持たないスタンドアロン仕様（SPEC-0002）とそのテストケースが存在するグラフを構築
+ * - 期待結果: buildMatrix により生成されるマトリクスに行が追加され、requirementId に仕様IDが設定されること
+ */
+test('MatrixBuilder - 上流要件を持たないスタンドアロン仕様がマトリクス行として生成されること', () => {
+  const graph = new TraceGraph();
+  const scorer = new SufficiencyScorer();
+  const builder = new MatrixBuilder();
+
+  const spec: DocNode = {
+    id: 'SPEC-0002',
+    kind: 'specification',
+    title: 'Standalone Spec',
+    status: 'accepted',
+    created: '2026-09-12',
+    updated: '2026-09-12',
+    scope: 'local',
+    depends_on: [],
+    tags: [],
+    links: [],
+    content: '',
+  };
+
+  const tc: DocNode = {
+    id: 'TC-0001',
+    kind: 'test_case',
+    title: 'Unit Test for Spec',
+    status: 'accepted',
+    created: '2026-09-12',
+    updated: '2026-09-12',
+    scope: 'local',
+    test_level: 'unit',
+    test_method: 'unit_contract',
+    verifies: ['SPEC-0002'],
+    depends_on: [],
+    tags: [],
+    links: [],
+    content: '',
+  };
+
+  graph.addNode(spec);
+  graph.addNode(tc);
+
+  const sufficiencies = scorer.calculateAll(graph);
+  const matrix = builder.buildMatrix(graph, sufficiencies);
+
+  assert.equal(matrix.length, 1);
+  assert.equal(matrix[0].requirementId, 'SPEC-0002');
+  assert.equal(matrix[0].requirementTitle, 'Standalone Spec');
+  assert.equal(matrix[0].specs.length, 1);
+  assert.equal(matrix[0].specs[0].id, 'SPEC-0002');
+  assert.equal(matrix[0].allTestCases.length, 1);
+  assert.equal(matrix[0].allTestCases[0].id, 'TC-0001');
+});
+
+

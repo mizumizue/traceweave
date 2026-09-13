@@ -1,5 +1,5 @@
 ---
-name: adopt-traceweave
+name: traceweave-adopt
 description: Adopt TraceWeave into projects — probe repository structure, create deterministic backups, and apply non-destructive overlay or full clean-root restructure.
 ---
 

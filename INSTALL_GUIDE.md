@@ -166,7 +166,7 @@ TraceWeave は **Model Context Protocol (MCP)** を標準サポートしてい�
 
 ---
 
-## 6. Cursor スキルを使った自律導入 (`adopt-traceweave`)
+## 6. Cursor スキルを使った自律導入 (`traceweave-adopt`)
 
 Cursor AI エージェントを利用している場合、手動でコマンドを打つことなく、対話を通じて自然言語で適用できます。
 
@@ -177,7 +177,7 @@ AI エージェントに対して以下のように指示します：
 > または  
 > 「TraceWeave の推奨するクリーンルート構成に完全再構成して」
 
-AI エージェントは `.cursor/skills/adopt-traceweave/SKILL.md` を自律的に読み込み、
+AI エージェントは `.cursor/skills/traceweave-adopt/SKILL.md` を自律的に読み込み、
 1. **probe**: プロジェクト情報の収集・言語・テスト環境の診断
 2. **checkpoint**: 事前バックアップの作成と整合性確認
 3. **adopt**: 指定モードの安全な適用
