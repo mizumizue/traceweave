@@ -131,6 +131,8 @@ export interface DocNode {
   expected_result?: string;
   objective?: string;
   steps?: string;
+  evidence_log?: string;
+  execution_duration_ms?: number;
   parameter_file?: string;
   parameters?: TestCaseDataset;
   inputAnalysis?: TestCaseInputAnalysis;
@@ -150,6 +152,8 @@ export type StratumDensity = 'heavy' | 'adequate' | 'thin' | 'missing';
 
 export type PyramidHealth =
   | 'healthy'
+  | 'healthy_trophy'
+  | 'unbalanced'
   | 'inverted_ice_cream'
   | 'hollow_hourglass'
   | 'missing_specs';
@@ -414,4 +418,24 @@ export interface TraceabilityGraphData {
   bounds: TraceGraphBounds;
   stats: TraceGraphStats;
   ranks: TraceGraphRankInfo[];
+}
+
+export interface TestCaseExecutionReport {
+  testCaseId: string;
+  status: TestExecutionStatus;
+  durationMs: number;
+  testTitle: string;
+  errorMessage?: string;
+  errorStack?: string;
+  outputLog?: string;
+  executedAt: string;
+}
+
+export interface TestResultsReport {
+  generatedAt: string;
+  totalTests: number;
+  passedCount: number;
+  failedCount: number;
+  skippedCount: number;
+  results: Record<string, TestCaseExecutionReport>;
 }

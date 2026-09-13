@@ -9,9 +9,9 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 対象: Webダッシュボード静的ビルド成果物
  * - 条件: 事前に生成された静的ビルド成果物ディレクトリ（src/web/dist）を検査
  * - 期待結果: 既存のindex.htmlおよびdata.jsonが存在し、要件定義・テストケース実測値（execution_status/actual_result）および円形ゲージ用スコアが含まれていること
- * - 関連文書: TC-0006, REQ-0006, SPEC-0006
+ * - 関連文書: TC-0006, TC-0009, REQ-0006, REQ-0007, SPEC-0006, SPEC-0007
  */
-test('TC-0006: Webダッシュボードビルド成果物 - index.htmlおよびdata.jsonの契約を検証すること', () => {
+test('TC-0006 & TC-0009: Webダッシュボードビルド成果物および実測ペイロード外部契約を検証すること', () => {
   const distWeb = fs.existsSync(repositoryPath('src/web/dist'))
     ? repositoryPath('src/web/dist')
     : repositoryPath('dist/web');

@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { DocParser } from '../infrastructure/parser/DocParser.js';
 import { SQLiteCache } from '../infrastructure/storage/SQLiteCache.js';
+import { TestReportLoader } from '../infrastructure/testing/TestReportLoader.js';
 import { SufficiencyScorer } from '../core/sufficiency/SufficiencyScorer.js';
 import { BalanceAnalyzer } from '../core/analyzer/BalanceAnalyzer.js';
 import { MatrixBuilder } from '../core/matrix/MatrixBuilder.js';
@@ -13,6 +14,8 @@ export interface BuildReportOptions {
   docsDir?: string;
   cacheDbPath?: string;
   useCache?: boolean;
+  testReportPath?: string;
+  loadTestReport?: boolean;
 }
 
 export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
@@ -38,7 +41,13 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
   }
 
   const parser = new DocParser(cache);
-  const nodes = parser.parseDirectory(docsDir);
+  const rawNodes = parser.parseDirectory(docsDir);
+
+  const reportData =
+    options.loadTestReport !== false
+      ? TestReportLoader.loadReport(options.testReportPath)
+      : null;
+  const nodes = TestReportLoader.mergeReportIntoNodes(rawNodes, reportData);
 
   const graph = new TraceGraph();
   for (const node of nodes) {

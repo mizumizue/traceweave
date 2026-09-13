@@ -54,6 +54,26 @@ test('TC-0011: TestRunnerRegistry - テストピラミッド診断のデータ�
   assert.equal(healthy.isMatch, true);
   assert.equal(healthy.actual.status, 'healthy');
 
+  // Test trophy pattern
+  const trophy = TestRunnerRegistry.runTest({
+    testCaseId: 'TC-0011',
+    inputs: { unit: 20, integration_internal: 35, integration_external: 35, system: 10, acceptance: 5 },
+    expected: { status: 'healthy_trophy', hasWarnings: false },
+  });
+  assert.equal(trophy.status, 'passed');
+  assert.equal(trophy.isMatch, true);
+  assert.equal(trophy.actual.status, 'healthy_trophy');
+
+  // Test unbalanced pattern
+  const unbalanced = TestRunnerRegistry.runTest({
+    testCaseId: 'TC-0011',
+    inputs: { unit: 7, integration_internal: 2, integration_external: 40, system: 0, acceptance: 5 },
+    expected: { status: 'unbalanced', hasWarnings: true },
+  });
+  assert.equal(unbalanced.status, 'passed');
+  assert.equal(unbalanced.isMatch, true);
+  assert.equal(unbalanced.actual.status, 'unbalanced');
+
   // Test inverted pattern
   const inverted = TestRunnerRegistry.runTest({
     testCaseId: 'TC-0011',

@@ -11,6 +11,8 @@ import { MarkdownReporter } from '../infrastructure/reporters/MarkdownReporter.j
 import { TestRunnerRegistry } from '../core/testing/TestRunnerRegistry.js';
 import { TestCaseInputAnalyzer } from '../core/analyzer/TestCaseInputAnalyzer.js';
 import { DecisionsCatalogBuilder } from '../core/decisions/DecisionsCatalogBuilder.js';
+import { PortManager } from '../infrastructure/system/PortManager.js';
+import { adoptProject, rollbackAdoption, type AdoptionMode } from '../application/adopt-project.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -333,15 +335,30 @@ program
   .description('Serve interactive web dashboard locally')
   .option('-p, --port <port>', 'Server port', '3000')
   .option('-d, --docs <dir>', 'Docs directory path')
-  .action((options) => {
+  .action(async (options) => {
     const port = parseInt(options.port, 10);
     const docsDir = resolveDocsDir(options.docs);
 
+    // Free port if already occupied by a previous process
+    const isAvailable = await PortManager.isPortAvailable(port);
+    if (!isAvailable) {
+      console.log(`\n\x1b[33m⚡ Port ${port} is already in use. Terminating previous process...\x1b[0m`);
+      const result = await PortManager.ensurePortFree(port);
+      if (result.killedPids.length > 0) {
+        console.log(`\x1b[32m✔ Terminated previous process (PID: ${result.killedPids.join(', ')}). Port ${port} is now free.\x1b[0m`);
+      } else if (!result.freed) {
+        console.error(`\x1b[31m✖ Failed to free port ${port}: ${result.error}\x1b[0m`);
+      }
+    }
+
     const server = http.createServer((req, res) => {
-      // CORS headers for all responses
+      // CORS & Cache-Control headers for all responses
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
 
       if (req.method === 'OPTIONS') {
         res.writeHead(204);
@@ -427,6 +444,15 @@ program
       }
     });
 
+    server.on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`\n\x1b[31m✖ Error: Port ${port} is still in use.\x1b[0m\n`);
+      } else {
+        console.error(`\n\x1b[31m✖ Server error: ${err.message}\x1b[0m\n`);
+      }
+      process.exit(1);
+    });
+
     server.listen(port, () => {
       console.log(`\n\x1b[32m🚀 TraceWeave Dashboard is running at:\x1b[0m \x1b[1mhttp://localhost:${port}/\x1b[0m`);
       console.log(`  - API Endpoint: http://localhost:${port}/api/data`);
@@ -443,6 +469,45 @@ program
     const docsDir = resolveDocsDir(options.docs);
     const { startMcpServer } = await import('../mcp/server.js');
     await startMcpServer(docsDir);
+  });
+
+// Command: adopt
+program
+  .command('adopt [targetDir]')
+  .description('Adopt TraceWeave into an existing or new project (supports overlay and restructure modes with backup)')
+  .option('-m, --mode <mode>', 'Adoption mode: "overlay" (non-destructive temporary setup) or "restructure" (full clean-root migration)', 'overlay')
+  .option('-b, --backup-dir <dir>', 'Custom backup directory path')
+  .option('--no-backup', 'Skip backup before adopting (not recommended)')
+  .option('-d, --dry-run', 'Simulate adoption steps without making changes', false)
+  .option('-r, --rollback <backupDir>', 'Rollback changes using a previous backup directory or manifest')
+  .option('-p, --project-name <name>', 'Project name for generated documents')
+  .option('-f, --force', 'Force restructuring even if git working tree has uncommitted changes', false)
+  .action((targetDir, options) => {
+    if (options.rollback) {
+      try {
+        rollbackAdoption(options.rollback);
+        process.exit(0);
+      } catch (err: any) {
+        console.error(`\x1b[31mRollback failed: ${err.message}\x1b[0m`);
+        process.exit(1);
+      }
+    }
+
+    try {
+      adoptProject({
+        targetDir,
+        mode: options.mode as AdoptionMode,
+        backupDir: options.backupDir,
+        noBackup: options.backup === false,
+        dryRun: options.dryRun,
+        projectName: options.projectName,
+        force: options.force,
+      });
+      process.exit(0);
+    } catch (err: any) {
+      console.error(`\x1b[31mAdoption failed: ${err.message}\x1b[0m`);
+      process.exit(1);
+    }
   });
 
 function renderSvgGauge(percentage: number, size = 42, strokeWidth = 4): string {

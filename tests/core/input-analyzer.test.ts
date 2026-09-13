@@ -40,9 +40,9 @@ test('TestCaseInputAnalyzer - Rule 0: test_case以外の文書種別（REQ等）
  * - 対象: TestCaseInputAnalyzer (入力値変更可否判定 - Rule 1)
  * - 条件: 外部環境依存手法を持つテストケース（TC-0004: scenario/FS, TC-0006: e2e, TC-0007: manual）を判定
  * - 期待結果: 全て isModifiable が false、reasonCode が 'external_environment_dependency' と判定されること
- * - 関連文書: ADR-0003, REQ-0009, SPEC-0008
+ * - 関連文書: TC-0007, ADR-0003, REQ-0009, SPEC-0008
  */
-test('TestCaseInputAnalyzer - Rule 1: 外部環境依存（E2E・手動・シナリオ等）を持つテストケースが入力変更不可として除外されること', () => {
+test('TC-0007: TestCaseInputAnalyzer - Rule 1: 外部環境依存（E2E・手動・シナリオ等）を持つテストケースが入力変更不可として除外されること', () => {
   const parser = new DocParser();
 
   // TC-0004: scenario (storage & fs)

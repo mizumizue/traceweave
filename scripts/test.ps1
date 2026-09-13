@@ -7,5 +7,5 @@ $env:NODE_PATH = "$Root\src\node_modules" + [System.IO.Path]::PathSeparator + $e
 Write-Host "Building web dashboard..."
 npm --prefix "$Root\src" run build:web
 
-Write-Host "Running test suite..."
-& node "$Root\src\node_modules\tsx\dist\cli.mjs" --test "$Root\tests\**\*.test.ts"
+Write-Host "Running test suite with report generation..."
+& node "$Root\src\node_modules\tsx\dist\cli.mjs" "$Root\scripts\run-test-suite.ts"

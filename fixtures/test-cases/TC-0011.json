@@ -19,6 +19,36 @@
       }
     },
     {
+      "id": "pattern-pyramid-trophy",
+      "name": "健全なトロフィー分布 (IT最多、UT/ST/UATも網羅)",
+      "inputs": {
+        "unit": 20,
+        "integration_internal": 35,
+        "integration_external": 35,
+        "system": 10,
+        "acceptance": 5
+      },
+      "expected": {
+        "status": "healthy_trophy",
+        "hasWarnings": false
+      }
+    },
+    {
+      "id": "pattern-pyramid-unbalanced",
+      "name": "不均衡・工程欠落アンチパターン (結合偏重かつST欠落・UT僅少)",
+      "inputs": {
+        "unit": 7,
+        "integration_internal": 2,
+        "integration_external": 40,
+        "system": 0,
+        "acceptance": 5
+      },
+      "expected": {
+        "status": "unbalanced",
+        "hasWarnings": true
+      }
+    },
+    {
       "id": "pattern-pyramid-inverted",
       "name": "逆ピラミッドアンチパターン (E2E/UAT過多、UT僅少)",
       "inputs": {

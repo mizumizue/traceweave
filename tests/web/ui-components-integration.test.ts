@@ -16,6 +16,8 @@ import { filterMatrixRows, serializeMatrixCsv, serializeMatrixJson } from '../..
 test('TC-0029: Web UIコンポーネント間連携（モーダル履歴・ピラミッド連動・フィルターエクスポート）の外部結合検証', () => {
   const { graph, report } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
   let history = appendModalHistory({ history: ['REQ-0013'], index: 0 }, 'REQ-0014');
+  history = moveModalHistory(history, 'back');
+  assert.equal(history.history[history.index], 'REQ-0013');
   history = moveModalHistory(history, 'forward');
   assert.equal(history.history[history.index], 'REQ-0014');
   let selectedPhase = '';

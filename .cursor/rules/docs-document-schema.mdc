@@ -61,8 +61,8 @@ links: [] # 非依存の横断参照
   - `api_contract`: API/CLI 契約 / `scenario`: 複数機能シナリオ / `e2e`: 全系エンドツーエンド
   - `performance_load`: 性能・負荷 / `security`: 脆弱性・権限 / `exploratory_manual`: 探索的・手動
 - `verifies`: 1件以上の検証対象 ID 配列（`[REQ-..., SPEC-...]`）
-- `execution_status`: `passed` | `failed` | `pending` | `skipped`（任意）
-- `actual_result`: 実行結果サマリー文字列（任意）
+- `parameter_file`: 外部パラメータJSONファイルパス（任意）
+※ `execution_status` および `actual_result` の静的記述・手動更新は廃止（ADR-0006）。テストスクリプト実行レポート（reports/test-results.json）から動的に供給・結合する。
 
 ### quality_assurance (QA) の記載原則（実装非依存）
 - **実装コード・ファイルパス参照禁止**: `tests/**/*.test.ts` や `src/...` などの具体的ファイルパス、クラス名、関数名を記述してはならない（`scripts/validate-docs.ts` で自動検査）。個別のテスト手順は `TC-` に委ね、`QA-` には集約された品質特性と合否判定基準・証跡を記述する。
@@ -77,7 +77,7 @@ links: [] # 非依存の横断参照
 - `design`: `### Decision`, `### Structure`, `### Data Flow`, `### Trade-offs`
 - `decision`: `### Context`, `### Decision`, `### Consequences`
 - `quality_assurance`: `### Objective`, `### Quality Criteria`, `### Verification`, `### Evidence`, `### Exit Criteria`
-- `test_case`: `### Objective`, `### Preconditions`, `### Steps`, `### Expected Results`, `### Actual Results`（任意）, `### Evidence`
+- `test_case`: `### Objective`, `### Preconditions`, `### Steps`, `### Expected Results`（※ `Actual Results`, `Evidence` は ADR-0006 により廃止・レポートへ分離）
 
 ## 4. Traceability & Direction
 

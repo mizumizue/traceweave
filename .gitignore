@@ -7,10 +7,12 @@ dist/
 src/dist/
 src/web/dist/
 dist-web/
+.tmp-build/
 
 # Cache & database
 .cache/
 .db/
+reports/
 *.local
 *.log
 .DS_Store

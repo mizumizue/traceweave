@@ -13,6 +13,7 @@
 ```text
 traceweave/
 ├── README.md               # 製品概要、全体構成マップ、クイックスタート
+├── USER_GUIDE.md           # ユーザーガイド: CLI・Web画面・MCP連携の完全利用マニュアル
 ├── ARCHITECTURE.md         # アーキテクチャ設計原則、レイヤー責務、システム構造図
 ├── DEVELOPER_GUIDE.md      # 本ファイル: 開発者ガイド、文書先行プロセス、リポジトリ規約
 ├── .gitignore              # Git 除外設定（src/node_modules/, src/dist/, .cache/ 等）

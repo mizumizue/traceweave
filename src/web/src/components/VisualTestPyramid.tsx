@@ -76,10 +76,22 @@ export function VisualTestPyramid({ strata, pyramid, onFilterPhase }: VisualTest
 
   const statusConfig = {
     healthy: {
-      label: '健全 (Healthy Pyramid)',
+      label: '健全ピラミッド型 (Healthy Pyramid)',
       badgeBg: 'bg-emerald-950/80 border-emerald-600/70 text-emerald-300',
       icon: <ShieldCheck className="w-5 h-5 text-emerald-400" />,
       desc: '単体テストを土台とし、上位工程に進むほど絞り込まれる理想的なピラミッド分布を維持しています。',
+    },
+    healthy_trophy: {
+      label: '健全トロフィー型 (Healthy Trophy)',
+      badgeBg: 'bg-cyan-950/80 border-cyan-600/70 text-cyan-300',
+      icon: <ShieldCheck className="w-5 h-5 text-cyan-400" />,
+      desc: '結合テストを中心とし、モジュール間連携とインターフェース契約を手厚く保証するテストトロフィー戦略を健全に維持しています。',
+    },
+    unbalanced: {
+      label: '不均衡・工程欠落型 (Unbalanced Distribution)',
+      badgeBg: 'bg-amber-950/80 border-amber-600/70 text-amber-300',
+      icon: <AlertTriangle className="w-5 h-5 text-amber-400" />,
+      desc: '特定のテスト層への極端な偏重、または重要な検証工程（システムテスト等）の欠落が検知されました。テストピラミッド/トロフィーのバランス見直しを推奨します。',
     },
     inverted_ice_cream: {
       label: '逆ピラミッド型 (Inverted Ice-Cream)',

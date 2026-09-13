@@ -59,7 +59,6 @@ const HEADINGS: Record<string, string[]> = {
     '### Preconditions',
     '### Steps',
     '### Expected Results',
-    '### Evidence',
   ],
 };
 
@@ -185,8 +184,11 @@ export function validateDocs(docsDir: string = DOCS_DIR): { passed: boolean; err
     }
 
     if (kind === 'test_case') {
-      if (meta.execution_status && !['passed', 'failed', 'pending', 'skipped'].includes(meta.execution_status)) {
-        errors.push(`${filePath}: Invalid execution_status "${meta.execution_status}". Expected passed, failed, pending, or skipped`);
+      if (meta.execution_status !== undefined) {
+        errors.push(`${filePath}: execution_status must not be defined in test_case frontmatter. Test outcomes must be separated into execution reports (ADR-0006)`);
+      }
+      if (meta.actual_result !== undefined) {
+        errors.push(`${filePath}: actual_result must not be defined in test_case frontmatter. Test outcomes must be separated into execution reports (ADR-0006)`);
       }
       if (!VALID_TEST_LEVELS.includes(meta.test_level)) {
         errors.push(`${filePath}: Invalid test_level "${meta.test_level}". Expected one of ${VALID_TEST_LEVELS.join(', ')}`);
@@ -314,18 +316,7 @@ export function validateDocs(docsDir: string = DOCS_DIR): { passed: boolean; err
       const rawMatches = contentBody.match(/^### [^\r\n]+/gm) || [];
       const foundHeadings = rawMatches.map(h => h.trim());
 
-      let matches = JSON.stringify(foundHeadings) === JSON.stringify(expectedHeadings);
-      if (!matches && kind === 'test_case') {
-        const expectedWithActual = [
-          '### Objective',
-          '### Preconditions',
-          '### Steps',
-          '### Expected Results',
-          '### Actual Results',
-          '### Evidence',
-        ];
-        matches = JSON.stringify(foundHeadings) === JSON.stringify(expectedWithActual);
-      }
+      const matches = JSON.stringify(foundHeadings) === JSON.stringify(expectedHeadings);
 
       if (!matches) {
         errors.push(

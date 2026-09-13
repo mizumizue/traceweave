@@ -73,10 +73,12 @@ test('TC-0003: BalanceAnalyzer - 各テスト層のカバレッジ率および�
  * - 条件: 
  *   1. 上位層(ST/UAT)に偏重した逆ピラミッド（Inverted Ice-Cream）データを投入
  *   2. 中間結合層(ITa/ITb)が欠落した砂時計型（Hollow Hourglass）データを投入
- * - 期待結果: それぞれ 'inverted_ice_cream' および 'hollow_hourglass' として検出され、適切な日本語警告メッセージが出力されること
+ *   3. 結合テスト中心で全工程が揃った健全トロフィー（Healthy Trophy）データを投入
+ *   4. 結合偏重かつシステムテスト欠落・単体僅少の不均衡（Unbalanced）データを投入
+ * - 期待結果: それぞれ 'inverted_ice_cream', 'hollow_hourglass', 'healthy_trophy', 'unbalanced' として検出され、適切な警告・推奨メッセージが出力されること
  * - 関連文書: TC-0003, REQ-0003
  */
-test('TC-0003: BalanceAnalyzer - 逆アイスクリームコーン型および中間空洞化（砂時計型）のピラミッドアンチパターンを正確に検知できること', () => {
+test('TC-0003: BalanceAnalyzer - 逆アイスクリームコーン型、中間空洞化、健全トロフィー型、不均衡・工程欠落型を正確に検知できること', () => {
   const analyzer = new BalanceAnalyzer();
   const graph = new TraceGraph();
 
@@ -105,6 +107,33 @@ test('TC-0003: BalanceAnalyzer - 逆アイスクリームコーン型および�
   const res2 = analyzer.diagnosePyramid(graph, hourglassStrata, []);
   assert.equal(res2.status, 'hollow_hourglass');
   assert.ok(res2.warnings.some(w => w.includes('中間空洞化')));
+
+  // 3. Healthy Trophy: unit=20, itInternal=35, itExternal=35, system=10, uat=5
+  const trophyStrata: StratumReport[] = [
+    { level: 'unit', label: 'UT', count: 20, coverageRatio: 0.6, density: 'adequate' },
+    { level: 'integration_internal', label: 'ITa', count: 35, coverageRatio: 0.8, density: 'heavy' },
+    { level: 'integration_external', label: 'ITb', count: 35, coverageRatio: 0.8, density: 'heavy' },
+    { level: 'system', label: 'ST', count: 10, coverageRatio: 0.5, density: 'adequate' },
+    { level: 'acceptance', label: 'UAT', count: 5, coverageRatio: 0.3, density: 'thin' },
+  ];
+
+  const res3 = analyzer.diagnosePyramid(graph, trophyStrata, []);
+  assert.equal(res3.status, 'healthy_trophy');
+  assert.equal(res3.warnings.length, 0);
+
+  // 4. Unbalanced (結合偏重かつST欠落・UT僅少: 現状リポジトリ型): unit=7, itInternal=2, itExternal=40, system=0, uat=5
+  const unbalancedStrata: StratumReport[] = [
+    { level: 'unit', label: 'UT', count: 7, coverageRatio: 0.28, density: 'thin' },
+    { level: 'integration_internal', label: 'ITa', count: 2, coverageRatio: 0.08, density: 'thin' },
+    { level: 'integration_external', label: 'ITb', count: 40, coverageRatio: 0.88, density: 'heavy' },
+    { level: 'system', label: 'ST', count: 0, coverageRatio: 0.0, density: 'missing' },
+    { level: 'acceptance', label: 'UAT', count: 5, coverageRatio: 0.2, density: 'thin' },
+  ];
+
+  const res4 = analyzer.diagnosePyramid(graph, unbalancedStrata, []);
+  assert.equal(res4.status, 'unbalanced');
+  assert.ok(res4.warnings.some(w => w.includes('システムテスト (ST) が 0 件')));
+  assert.ok(res4.warnings.some(w => w.includes('偏重')));
 });
 
 test('TC-0003: BalanceAnalyzer - 外部パラメータセットの全診断パターンが実行結果と一致すること', () => {
@@ -112,11 +141,13 @@ test('TC-0003: BalanceAnalyzer - 外部パラメータセットの全診断パ�
     fs.readFileSync(repositoryPath('fixtures/test-cases/TC-0011.json'), 'utf8')
   );
   const result = TestRunnerRegistry.runDataset(dataset);
-  assert.equal(result.total, 3);
-  assert.equal(result.passed, 3);
+  assert.equal(result.total, 5);
+  assert.equal(result.passed, 5);
   assert.equal(result.failed, 0);
   assert.deepEqual(result.results.map(item => item.actual.status), [
     'healthy',
+    'healthy_trophy',
+    'unbalanced',
     'inverted_ice_cream',
     'hollow_hourglass',
   ]);

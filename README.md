@@ -42,6 +42,8 @@ TraceWeave は、現代のシステム開発において形骸化・ブラック
 ```text
 traceweave/
 ├── README.md               # 製品概要、全体構成マップ、クイックスタート
+├── INSTALL_GUIDE.md        # インストール & 導入ガイド: 初期セットアップ・外部プロジェクト適用
+├── USER_GUIDE.md           # ユーザーガイド: CLI・Web画面・MCP連携の完全利用マニュアル
 ├── ARCHITECTURE.md         # アーキテクチャ設計原則、レイヤー責務、システム構造図
 ├── DEVELOPER_GUIDE.md      # 開発者ガイド: 文書先行プロセスの流れ・リポジトリ規約
 ├── .gitignore              # Git 除外設定（src/node_modules/, src/dist/, .cache/ 等）
@@ -78,6 +80,9 @@ traceweave/
 
 ## 4. クイックスタート
 
+> 💡 **インストールと外部プロジェクト導入**: 前提要件、クローンからの初期セットアップ、グローバルリンク、および別プロジェクトへの適用手順（一時適用／完全再構成）については、**[INSTALL_GUIDE.md](INSTALL_GUIDE.md)** をご覧ください。  
+> 💡 **詳細な利用ガイド**: CLI コマンドの全オプション、Web ダッシュボードの各ビューの解説、および Cursor / Claude Desktop 等の AI エージェントと連携する **MCP サーバーの設定・利用方法** については、**[USER_GUIDE.md](USER_GUIDE.md)** をご覧ください。
+
 ### CLI コマンドの利用
 
 ラッパースクリプト（`bin/traceweave`）を使用することで、リポジトリルートから直接コマンドを実行できます。
@@ -85,6 +90,10 @@ traceweave/
 ```bash
 # CI 用の静的チェック（不備があれば exit code 1）
 ./bin/traceweave check
+
+# 外部プロジェクトへの TraceWeave 導入（解析一時適用 or 完全再構成）
+./bin/traceweave adopt /path/to/project --mode overlay
+./bin/traceweave adopt /path/to/project --mode restructure
 
 # トレーサビリティマトリクスの表示
 ./bin/traceweave matrix

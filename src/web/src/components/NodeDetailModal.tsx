@@ -499,12 +499,20 @@ export function NodeDetailModal({
                       <div className="text-xs text-slate-200 whitespace-pre-wrap leading-relaxed font-mono bg-black/30 p-2.5 rounded-lg border border-current/20">
                         {liveRunResult
                           ? JSON.stringify(liveRunResult.actual, null, 2)
-                          : node.sections?.['Actual Results'] || node.actual_result || '実測ログの記録なし (pending)'}
+                          : node.actual_result || node.sections?.['Actual Results'] || 'テスト未実施 (Pending) - テストスイートの実行待ちです'}
                       </div>
                     </div>
                     <div className="mt-4 pt-2 border-t border-current/20 text-[10px] text-slate-400 flex items-center justify-between">
-                      <span>観測ステータス: <strong className={effectiveStatus === 'failed' ? 'text-rose-400' : 'text-emerald-400'}>{effectiveStatus.toUpperCase()}</strong></span>
-                      <span>{liveRunResult ? `実行所要時間: ${liveRunResult.durationMs}ms` : '初期検証ログ'}</span>
+                      <span>観測ステータス: <strong className={effectiveStatus === 'failed' ? 'text-rose-400' : effectiveStatus === 'passed' ? 'text-emerald-400' : 'text-amber-400'}>{effectiveStatus.toUpperCase()}</strong></span>
+                      <span>
+                        {liveRunResult
+                          ? `実行所要時間: ${liveRunResult.durationMs}ms`
+                          : node.execution_duration_ms !== undefined
+                          ? `所要時間: ${node.execution_duration_ms.toFixed(1)}ms`
+                          : effectiveStatus === 'passed'
+                          ? 'テストレポート連携済'
+                          : '未実行'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -513,13 +521,16 @@ export function NodeDetailModal({
               {/* Interactive Test Runner */}
               <InteractiveTestRunner node={node} onTestExecuted={res => setLiveRunResult(res)} />
 
-              {/* Evidence */}
-              {node.sections?.['Evidence'] && (
+              {/* Evidence: テスト実行ログまたはエビデンス */}
+              {(node.evidence_log || node.sections?.['Evidence']) && (
                 <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-4">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase">エビデンス・証跡 (Evidence)</div>
-                  <div className="text-xs text-slate-300 mt-1 font-mono bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
-                    {node.sections['Evidence']}
+                  <div className="text-[11px] font-bold text-slate-400 uppercase flex items-center justify-between">
+                    <span>エビデンス・実行ログ (Execution Evidence Log)</span>
+                    <span className="text-[10px] font-mono text-cyan-400/80">RAW LOG / CI FACT</span>
                   </div>
+                  <pre className="text-xs text-slate-300 mt-2 font-mono bg-slate-900/60 p-3 rounded-lg border border-slate-800 whitespace-pre-wrap overflow-x-auto leading-relaxed">
+                    {node.evidence_log || node.sections?.['Evidence']}
+                  </pre>
                 </div>
               )}
             </div>

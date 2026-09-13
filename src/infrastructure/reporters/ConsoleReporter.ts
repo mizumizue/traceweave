@@ -46,7 +46,11 @@ export class ConsoleReporter {
     // Pyramid Health
     console.log('\x1b[1m[3. テストピラミッド診断]\x1b[0m');
     if (pyramid.status === 'healthy') {
-      console.log('  状態: \x1b[32m✓ 健全 (Healthy)\x1b[0m');
+      console.log('  状態: \x1b[32m✓ 健全ピラミッド型 (Healthy Pyramid)\x1b[0m');
+    } else if (pyramid.status === 'healthy_trophy') {
+      console.log('  状態: \x1b[36m✓ 健全トロフィー型 (Healthy Trophy)\x1b[0m');
+    } else if (pyramid.status === 'unbalanced') {
+      console.log('  状態: \x1b[33m⚠ 不均衡・工程欠落型 (Unbalanced Distribution)\x1b[0m');
     } else if (pyramid.status === 'inverted_ice_cream') {
       console.log('  状態: \x1b[31m⚠ 逆ピラミッド型 (Inverted Ice-Cream)\x1b[0m');
     } else if (pyramid.status === 'hollow_hourglass') {
