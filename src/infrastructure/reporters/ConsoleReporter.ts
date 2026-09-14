@@ -16,7 +16,8 @@ export class ConsoleReporter {
     console.log(`  - 非機能要件 (NFR):         ${summary.nonFunctionalRequirementCount}`);
     console.log(`  - 総詳細仕様数 (SPEC):      ${summary.totalSpecifications}`);
     console.log(`  - 総テストケース数 (TC):    ${summary.totalTestCases}`);
-    console.log(`  - 平均品質充足度スコア:     \x1b[1m\x1b[32m${summary.overallSufficiencyScore}%\x1b[0m`);
+    console.log(`  - 実行合格 / 未実行 / 失敗:  ${summary.passedTestCaseCount} / ${summary.pendingTestCaseCount} / ${summary.failedTestCaseCount}`);
+    console.log(`  - 平均品質充足度スコア:     \x1b[1m\x1b[32m${summary.overallSufficiencyScore}%\x1b[0m （実行合格ベース）`);
     console.log(`  - 重要要件 (High) 充足率:   \x1b[1m\x1b[32m${summary.highCriticalityCoverage}%\x1b[0m\n`);
 
     // Strata density table
@@ -72,9 +73,9 @@ export class ConsoleReporter {
     // Gaps
     console.log('\x1b[1m[4. ギャップ・リスク要因]\x1b[0m');
     if (gaps.untestedRequirements.length > 0) {
-      console.log(`  - \x1b[31m未テスト要件 (${gaps.untestedRequirements.length}件):\x1b[0m ${gaps.untestedRequirements.join(', ')}`);
+      console.log(`  - \x1b[31m実行合格テストのない要件 (${gaps.untestedRequirements.length}件):\x1b[0m ${gaps.untestedRequirements.join(', ')}`);
     } else {
-      console.log('  - \x1b[32m✓ すべての要件にテストが紐づいています\x1b[0m');
+      console.log('  - \x1b[32m✓ すべての要件に実行合格したテストが紐づいています\x1b[0m');
     }
 
     if (gaps.missingIntegrationRequirements.length > 0) {

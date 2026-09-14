@@ -323,13 +323,13 @@ export default function App() {
     if (!report) return;
     const md = [
       `# TraceWeave 品質トレーサビリティ サマリー`,
-      `- 全体品質充足度: **${report.summary.overallSufficiencyScore}%**`,
+      `- 全体品質充足度（実行合格）: **${report.summary.overallSufficiencyScore}%**`,
       `- High要件充足率: **${report.summary.highCriticalityCoverage}%**`,
       `- 総要求 (Needs): ${report.summary.totalNeeds}`,
       `- 総要件 (Requirements): ${report.summary.totalRequirements}（FR ${report.summary.functionalRequirementCount} / NFR ${report.summary.nonFunctionalRequirementCount}）`,
       `- 総仕様 (Specs): ${report.summary.totalSpecifications}`,
-      `- 総テストケース: ${report.summary.totalTestCases}`,
-      `- 未テスト要件: ${report.gaps.untestedRequirements.length}件 (${report.gaps.untestedRequirements.join(', ') || 'なし'})`,
+      `- 総テストケース: ${report.summary.totalTestCases}（合格 ${report.summary.passedTestCaseCount} / 未実行 ${report.summary.pendingTestCaseCount} / 失敗 ${report.summary.failedTestCaseCount}）`,
+      `- 実行合格テストのない要件: ${report.gaps.untestedRequirements.length}件 (${report.gaps.untestedRequirements.join(', ') || 'なし'})`,
       `- 結合テスト未実施: ${report.gaps.missingIntegrationRequirements.length}件`,
       `- ピラミッド診断: ${report.pyramid.status}`,
     ].join('\n');

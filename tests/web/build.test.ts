@@ -26,6 +26,15 @@ test('TC-0006 & TC-0009: Webダッシュボードビルド成果物および実�
   const parsedData = JSON.parse(fs.readFileSync(dataJson, 'utf-8'));
   assert.ok(parsedData.summary.totalRequirements >= 7);
   assert.ok(parsedData.summary.totalTestCases >= 9);
+  assert.ok(typeof parsedData.summary.passedTestCaseCount === 'number');
+  assert.ok(typeof parsedData.summary.pendingTestCaseCount === 'number');
+  assert.ok(typeof parsedData.summary.failedTestCaseCount === 'number');
+  assert.equal(
+    parsedData.summary.totalTestCases,
+    parsedData.summary.passedTestCaseCount +
+      parsedData.summary.pendingTestCaseCount +
+      parsedData.summary.failedTestCaseCount
+  );
   assert.ok(parsedData.matrix.length >= 7);
   assert.ok(parsedData.nodes && parsedData.nodes.length >= 30, 'Full nodes list should be included');
 

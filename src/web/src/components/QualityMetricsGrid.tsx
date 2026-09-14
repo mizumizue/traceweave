@@ -30,7 +30,7 @@ export function QualityMetricsGrid({
           />
           <div>
             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-              全体品質充足度
+              全体品質充足度（実行合格）
             </div>
             <div className="text-xl font-black text-teal-400 leading-none mt-1">
               {summary.overallSufficiencyScore}%
@@ -162,7 +162,9 @@ export function QualityMetricsGrid({
             {summary.totalTestCases}
           </div>
           <div className="text-[10px] text-slate-500 flex items-center justify-between">
-            <span>5工程観測中</span>
+            <span>
+              合格 {summary.passedTestCaseCount} / 未実行 {summary.pendingTestCaseCount}
+            </span>
             <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 text-emerald-400 transition" />
           </div>
         </div>

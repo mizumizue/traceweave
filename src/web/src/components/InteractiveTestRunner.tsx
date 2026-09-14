@@ -49,6 +49,12 @@ export function InteractiveTestRunner({ node, onTestExecuted }: InteractiveTestR
   };
 
   if (!executable) {
+    const status = node.execution_status || 'pending';
+    const statusColorClass =
+      status === 'passed' ? 'text-emerald-400'
+      : status === 'failed' ? 'text-rose-400'
+      : status === 'skipped' ? 'text-slate-400'
+      : 'text-amber-400';
     const testCmd = `npm test`;
     return (
       <div className="bg-slate-950/80 border border-slate-800/90 rounded-xl p-5 space-y-4 shadow-lg">
@@ -112,7 +118,7 @@ export function InteractiveTestRunner({ node, onTestExecuted }: InteractiveTestR
           </div>
 
           <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
-            <span>検証ステータス: <strong className={node.execution_status === 'passed' ? 'text-emerald-400' : 'text-amber-400'}>{(node.execution_status || 'passed').toUpperCase()}</strong></span>
+            <span>検証ステータス: <strong className={statusColorClass}>{status.toUpperCase()}</strong></span>
             <span>検証記録: 上部の「実測値」および「証跡」タブを参照</span>
           </div>
         </div>

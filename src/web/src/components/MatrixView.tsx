@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  MinusCircle,
   X,
 } from 'lucide-react';
 import { MatrixRow } from '../../../core/models/types.js';
@@ -400,6 +401,8 @@ export function MatrixView({
                                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                               ) : status === 'failed' ? (
                                 <XCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                              ) : status === 'skipped' ? (
+                                <MinusCircle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                               ) : (
                                 <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                               );
@@ -409,6 +412,8 @@ export function MatrixView({
                                 ? 'bg-emerald-950/40 border-emerald-800/70 text-emerald-300 hover:bg-emerald-900/60'
                                 : status === 'failed'
                                 ? 'bg-rose-950/40 border-rose-800/70 text-rose-300 hover:bg-rose-900/60'
+                                : status === 'skipped'
+                                ? 'bg-slate-800/60 border-slate-600/70 text-slate-400 hover:bg-slate-700/80'
                                 : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700';
 
                             return (
