@@ -163,6 +163,30 @@ TraceWeave は **Model Context Protocol (MCP)** を標準サポートしてい�
 
 ---
 
+## 5.5 品質セットアップ（adopt 品質キット）
+
+`overlay` / `restructure` いずれの adopt でも、次が自動配備されます。
+
+| 配備物 | 目的 |
+|---|---|
+| `docs/test-cases/TC-0001.md` / `TC-0002.md` | REQ-0001 AC-001 / AC-002 に対応するスターター TC |
+| `docs/ADOPT_QUALITY_SETUP.md` | 導入後チェックリスト（TC 書き直し、レビュー、レポート、CI） |
+| `scripts/traceweave-capture-test-report.mjs` | テスト名の `TC-xxxx` から `reports/test-results.json` を生成 |
+| `.github/workflows/traceweave-governance.yml` | `traceweave check` + テスト + `--strict` |
+| `.cursor/skills/traceweave-test-case-review/` | TC 意味監査スキル |
+| `.cursor/rules/test-writing-guidelines.mdc` | テスト名 `TC-xxxx:` 命名規約 |
+
+導入直後の確認:
+
+```bash
+./bin/traceweave check
+./bin/traceweave adopt-quality-check
+```
+
+ボイラープレート TC やテストコード未整備に関する warning は想定内です。`docs/ADOPT_QUALITY_SETUP.md` に従い、プロジェクト固有の REQ/SPEC・テスト・CI へ仕上げてください。
+
+---
+
 ## 6. Cursor スキルを使った自律導入 (`traceweave-adopt`)
 
 Cursor AI エージェントを利用している場合、手動でコマンドを打つことなく、対話を通じて自然言語で適用できます。

@@ -12,7 +12,7 @@ import { ConsoleReporter } from '../infrastructure/reporters/ConsoleReporter.js'
 import { MarkdownReporter } from '../infrastructure/reporters/MarkdownReporter.js';
 import { HtmlReporter } from '../infrastructure/reporters/HtmlReporter.js';
 import { PortManager } from '../infrastructure/system/PortManager.js';
-import { adoptProject, rollbackAdoption, type AdoptionMode } from '../application/adopt-project.js';
+import { adoptProject, rollbackAdoption, checkAdoptQuality, type AdoptionMode } from '../application/adopt-project.js';
 import { buildWebDashboard } from '../application/build-web-dashboard.js';
 
 function exitOnError(err: unknown): never {
@@ -422,6 +422,26 @@ program
       console.error(`\x1b[31mAdoption failed: ${err.message}\x1b[0m`);
       process.exit(1);
     }
+  });
+
+// Command: adopt-quality-check
+program
+  .command('adopt-quality-check [targetDir]')
+  .description('Verify TraceWeave adopt quality kit (TC alignment, scripts, CI, review skills)')
+  .action((targetDir) => {
+    const result = checkAdoptQuality(targetDir || process.cwd());
+    for (const warning of result.warnings) {
+      console.warn(`\x1b[33m[warn]\x1b[0m ${warning}`);
+    }
+    for (const error of result.errors) {
+      console.error(`\x1b[31m[error]\x1b[0m ${error}`);
+    }
+    if (result.passed) {
+      console.log('\n\x1b[32m✔ PASS: Adopt quality kit is present.\x1b[0m\n');
+      process.exit(result.warnings.length > 0 ? 0 : 0);
+    }
+    console.error('\n\x1b[31m✘ FAIL: Adopt quality kit is incomplete.\x1b[0m\n');
+    process.exit(1);
   });
 
 program.parse(process.argv);

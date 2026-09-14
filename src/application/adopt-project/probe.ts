@@ -26,6 +26,7 @@ export function probeProject(targetDir: string): ProjectProbeResult {
     ? path.join(resolved, 'package.json')
     : path.join(resolved, 'src', 'package.json');
   const hasPackageJson = fs.existsSync(pkgJsonPath);
+  const packageJsonDir: '.' | 'src' = fs.existsSync(path.join(resolved, 'package.json')) ? '.' : 'src';
 
   const resolvedPackageName = resolvePackageDisplayName(resolved);
   if (resolvedPackageName) projectName = resolvedPackageName;
@@ -80,6 +81,7 @@ export function probeProject(targetDir: string): ProjectProbeResult {
     projectName,
     languages: Array.from(new Set(languages)),
     testFramework,
+    packageJsonDir: hasPackageJson ? packageJsonDir : '.',
     hasPackageJson,
     hasGit,
     isGitDirty,

@@ -79,9 +79,9 @@ Execute full clean-root restructure:
 
 ---
 
-### 4. verify & guard (Validate Docs & Traceability)
+### 4. verify & guard (Validate Docs, Quality Kit & Traceability)
 
-Prove that the adopted project satisfies all TraceWeave rules:
+Prove that the adopted project satisfies all TraceWeave rules and the quality adoption kit:
 1. Run schema and cycle validation in the target project:
    ```bash
    ./bin/traceweave check -d "<targetDir>/docs"
@@ -89,13 +89,25 @@ Prove that the adopted project satisfies all TraceWeave rules:
 2. Confirm the output reports:
    - `0 errors`
    - `PASS: Traceability and documentation checks passed successfully!`
-3. Verify that starter test case `TC-0001` matches the detected project test runner.
-4. If validation fails and cannot be resolved immediately, execute rollback:
+3. Verify quality kit files exist:
+   - `docs/test-cases/TC-0001.md` and `TC-0002.md` reference REQ-0001 AC-001 / AC-002
+   - `docs/ADOPT_QUALITY_SETUP.md` (post-adopt checklist)
+   - `scripts/traceweave-capture-test-report.mjs` (TC-xxxx report capture)
+   - `.github/workflows/traceweave-governance.yml` (CI: check + tests + strict)
+   - `.cursor/skills/traceweave-test-case-review/SKILL.md`
+4. Run adopt quality gate:
+   ```bash
+   ./bin/traceweave adopt-quality-check "<targetDir>"
+   ```
+   Warnings about boilerplate TC text or missing `TC-xxxx` in test code are expected immediately after adopt. Resolve them per `docs/ADOPT_QUALITY_SETUP.md`.
+5. Run semantic test-case review (agent skill):
+   - Invoke `traceweave-test-case-review` on `TC-0001` and `TC-0002` until REVISE findings are cleared.
+6. If validation fails and cannot be resolved immediately, execute rollback:
    ```bash
    ./bin/traceweave adopt "<targetDir>" --rollback "<backupDir>"
    ```
 
-**Completion criterion**: `./bin/traceweave check` completes with exit code 0.
+**Completion criterion**: `./bin/traceweave check` completes with exit code 0, and `./bin/traceweave adopt-quality-check` completes with exit code 0 (warnings about customization are acceptable during trial adoption).
 
 ---
 

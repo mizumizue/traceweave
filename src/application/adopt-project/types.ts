@@ -16,6 +16,7 @@ export interface ProjectProbeResult {
   projectName: string;
   languages: string[];
   testFramework?: string;
+  packageJsonDir: '.' | 'src';
   hasPackageJson: boolean;
   hasGit: boolean;
   isGitDirty: boolean;

@@ -1,13 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveRepoRoot } from '../../infrastructure/system/resolveRepoRoot.js';
+import { resolveTestCommand } from './quality-kit.js';
 
 // -----------------------------------------------------------------------------
 // 3. Document Templates (docs-document-schema.mdc 100% 準拠)
 // -----------------------------------------------------------------------------
 export function generateStarterDocs(projectName: string, testFramework?: string): Record<string, string> {
   const today = new Date().toISOString().slice(0, 10);
-  const testCmd = testFramework ? testFramework : 'npm test';
+  const testCmd = resolveTestCommand(testFramework);
 
   return {
     'docs/needs/NEED-0001.md': `---
@@ -223,7 +224,7 @@ updated: "${today}"
 scope: local
 depends_on: [REQ-0001]
 tags: [quality, regression, testing]
-links: []
+links: [TC-0001, TC-0002]
 ---
 ## Content
 
@@ -238,7 +239,7 @@ ${projectName} の主要ユースケースおよび重要要件（REQ-0001）が
 コミット時およびプルリクエスト時の CI パイプラインにおいて、自動テストスイートを実行し全件合格を検証する。
 
 ### Evidence
-CI 実行ログにおけるテスト終了コード 0、およびテスト結果サマリーレポート。
+CI 実行ログにおけるテスト終了コード 0、および \`reports/test-results.json\` に記録された TC-0001 / TC-0002 の passed ステータス。
 
 ### Exit Criteria
 未解決の重大欠陥がゼロであり、テストカバレッジが目標水準を達成していること。
@@ -248,13 +249,13 @@ CI 実行ログにおけるテスト終了コード 0、およびテスト結果
 schema_version: 3
 id: TC-0001
 kind: test_case
-title: コア機能の正常系実行と結果整合性の検証
+title: REQ-0001 AC-001 正常系実行と終了コード 0 の検証
 status: accepted
 created: "${today}"
 updated: "${today}"
 scope: local
 depends_on: []
-tags: [test, core, smoke]
+tags: [test, core, smoke, happy-path]
 links: []
 test_level: unit
 test_method: unit_contract
@@ -263,17 +264,53 @@ verifies: [REQ-0001, SPEC-0001]
 ## Content
 
 ### Objective
-システムに正常なパラメータが渡された際、主要ロジックが期待通りに完了し正常終了することを確認する。
+REQ-0001 AC-001（正常入力時の成功終了）および SPEC-0001 の正常出力契約を自動テストで検証する。
 
 ### Preconditions
 テスト実行環境がセットアップされており、前提依存パッケージがインストールされていること。
 
 ### Steps
-1. テストランナー（\`${testCmd}\`）からテストケースを実行する。
-2. 正常系入力に対する戻り値および終了コードを検証する。
+1. 正常系入力データを準備する（SPEC-0001 Inputs の必須項目を満たす）。
+2. テストランナー（\`${testCmd}\`）で \`TC-0001:\` 名付きテストを実行する。
+3. 戻り値および終了ステータスコードを検証する。
 
 ### Expected Results
-テストランナーのアサーションが成功し、エラーなく終了すること。
+- AC-001: 処理が成功し終了コード 0 が返ること。
+- SPEC-0001 Outputs: 正常終了時の処理結果またはメッセージが契約どおり返ること。
+`,
+
+    'docs/test-cases/TC-0002.md': `---
+schema_version: 3
+id: TC-0002
+kind: test_case
+title: REQ-0001 AC-002 異常系入力とエラー応答の検証
+status: accepted
+created: "${today}"
+updated: "${today}"
+scope: local
+depends_on: []
+tags: [test, core, error-path]
+links: []
+test_level: unit
+test_method: unit_contract
+verifies: [REQ-0001, SPEC-0001]
+---
+## Content
+
+### Objective
+REQ-0001 AC-002（不正入力時のエラー応答）および SPEC-0001 Errors の契約を自動テストで検証する。
+
+### Preconditions
+テスト実行環境がセットアップされており、前提依存パッケージがインストールされていること。
+
+### Steps
+1. SPEC-0001 Inputs の制約に反する不正入力データを準備する。
+2. テストランナー（\`${testCmd}\`）で \`TC-0002:\` 名付きテストを実行する。
+3. エラーメッセージおよび非ゼロ終了コードを検証する。
+
+### Expected Results
+- AC-002: 適切なエラーメッセージが出力され非ゼロの終了コードが返ること。
+- SPEC-0001 Errors: 入力エラー時にエラー詳細メッセージおよび終了コード 1 が返ること。
 `,
 
     'docs/SYSTEM_OVERVIEW.md': `# ${projectName} システム概要と境界定義書 (System Overview & Boundary)

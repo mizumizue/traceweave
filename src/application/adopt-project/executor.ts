@@ -4,6 +4,7 @@ import type { AdoptionMode, AdoptionOptions, BackupManifest, ProjectProbeResult 
 import { probeProject } from './probe.js';
 import { createBackup } from './backup.js';
 import { generateStarterDocs, generateBinWrappers, generateCursorRules, generateMcpConfig } from './templates.js';
+import { copyQualityCursorAssets, generateQualityKitFiles } from './quality-kit.js';
 
 // -----------------------------------------------------------------------------
 // 4. Adoption Executor: 適用実行
@@ -47,6 +48,7 @@ export function adoptProject(options: AdoptionOptions = {}): {
       console.log(`  - Would install bin/traceweave wrappers`);
       console.log(`  - Would install .cursor/rules`);
       console.log(`  - Would install .cursor/mcp.json`);
+      console.log(`  - Would install quality kit (TC-0002, test capture script, CI workflow, review skills)`);
       if (mode === 'restructure') {
         console.log(`  - Would migrate root source files to src/ and apply Clean-Root structure`);
       }
@@ -122,6 +124,21 @@ export function adoptProject(options: AdoptionOptions = {}): {
     writeFileTracked('.cursor/mcp.json', generateMcpConfig());
   }
 
+  // 5c. Quality kit (TC naming, report capture, CI, review skills)
+  const qualityKit = generateQualityKitFiles(probe);
+  for (const [relPath, content] of Object.entries(qualityKit)) {
+    const fullPath = path.join(targetDir, relPath);
+    if (!fs.existsSync(fullPath)) {
+      writeFileTracked(relPath, content);
+    }
+  }
+  const qualityAssets = copyQualityCursorAssets(targetDir);
+  for (const rel of qualityAssets) {
+    if (!createdFiles.includes(rel)) {
+      createdFiles.push(rel);
+    }
+  }
+
   // 6. Mode: Restructure (クリーンルート化)
   if (mode === 'restructure') {
     if (!silent) console.log('\n🧹 Performing full project restructuring (Clean Root)...');
@@ -187,7 +204,9 @@ export function adoptProject(options: AdoptionOptions = {}): {
   if (!silent) {
     console.log(`\n\x1b[32m✔ TraceWeave successfully applied in [${mode}] mode!\x1b[0m`);
     console.log(`  - Files created: ${createdFiles.length}`);
+    console.log(`  - Quality setup guide: docs/ADOPT_QUALITY_SETUP.md`);
     console.log(`  - To verify docs schema:  ./bin/traceweave check (or npx traceweave check)`);
+    console.log(`  - To verify quality kit:    ./bin/traceweave adopt-quality-check`);
     if (backupDir) {
       console.log(`  - To rollback if needed:   ./bin/traceweave adopt --rollback "${backupDir}"`);
     }
