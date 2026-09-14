@@ -1,5 +1,9 @@
+import path from 'node:path';
+import fs from 'node:fs';
 import { buildTraceWeaveReport } from './build-report.js';
 import { TraceWeaveReport } from '../core/models/types.js';
+import { validateDocs } from '../infrastructure/governance/validateDocs.js';
+import { resolveRepoRoot } from '../infrastructure/system/resolveRepoRoot.js';
 
 export interface CheckOptions {
   docsDir?: string;
@@ -37,11 +41,32 @@ export function checkDocs(options: CheckOptions = {}): CheckResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 
+  const docsDir = options.docsDir
+    ? path.resolve(options.docsDir)
+    : path.join(resolveRepoRoot(import.meta.url), 'docs');
+
+  if (!fs.existsSync(docsDir) || !fs.statSync(docsDir).isDirectory()) {
+    return {
+      passed: false,
+      errors: [`Docs directory not found: ${docsDir}`],
+      warnings,
+    };
+  }
+
+  const schemaResult = validateDocs(docsDir);
+  for (const err of schemaResult.errors) {
+    errors.push(`[schema] ${err}`);
+  }
+
   try {
-    const { report, graph, nodes } = buildTraceWeaveReport({
-      docsDir: options.docsDir,
+    const { report, graph, nodes, parseWarnings } = buildTraceWeaveReport({
+      docsDir,
       useCache: false,
     });
+
+    for (const warning of parseWarnings) {
+      warnings.push(`[parse] ${warning}`);
+    }
 
     // 1. Basic node validation
     for (const node of nodes) {

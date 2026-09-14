@@ -265,117 +265,21 @@ export function InteractiveTestRunner({ node, onTestExecuted }: InteractiveTestR
           });
         }
       } else {
-        throw new Error(`API returned ${res.status}`);
-      }
-    } catch {
-      // 2. Client-side fallback runner for static preview
-      const start = performance.now();
-      let actual: any = null;
-      const logs: string[] = ['[Client Fallback Runner] ブラウザ内ランタイムで実行しました'];
-
-      if (node.id === 'TC-0002' || node.id === 'TC-0010') {
-        const criticality = parsedInputs.criticality || 'medium';
-        const counts = parsedInputs.phaseCounts || parsedInputs;
-        const ut = Number(counts.unit || 0);
-        const ita = Number(counts.integration_internal || 0);
-        const itb = Number(counts.integration_external || 0);
-        const st = Number(counts.system || 0);
-        const uat = Number(counts.acceptance || 0);
-
-        logs.push(`計算条件: criticality=${criticality}`);
-        logs.push(`工程件数: UT=${ut}, ITa=${ita}, ITb=${itb}, ST=${st}, UAT=${uat}`);
-
-        let score = 0;
-        let isFullySatisfied = false;
-        if (ut + ita + itb + st + uat === 0) {
-          score = 0;
-          isFullySatisfied = false;
-        } else if (criticality === 'high') {
-          score = Math.min(100, (ut > 0 ? 30 : 0) + (ita > 0 ? 25 : 0) + (itb > 0 || st > 0 ? 25 : 0) + (uat > 0 ? 20 : 0));
-          isFullySatisfied = score >= 80;
-        } else if (criticality === 'medium') {
-          score = Math.min(100, (ut > 0 ? 50 : 0) + (ita > 0 || itb > 0 || st > 0 ? 50 : 0));
-          isFullySatisfied = score >= 80;
-        } else {
-          score = ut > 0 || st > 0 ? 100 : 50;
-          isFullySatisfied = score === 100;
+        let detail = `API returned ${res.status}`;
+        try {
+          const errorBody = await res.json();
+          detail = errorBody.message || errorBody.error || detail;
+        } catch {
+          // ignore non-JSON error bodies
         }
-
-        actual = { score, isFullySatisfied };
-        logs.push(`算出結果: score=${score}%, isFullySatisfied=${isFullySatisfied}`);
-      } else if (node.id === 'TC-0003' || node.id === 'TC-0011') {
-        const ut = Number(parsedInputs.unit || parsedInputs.phaseCounts?.unit || 0);
-        const ita = Number(parsedInputs.integration_internal || parsedInputs.phaseCounts?.integration_internal || 0);
-        const itb = Number(parsedInputs.integration_external || parsedInputs.phaseCounts?.integration_external || 0);
-        const st = Number(parsedInputs.system || parsedInputs.phaseCounts?.system || 0);
-        const uat = Number(parsedInputs.acceptance || parsedInputs.phaseCounts?.acceptance || 0);
-
-        let status = 'healthy';
-        if (uat > ut && uat >= 10) {
-          status = 'inverted_ice_cream';
-        } else if (ut >= 10 && ita + itb === 0 && (st > 0 || uat > 0)) {
-          status = 'hollow_hourglass';
-        }
-        actual = { status, hasWarnings: status !== 'healthy' };
-        logs.push(`ピラミッド診断ステータス: ${status}`);
-      } else {
-        logs.push(`[UI実行除外] テストケース "${node.id}" は単純な入出力のみで完結しないためUI実行対象外です`);
-        const fallbackResult: TestRunResult = {
-          testCaseId: node.id,
-          status: 'error',
-          actual: null,
-          expected: parsedExpected,
-          isMatch: false,
-          durationMs: Math.round((performance.now() - start) * 10) / 10,
-          logs,
-          error: `テストケース "${node.id}" はUI実行対象外です。`,
-          executedAt: new Date().toISOString(),
-        };
-        setLastResult(fallbackResult);
-        if (onTestExecuted) onTestExecuted(fallbackResult);
-        toast.error(`UI実行対象外: ${node.id}`, { id: toastId });
-        return;
+        throw new Error(detail);
       }
-
-      const durationMs = Math.round((performance.now() - start) * 10) / 10;
-      const diffs: string[] = [];
-      const isMatch = parsedExpected !== undefined ? deepCompare(actual, parsedExpected, '', diffs) : true;
-      const status = isMatch ? 'passed' : 'failed';
-
-      if (isMatch) {
-        logs.push('期待値一致検証: PASSED (一致)');
-      } else {
-        logs.push('期待値一致検証: FAILED (不一致)');
-        for (const d of diffs) {
-          logs.push(`  ✖ 差分: ${d}`);
-        }
-      }
-
-      const fallbackResult: TestRunResult = {
-        testCaseId: node.id,
-        status,
-        actual,
-        expected: parsedExpected,
-        isMatch,
-        durationMs,
-        logs,
-        executedAt: new Date().toISOString(),
-      };
-
-      setLastResult(fallbackResult);
-      if (onTestExecuted) onTestExecuted(fallbackResult);
-
-      if (status === 'passed') {
-        toast.success(`テスト合格 (PASSED): ${node.id}`, {
-          id: toastId,
-          description: `期待値と一致しました (${durationMs}ms - ブラウザ計算)`,
-        });
-      } else {
-        toast.error(`テスト不合格 (FAILED): ${node.id}`, {
-          id: toastId,
-          description: `期待値との差異を検出しました (${durationMs}ms)`,
-        });
-      }
+    } catch (e: unknown) {
+      const detail = e instanceof Error ? e.message : 'API unavailable';
+      toast.error(`テスト実行に失敗しました: ${node.id}`, {
+        id: toastId,
+        description: `${detail}。traceweave serve で起動したサーバー API が必要です。`,
+      });
     } finally {
       setIsRunning(false);
     }
@@ -671,58 +575,4 @@ export function InteractiveTestRunner({ node, onTestExecuted }: InteractiveTestR
       )}
     </div>
   );
-}
-
-function deepCompare(actual: any, expected: any, path = '', diffs: string[] = []): boolean {
-  if (actual === expected) return true;
-  const label = path || 'root';
-
-  if (actual === null || actual === undefined || expected === null || expected === undefined) {
-    diffs.push(`${label}: 期待値=${JSON.stringify(expected)} に対し 実測値=${JSON.stringify(actual)}`);
-    return false;
-  }
-
-  if (typeof expected !== typeof actual) {
-    diffs.push(`${label}: 型不一致 期待値型(${typeof expected}) !== 実測値型(${typeof actual})`);
-    return false;
-  }
-
-  if (typeof expected !== 'object') {
-    if (actual !== expected) {
-      diffs.push(`${label}: 期待値=${JSON.stringify(expected)} に対し 実測値=${JSON.stringify(actual)}`);
-      return false;
-    }
-    return true;
-  }
-
-  if (Array.isArray(expected)) {
-    if (!Array.isArray(actual)) {
-      diffs.push(`${label}: 期待値は配列ですが実測値は非配列です`);
-      return false;
-    }
-    if (actual.length !== expected.length) {
-      diffs.push(`${label}: 配列長不一致 期待値長=${expected.length} に対し 実測値長=${actual.length}`);
-      return false;
-    }
-    let match = true;
-    for (let i = 0; i < expected.length; i++) {
-      if (!deepCompare(actual[i], expected[i], `${path}[${i}]`, diffs)) {
-        match = false;
-      }
-    }
-    return match;
-  }
-
-  let match = true;
-  for (const key of Object.keys(expected)) {
-    const currentPath = path ? `${path}.${key}` : key;
-    if (!(key in actual)) {
-      diffs.push(`${currentPath}: 実測値に対象キー "${key}" が存在しません`);
-      match = false;
-    } else if (!deepCompare(actual[key], expected[key], currentPath, diffs)) {
-      match = false;
-    }
-  }
-
-  return match;
 }

@@ -1,11 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { DocNode, TestResultsReport, TestCaseExecutionReport } from '../../core/models/types.js';
+import { resolveRepoRoot } from '../system/resolveRepoRoot.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const PROJECT_ROOT = path.resolve(__dirname, '../../../..');
+const PROJECT_ROOT = resolveRepoRoot(import.meta.url);
 
 export class TestReportLoader {
   /**

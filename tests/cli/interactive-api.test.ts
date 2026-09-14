@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import http from 'node:http';
 import { spawn } from 'node:child_process';
 import { DocParser } from '../../src/infrastructure/parser/DocParser.js';
 import { TestRunnerRegistry } from '../../src/core/testing/TestRunnerRegistry.js';
@@ -200,3 +201,70 @@ test('TC-0040: CLI serve - /api/test/run が未知TCで404・UI除外TCで400を
     child.kill();
   }
 });
+
+/**
+ * 【テスト概要】
+ * - 対象: CLI serve の静的ファイル配信
+ * - 条件: distWeb 外を指すパストラバーサル URL を GET する
+ * - 期待結果: 403 Forbidden が返り、リポジトリ外のファイルが読み取られないこと
+ */
+test('CLI serve - パストラバーサル要求を 403 で拒否すること', async () => {
+  const port = 34000 + Math.floor(Math.random() * 1000);
+  const child = spawn(
+    process.execPath,
+    [
+      repositoryPath('src/node_modules/tsx/dist/cli.mjs'),
+      repositoryPath('src/cli/index.ts'),
+      'serve',
+      '--port',
+      String(port),
+      '--docs',
+      repositoryPath('docs'),
+    ],
+    { cwd: repositoryPath(), stdio: ['ignore', 'pipe', 'pipe'] }
+  );
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('serve did not start')), 10_000);
+      child.stdout.on('data', chunk => {
+        if (String(chunk).includes('Dashboard is running')) {
+          clearTimeout(timeout);
+          resolve();
+        }
+      });
+      child.once('error', error => {
+        clearTimeout(timeout);
+        reject(error);
+      });
+    });
+
+    const { statusCode, body } = await requestRawPath(port, '/../package.json');
+    assert.equal(statusCode, 403);
+    assert.equal(body, 'Forbidden');
+  } finally {
+    child.kill();
+  }
+});
+
+function requestRawPath(port: number, requestPath: string): Promise<{ statusCode: number; body: string }> {
+  return new Promise((resolve, reject) => {
+    const req = http.request(
+      {
+        hostname: '127.0.0.1',
+        port,
+        path: requestPath,
+        method: 'GET',
+      },
+      res => {
+        let body = '';
+        res.on('data', chunk => {
+          body += chunk;
+        });
+        res.on('end', () => resolve({ statusCode: res.statusCode ?? 0, body }));
+      }
+    );
+    req.on('error', reject);
+    req.end();
+  });
+}

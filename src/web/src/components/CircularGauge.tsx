@@ -1,69 +1,11 @@
 import React from 'react';
+import {
+  calculateCircularGauge,
+  getScoreColor,
+  type GaugeGeometry,
+} from '../../../core/visualization/circularGauge.js';
 
-export interface GaugeGeometry {
-  clampedPercentage: number;
-  radius: number;
-  circumference: number;
-  strokeDashoffset: number;
-  center: number;
-  strokeColor: string;
-  textColor: string;
-  trackColor: string;
-}
-
-export function getScoreColor(score: number): {
-  stroke: string;
-  text: string;
-  track: string;
-  fill: string;
-} {
-  if (score >= 80) {
-    return {
-      stroke: '#2dd4bf', // teal-400
-      text: 'text-teal-400',
-      track: '#134e4a', // teal-900/60
-      fill: 'rgba(45, 212, 191, 0.2)',
-    };
-  }
-  if (score >= 50) {
-    return {
-      stroke: '#fbbf24', // amber-400
-      text: 'text-amber-400',
-      track: '#78350f', // amber-900/60
-      fill: 'rgba(251, 191, 36, 0.2)',
-    };
-  }
-  return {
-    stroke: '#fb7185', // rose-400
-    text: 'text-rose-400',
-    track: '#881337', // rose-900/60
-    fill: 'rgba(251, 113, 133, 0.2)',
-  };
-}
-
-export function calculateCircularGauge(
-  percentage: number,
-  size: number = 40,
-  strokeWidth: number = 4
-): GaugeGeometry {
-  const clamped = Math.max(0, Math.min(100, isNaN(percentage) ? 0 : percentage));
-  const center = size / 2;
-  const radius = Math.max(0, (size - strokeWidth) / 2);
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (clamped / 100) * circumference;
-  const colors = getScoreColor(clamped);
-
-  return {
-    clampedPercentage: clamped,
-    radius,
-    circumference,
-    strokeDashoffset,
-    center,
-    strokeColor: colors.stroke,
-    textColor: colors.text,
-    trackColor: 'rgba(51, 65, 85, 0.45)', // slate-700/45
-  };
-}
+export { calculateCircularGauge, getScoreColor, type GaugeGeometry };
 
 export interface CircularGaugeProps {
   value: number;
@@ -95,7 +37,6 @@ export function CircularGauge({
   const activeColor = strokeColor || geo.strokeColor;
   const activeTrack = trackColor || geo.trackColor;
 
-  // Auto font size if not provided
   const fontSize =
     valueFontSize ||
     (size >= 64
@@ -118,7 +59,6 @@ export function CircularGauge({
         viewBox={`0 0 ${size} ${size}`}
         className="transform -rotate-90 origin-center"
       >
-        {/* Track circle (unfilled / remaining) */}
         <circle
           cx={geo.center}
           cy={geo.center}
@@ -127,7 +67,6 @@ export function CircularGauge({
           strokeWidth={strokeWidth}
           fill="none"
         />
-        {/* Active progress arc (filled / sufficiency) */}
         <circle
           cx={geo.center}
           cy={geo.center}
@@ -142,7 +81,6 @@ export function CircularGauge({
         />
       </svg>
 
-      {/* Central percentage text */}
       {showValue && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <span className={`font-mono leading-none tracking-tight ${geo.textColor} ${fontSize}`}>

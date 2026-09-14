@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { DocParser } from '../infrastructure/parser/DocParser.js';
+import { resolveRepoRoot } from '../infrastructure/system/resolveRepoRoot.js';
 import { SQLiteCache } from '../infrastructure/storage/SQLiteCache.js';
 import { TestReportLoader } from '../infrastructure/testing/TestReportLoader.js';
 import { SufficiencyScorer } from '../core/sufficiency/SufficiencyScorer.js';
@@ -22,8 +22,9 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
   report: TraceWeaveReport;
   graph: TraceGraph;
   nodes: DocNode[];
+  parseWarnings: string[];
 } {
-  const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+  const projectRoot = resolveRepoRoot(import.meta.url);
   const docsDir = options.docsDir
     ? path.resolve(options.docsDir)
     : path.join(projectRoot, 'docs');
@@ -42,6 +43,7 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
 
   const parser = new DocParser(cache);
   const rawNodes = parser.parseDirectory(docsDir);
+  const parseWarnings = parser.getLastWarnings();
 
   const reportData =
     options.loadTestReport !== false
@@ -70,5 +72,5 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
   const matrix = builder.buildMatrix(graph, sufficiencies);
   const report = builder.buildReport(graph, sufficiencies, strata, pyramid, matrix);
 
-  return { report, graph, nodes };
+  return { report, graph, nodes, parseWarnings };
 }

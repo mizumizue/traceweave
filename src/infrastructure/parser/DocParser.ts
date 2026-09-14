@@ -7,9 +7,14 @@ import { TestCaseInputAnalyzer } from '../../core/analyzer/TestCaseInputAnalyzer
 
 export class DocParser {
   private cache: SQLiteCache | null = null;
+  private lastWarnings: string[] = [];
 
   constructor(cache?: SQLiteCache) {
     this.cache = cache || null;
+  }
+
+  public getLastWarnings(): string[] {
+    return [...this.lastWarnings];
   }
 
   /**
@@ -42,6 +47,7 @@ export class DocParser {
    * Scans the docs directory and parses all Markdown files, using SQLite cache if available.
    */
   public parseDirectory(docsDir: string): DocNode[] {
+    this.lastWarnings = [];
     const nodes: DocNode[] = [];
     const validPaths = new Set<string>();
 
@@ -94,12 +100,16 @@ export class DocParser {
   }
 
   public parseFile(filePath: string): DocNode | null {
+    const portablePath = DocParser.toPortablePath(filePath);
     try {
       const raw = fs.readFileSync(filePath, 'utf-8');
       const parsed = matter(raw);
       const data = parsed.data;
 
       if (!data.id || !data.kind || !data.title) {
+        this.lastWarnings.push(
+          `${portablePath}: missing required frontmatter field (id, kind, or title)`
+        );
         return null;
       }
 
@@ -142,8 +152,9 @@ export class DocParser {
         if (paramFilePath) {
           try {
             parameters = JSON.parse(fs.readFileSync(paramFilePath, 'utf-8'));
-          } catch {
-            // ignore
+          } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : String(e);
+            this.lastWarnings.push(`${portablePath}: invalid parameter_file JSON (${data.parameter_file}): ${message}`);
           }
         }
       }
@@ -185,7 +196,9 @@ export class DocParser {
       }
 
       return node;
-    } catch {
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      this.lastWarnings.push(`${portablePath}: parse error: ${message}`);
       return null;
     }
   }

@@ -1,4 +1,5 @@
 import { TraceGraph } from '../graph/TraceGraph.js';
+import { isActiveRequirement } from '../models/docStatus.js';
 import {
   DocNode,
   MatrixRow,
@@ -110,9 +111,16 @@ export class MatrixBuilder {
     const functionalRequirementCount = requirementNodes.filter(r => r.requirement_class === 'functional').length;
     const nonFunctionalRequirementCount = requirementNodes.filter(r => r.requirement_class === 'non_functional').length;
 
-    const untestedRequirements = sufficiencies.filter(s => s.score === 0).map(s => s.requirementId);
+    const untestedRequirements = sufficiencies
+      .filter(s => s.score === 0 && isActiveRequirement(graph.getNode(s.requirementId)))
+      .map(s => s.requirementId);
     const missingIntegrationRequirements = sufficiencies
-      .filter(s => s.phaseCounts.integration_internal === 0 && s.phaseCounts.integration_external === 0)
+      .filter(
+        s =>
+          isActiveRequirement(graph.getNode(s.requirementId)) &&
+          s.phaseCounts.integration_internal === 0 &&
+          s.phaseCounts.integration_external === 0
+      )
       .map(s => s.requirementId);
 
     const untestedSpecs: string[] = [];

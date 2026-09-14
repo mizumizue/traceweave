@@ -8,10 +8,12 @@ import { checkDocs } from '../application/check-docs.js';
 import { buildTraceWeaveReport } from '../application/build-report.js';
 import { ConsoleReporter } from '../infrastructure/reporters/ConsoleReporter.js';
 import { MarkdownReporter } from '../infrastructure/reporters/MarkdownReporter.js';
+import { HtmlReporter } from '../infrastructure/reporters/HtmlReporter.js';
 import { TestRunnerRegistry } from '../core/testing/TestRunnerRegistry.js';
 import { TestCaseInputAnalyzer } from '../core/analyzer/TestCaseInputAnalyzer.js';
 import { DecisionsCatalogBuilder } from '../core/decisions/DecisionsCatalogBuilder.js';
 import { PortManager } from '../infrastructure/system/PortManager.js';
+import { isPathInsideRoot } from '../infrastructure/system/resolveRepoRoot.js';
 import { adoptProject, rollbackAdoption, type AdoptionMode } from '../application/adopt-project.js';
 import {
   buildWebDashboard,
@@ -98,7 +100,7 @@ program
   .command('report')
   .description('Generate quality sufficiency and phase stratum report')
   .option('-d, --docs <dir>', 'Docs directory path')
-  .option('-f, --format <format>', 'Output format (text, json, markdown)', 'text')
+  .option('-f, --format <format>', 'Output format (text, json, markdown, html)', 'text')
   .option('-o, --out <file>', 'Output file path (optional)')
   .action((options) => {
     try {
@@ -121,6 +123,14 @@ program
       } else {
         console.log(output);
       }
+      } else if (options.format === 'html') {
+        const output = HtmlReporter.generateHtml(report);
+        if (options.out) {
+          fs.writeFileSync(options.out, output, 'utf-8');
+          console.log(`HTML report written to ${options.out}`);
+        } else {
+          console.log(output);
+        }
       } else {
         ConsoleReporter.printSummary(report);
       }
@@ -488,7 +498,14 @@ program
         return;
       }
 
-      let targetFile = path.join(distWeb, url === '/' ? 'index.html' : url);
+      const relativePath = url === '/' ? 'index.html' : url.replace(/^\/+/, '');
+      const targetFile = path.resolve(distWeb, relativePath);
+
+      if (!isPathInsideRoot(distWeb, targetFile)) {
+        res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('Forbidden');
+        return;
+      }
 
       if (fs.existsSync(targetFile) && fs.statSync(targetFile).isFile()) {
         const ext = path.extname(targetFile);

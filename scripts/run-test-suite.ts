@@ -29,7 +29,28 @@ interface TestSuiteSummary {
   results: Record<string, TestCaseExecution>;
 }
 
+async function ensureWebDistBuilt(): Promise<void> {
+  const webDistIndex = path.join(ROOT, 'src', 'web', 'dist', 'index.html');
+  if (process.env.TW_FORCE_WEB_BUILD === '1' || !fs.existsSync(webDistIndex)) {
+    console.log('⚙ Building web dashboard (dist missing or TW_FORCE_WEB_BUILD=1)...');
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn('npm', ['run', 'build:web', '--prefix', path.join(ROOT, 'src')], {
+        cwd: ROOT,
+        shell: true,
+        stdio: 'inherit',
+      });
+      child.on('error', reject);
+      child.on('exit', code => {
+        if (code === 0) resolve();
+        else reject(new Error(`build:web failed with exit code ${code}`));
+      });
+    });
+  }
+}
+
 async function runTests(): Promise<void> {
+  await ensureWebDistBuilt();
+
   const tsxCli = path.join(ROOT, 'src', 'node_modules', 'tsx', 'dist', 'cli.mjs');
   const testsPattern = path.join(ROOT, 'tests', '**', '*.test.ts');
 

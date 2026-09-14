@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { buildTraceWeaveReport } from '../../src/application/build-report.js';
 import { repositoryPath } from '../helpers/repo-path.js';
 import { appendModalHistory, moveModalHistory } from '../../src/web/src/components/modalNavigation.js';
-import { calculatePyramidLayerMetrics } from '../../src/web/src/components/VisualTestPyramid.js';
+import { calculatePyramidLayerMetrics, PYRAMID_LAYERS } from '../../src/web/src/components/VisualTestPyramid.js';
 import { filterMatrixRows, serializeMatrixCsv, serializeMatrixJson } from '../../src/web/src/utils/matrixData.js';
 
 /**
@@ -18,7 +18,11 @@ test('TC-0024: Web UIインタラクティブ機能（モーダル履歴・立�
   let history = appendModalHistory({ history: ['REQ-0013'], index: 0 }, 'SPEC-0013');
   history = moveModalHistory(history, 'back');
   assert.equal(history.history[history.index], 'REQ-0013');
-  assert.equal(calculatePyramidLayerMetrics(report.strata).length, 5);
+  const pyramidMetrics = calculatePyramidLayerMetrics(report.strata);
+  assert.equal(pyramidMetrics.length, 5);
+  assert.deepEqual(pyramidMetrics.map(layer => layer.level), PYRAMID_LAYERS.map(layer => layer.level));
+  assert.ok(pyramidMetrics.every(layer => layer.ratioPercent >= 0 && layer.ratioPercent <= 100));
+  assert.ok(pyramidMetrics.every(layer => layer.coveragePercent >= 0 && layer.coveragePercent <= 100));
   const filtered = filterMatrixRows(report.matrix, { criticality: 'high' });
   assert.ok(filtered.length > 0);
   assert.ok(filtered.every(row => row.criticality === 'high'));
