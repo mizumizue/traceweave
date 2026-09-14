@@ -49,15 +49,8 @@ export class TestReportLoader {
       if (tcReport) {
         node.execution_status = tcReport.status;
         node.execution_duration_ms = tcReport.durationMs;
-        node.actual_result =
-          tcReport.status === 'passed'
-            ? `テストスクリプト実行により検証合格 (Passed) - ${tcReport.durationMs.toFixed(1)}ms`
-            : tcReport.errorMessage || 'テストスクリプト実行失敗 (Failed)';
-        node.evidence_log =
-          tcReport.outputLog ||
-          (tcReport.status === 'passed'
-            ? `[PASS] ${tcReport.testTitle} (${tcReport.durationMs.toFixed(1)}ms)`
-            : tcReport.errorStack || tcReport.errorMessage);
+        node.actual_result = tcReport.outputLog || tcReport.errorMessage;
+        node.evidence_log = tcReport.outputLog || tcReport.errorStack || tcReport.errorMessage;
       } else {
         node.execution_status = 'pending';
         node.actual_result = undefined;

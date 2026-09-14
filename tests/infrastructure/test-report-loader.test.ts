@@ -89,15 +89,15 @@ test('TestReportLoader - テスト結果レポートからTCノードへ動的�
   const tc1 = merged.find(n => n.id === 'TC-0001')!;
   assert.equal(tc1.execution_status, 'passed');
   assert.equal(tc1.execution_duration_ms, 42.5);
-  assert.ok(tc1.actual_result?.includes('検証合格 (Passed)'));
-  assert.ok(tc1.evidence_log?.includes('ok 1 - TC-0001 passed'));
+  assert.equal(tc1.actual_result, mockReport.results!['TC-0001'].outputLog);
+  assert.equal(tc1.evidence_log, mockReport.results!['TC-0001'].outputLog);
 
   // TC-0002 (failed) の検証
   const tc2 = merged.find(n => n.id === 'TC-0002')!;
   assert.equal(tc2.execution_status, 'failed');
   assert.equal(tc2.execution_duration_ms, 15.2);
-  assert.ok(tc2.actual_result?.includes('AssertionError'));
-  assert.ok(tc2.evidence_log?.includes('not ok 2'));
+  assert.equal(tc2.actual_result, mockReport.results!['TC-0002'].outputLog);
+  assert.equal(tc2.evidence_log, mockReport.results!['TC-0002'].outputLog);
 
   // TC-0003 (未実行) の検証
   const tc3 = merged.find(n => n.id === 'TC-0003')!;

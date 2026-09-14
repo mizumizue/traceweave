@@ -109,17 +109,21 @@ export class DocParser {
       const contentSplit = content.split(/^## Content\s*$/m);
       const body = contentSplit.length > 1 ? contentSplit.slice(1).join('## Content') : content;
 
-      // Extract ### headings and content
+      // Extract ### headings and content (ADR-0006: test_case keeps spec sections only)
+      const testCaseSections = new Set(['Objective', 'Preconditions', 'Steps', 'Expected Results']);
       const headingRegex = /^### ([^\r\n]+)\r?\n([\s\S]*?)(?=(?:^### [^\r\n]+)|$)/gm;
       let match;
       while ((match = headingRegex.exec(body)) !== null) {
         const headingTitle = match[1].trim();
+        if (data.kind === 'test_case' && !testCaseSections.has(headingTitle)) {
+          continue;
+        }
         const headingBody = match[2].trim();
         sections[headingTitle] = headingBody;
       }
 
-      const execution_status = data.execution_status || (data.kind === 'test_case' ? 'pending' : undefined);
-      const actual_result = data.actual_result || sections['Actual Results'] || undefined;
+      const execution_status = data.kind === 'test_case' ? 'pending' : data.execution_status || undefined;
+      const actual_result = data.kind === 'test_case' ? undefined : data.actual_result || sections['Actual Results'] || undefined;
       const expected_result = sections['Expected Results'] || undefined;
       const objective = sections['Objective'] || undefined;
       const steps = sections['Steps'] || undefined;

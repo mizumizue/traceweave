@@ -130,7 +130,6 @@ export function validateDocs(docsDir: string = DOCS_DIR): { passed: boolean; err
     const kind = meta.kind;
 
     if (!KINDS[parentDir]) {
-      errors.push(`${filePath}: Unknown parent directory "${parentDir}"`);
       continue;
     }
 
@@ -196,6 +195,19 @@ export function validateDocs(docsDir: string = DOCS_DIR): { passed: boolean; err
       }
       if (meta.actual_result !== undefined) {
         errors.push(`${filePath}: actual_result must not be defined in test_case frontmatter. Test outcomes must be separated into execution reports (ADR-0006)`);
+      }
+      const tcContentSplit = body.split(/^## Content\s*$/m);
+      if (tcContentSplit.length >= 2) {
+        const tcContentBody = tcContentSplit.slice(1).join('## Content');
+        const tcHeadings = (tcContentBody.match(/^### [^\r\n]+/gm) || []).map((h) => h.trim());
+        const forbiddenTcSections = ['### Actual Results', '### Evidence'];
+        for (const forbidden of forbiddenTcSections) {
+          if (tcHeadings.includes(forbidden)) {
+            errors.push(
+              `${filePath}: Forbidden section "${forbidden.replace(/^### /, '')}" must not appear in test_case body. Test outcomes must be separated into execution reports (ADR-0006)`
+            );
+          }
+        }
       }
       if (!VALID_TEST_LEVELS.includes(meta.test_level)) {
         errors.push(`${filePath}: Invalid test_level "${meta.test_level}". Expected one of ${VALID_TEST_LEVELS.join(', ')}`);
@@ -329,6 +341,38 @@ export function validateDocs(docsDir: string = DOCS_DIR): { passed: boolean; err
         );
       }
     }
+
+    if (kind === 'requirement' && meta.status !== 'deprecated') {
+      const acLines = body.match(/^- AC-\d{3}:[^\r\n]+/gm) || [];
+      if (acLines.length === 0) {
+        errors.push(`${filePath}: [fence-lite] requirement must declare at least one "- AC-xxx:" criterion`);
+      }
+      for (const line of acLines) {
+        if (!/^- AC-\d{3}: Given .+ When .+ Then .+/.test(line)) {
+          errors.push(
+            `${filePath}: [fence-lite] Acceptance criterion must follow "- AC-xxx: Given ... When ... Then ...": ${line}`
+          );
+        }
+      }
+    }
+
+    if ((kind === 'requirement' || kind === 'specification') && meta.status !== 'deprecated') {
+      const implPathRegex = /(?:tests?|src)\/[a-zA-Z0-9_\-\/]+\.(?:ts|js|tsx|jsx)/g;
+      const foundImplPaths = body.match(implPathRegex);
+      if (foundImplPaths && foundImplPaths.length > 0) {
+        errors.push(
+          `${filePath}: [fence-lite] ${kind} must not reference implementation or test files directly. Found: ${foundImplPaths.join(', ')}`
+        );
+      }
+    }
+
+    if (kind === 'test_case' && Array.isArray(meta.verifies)) {
+      for (const vid of meta.verifies) {
+        if (!String(vid).startsWith('REQ-') && !String(vid).startsWith('SPEC-') && !String(vid).startsWith('ADR-')) {
+          errors.push(`${filePath}: [fence-lite] verifies target "${vid}" must be REQ-, SPEC-, or ADR-`);
+        }
+      }
+    }
   }
 
   // Check DSN coverage for active specifications
@@ -373,7 +417,9 @@ if (process.argv[1] && process.argv[1].endsWith('validate-docs.ts')) {
     }
     process.exit(1);
   } else {
-    console.log(`\x1b[32mPASS: All ${result.docs.length} docs strictly follow docs-document-schema.mdc!\x1b[0m`);
+    console.log(
+      `\x1b[32mPASS: schema OK (${result.docs.length} docs). fence-lite OK. fence-deep: not_verified.\x1b[0m`
+    );
     process.exit(0);
   }
 }

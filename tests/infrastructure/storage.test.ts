@@ -99,24 +99,26 @@ test('TC-0004: DocParser - ディレクトリ全体のパースにおいてSQLit
 
 /**
  * 【テスト概要】
- * - 対象: DocParser (test_case 文書の拡張メタデータおよびセクションパース)
- * - 条件: execution_status、Objective、Expected Results、Actual Results、Steps を含む test_case マークダウンフィクスチャをパース
- * - 期待結果: execution_status(passed)や各セクション内容が正しく抽出され、DocNodeオブジェクトにマッピングされること
- * - 関連文書: TC-0008, REQ-0007, SPEC-0007
+ * - 対象: DocParser (test_case 文書の仕様セクションおよび ADR-0006 純化)
+ * - 条件: Objective、Preconditions、Steps、Expected Results の4セクションのみを含む test_case マークダウンフィクスチャをパース
+ * - 期待結果: execution_status は pending、actual_result/evidence_log は未設定、4仕様セクションのみが DocNode にマッピングされること
+ * - 関連文書: TC-0008, REQ-0007, SPEC-0007, ADR-0006
  */
-test('TC-0008: DocParser - test_case文書の実測値（actual_results）、合否ステータス（execution_status）、および各Markdownセクションを正しくパースできること', () => {
+test('TC-0008: DocParser - test_case文書の仕様セクション（Objective/Steps/Expected Results）を正しくパースし、実行結果は pending 既定値とすること', () => {
   const tcFile = repositoryPath('tests/fixtures/docs/storage/test-cases/TC-0001.md');
   const parser = new DocParser();
   const node = parser.parseFile(tcFile);
   assert.ok(node);
   assert.equal(node.id, 'TC-0001');
-  assert.equal(node.execution_status, 'passed');
+  assert.equal(node.execution_status, 'pending');
+  assert.equal(node.actual_result, undefined);
+  assert.equal(node.evidence_log, undefined);
   assert.equal(node.objective, 'Verify that units pass accurately.');
   assert.equal(node.expected_result, 'Return value is true.');
-  assert.equal(node.actual_result, 'Return value was true. Execution took 0.5ms.');
   assert.ok(node.steps?.includes('1. Run test function.'));
   assert.equal(node.sections?.['Objective'], 'Verify that units pass accurately.');
+  assert.equal(node.sections?.['Preconditions'], 'System is ready.');
   assert.equal(node.sections?.['Expected Results'], 'Return value is true.');
-  assert.equal(node.sections?.['Actual Results'], 'Return value was true. Execution took 0.5ms.');
-  assert.equal(node.sections?.['Evidence'], 'Log outputs confirmed.');
+  assert.equal(node.sections?.['Actual Results'], undefined);
+  assert.equal(node.sections?.['Evidence'], undefined);
 });
