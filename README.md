@@ -1,13 +1,12 @@
 # TraceWeave (トレースウィーブ)
 
-> **V-Model Traceability Matrix & Test Stratum Sufficiency Analyzer**  
-> 要求からテストまでの双方向トレーサビリティと、開発工程（単体・内結・外結・ST・UAT）および手法ごとの品質充足度・地層密度を可視化する品質保証プラットフォーム。
+要求からテストまでの双方向トレーサビリティと、開発工程（単体・内結・外結・ST・UAT）および手法ごとの品質充足度・地層密度を可視化する品質保証プラットフォーム。
 
 ---
 
 ## スクリーンショット
 
-Web ダッシュボード（`traceweave serve` / `traceweave build`）の代表画面です。画像は [`docs/assets/screenshots/`](docs/assets/screenshots/) に置いてあり、外部ホスティングは不要です。
+Web ダッシュボード（`traceweave serve` / `traceweave build`）の代表画面です。
 
 ### トレーサビリティマトリクス
 
