@@ -19,6 +19,7 @@ test('TC-0026: buildTraceWeaveReport - レポート統合・静的データペ�
 
   // 1. Validate high-level report structure
   assert.ok(report, 'Report should be generated');
+  assert.ok(report.subject?.displayName?.length > 0, 'Subject context should be included');
   assert.ok(report.summary.totalRequirements >= 20, 'Should aggregate requirements');
   assert.ok(report.summary.totalTestCases >= 20, 'Should aggregate test cases');
   assert.ok(report.strata.length === 5, 'Should have 5 stratum levels');
@@ -84,6 +85,7 @@ test('TC-0026: buildTraceWeaveReport - レポート統合・静的データペ�
     assert.deepEqual(generatedPayload.pyramid, report.pyramid);
     assert.deepEqual(generatedPayload.gaps, report.gaps);
     assert.equal(generatedPayload.nodes.length, report.nodes?.length);
+    assert.deepEqual(generatedPayload.subject, report.subject);
     assert.deepEqual(generatedPayload.summary, report.summary);
     assert.deepEqual(generatedPayload.strata, report.strata);
     assert.deepEqual(

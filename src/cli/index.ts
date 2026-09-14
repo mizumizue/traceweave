@@ -3,7 +3,7 @@ import { Command } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
 import { checkDocs } from '../application/check-docs.js';
-import { buildTraceWeaveReport } from '../application/build-report.js';
+import { buildTraceWeaveReport, type BuildReportOptions } from '../application/build-report.js';
 import { resolveDocsDir } from '../application/resolve-docs-dir.js';
 import { createDashboardServer } from '../application/serve-dashboard.js';
 import { filterCatalog, formatCatalogJson, formatCatalogMarkdown } from '../application/format-catalog.js';
@@ -24,12 +24,19 @@ function exitOnError(err: unknown): never {
   process.exit(1);
 }
 
+function getReportBuildOptions(docsDir: string): BuildReportOptions {
+  const globalOpts = program.opts<{ subject?: string }>();
+  const subjectOverride = globalOpts.subject?.trim();
+  return subjectOverride ? { docsDir, subjectOverride } : { docsDir };
+}
+
 const program = new Command();
 
 program
   .name('traceweave')
   .description('TraceWeave - V-Model Traceability Matrix & Test Stratum Sufficiency Analyzer')
-  .version('0.1.0');
+  .version('0.1.0')
+  .option('--subject <name>', 'Override target application display name for reports and dashboard');
 
 // Command: check
 program
@@ -79,7 +86,7 @@ program
   .action((options) => {
     try {
       const docsDir = resolveDocsDir(options.docs);
-      const { report } = buildTraceWeaveReport({ docsDir });
+      const { report } = buildTraceWeaveReport(getReportBuildOptions(docsDir));
 
       if (options.format === 'json') {
         const output = JSON.stringify(report, null, 2);
@@ -123,7 +130,7 @@ program
   .action((options) => {
     try {
       const docsDir = resolveDocsDir(options.docs);
-      const { report } = buildTraceWeaveReport({ docsDir });
+      const { report } = buildTraceWeaveReport(getReportBuildOptions(docsDir));
 
       if (options.format === 'json') {
         const output = JSON.stringify(report.matrix, null, 2);
@@ -174,7 +181,7 @@ program
   .action((options) => {
     try {
       const docsDir = resolveDocsDir(options.docs);
-      const { report } = buildTraceWeaveReport({ docsDir });
+      const { report } = buildTraceWeaveReport(getReportBuildOptions(docsDir));
       if (!report.inputModifiability) {
         throw new Error('Input modifiability summary is missing from report');
       }
@@ -209,7 +216,7 @@ program
   .action((options) => {
     try {
       const docsDir = resolveDocsDir(options.docs);
-      const { report } = buildTraceWeaveReport({ docsDir });
+      const { report } = buildTraceWeaveReport(getReportBuildOptions(docsDir));
       if (!report.catalog) {
         throw new Error('Catalog data is missing from report');
       }
@@ -256,7 +263,7 @@ program
   .action((options) => {
     try {
       const docsDir = resolveDocsDir(options.docs);
-      const { report } = buildTraceWeaveReport({ docsDir });
+      const { report } = buildTraceWeaveReport(getReportBuildOptions(docsDir));
       if (!report.catalog) {
         throw new Error('Catalog data is missing from report');
       }
@@ -289,7 +296,7 @@ program
   .action((options) => {
     try {
       const docsDir = resolveDocsDir(options.docs);
-      const outDir = buildWebDashboard({ docsDir, outDir: options.out });
+      const outDir = buildWebDashboard({ ...getReportBuildOptions(docsDir), outDir: options.out });
       console.log(`\n\x1b[32m✔ TraceWeave static dashboard built successfully in "${outDir}"\x1b[0m\n`);
     } catch (err) {
       exitOnError(err);
@@ -312,9 +319,11 @@ program
     }
     const port = parseInt(options.port, 10);
 
+    const reportOptions = getReportBuildOptions(docsDir);
+
     let distWeb: string;
     try {
-      distWeb = prepareServeDashboard(docsDir);
+      distWeb = prepareServeDashboard(docsDir, { subjectOverride: reportOptions.subjectOverride });
     } catch (err) {
       exitOnError(err);
     }
@@ -331,7 +340,11 @@ program
       }
     }
 
-    const server = createDashboardServer({ docsDir, distWeb });
+    const server = createDashboardServer({
+      docsDir,
+      distWeb,
+      subjectOverride: reportOptions.subjectOverride,
+    });
 
     let retried = false;
     server.on('error', async (err: NodeJS.ErrnoException) => {
@@ -351,7 +364,11 @@ program
     });
 
     server.listen(port, () => {
-      console.log(`\n\x1b[32m🚀 TraceWeave Dashboard is running at:\x1b[0m \x1b[1mhttp://localhost:${port}/\x1b[0m`);
+      const { report } = buildTraceWeaveReport(reportOptions);
+      const subjectName = report.subject.displayName;
+      console.log(
+        `\n\x1b[32m🚀 TraceWeave Dashboard for ${subjectName} is running at:\x1b[0m \x1b[1mhttp://localhost:${port}/\x1b[0m`
+      );
       console.log(`  - API Endpoint: http://localhost:${port}/api/data`);
       console.log(`  - Serving docs from: ${path.resolve(docsDir)}\n`);
     });
@@ -365,8 +382,9 @@ program
   .action(async (options) => {
     try {
       const docsDir = resolveDocsDir(options.docs);
+      const reportOptions = getReportBuildOptions(docsDir);
       const { startMcpServer } = await import('../mcp/server.js');
-      await startMcpServer(docsDir);
+      await startMcpServer(docsDir, reportOptions.subjectOverride);
     } catch (err) {
       exitOnError(err);
     }

@@ -10,6 +10,7 @@ const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 export interface BuildWebDashboardOptions {
   docsDir: string;
   outDir?: string;
+  subjectOverride?: string;
   /** Skip Vite rebuild when index.html already exists (used by serve). */
   skipViteIfPresent?: boolean;
   quiet?: boolean;
@@ -49,8 +50,10 @@ function runViteBuild(packageRoot: string, quiet = false): void {
   });
 }
 
-function writeDataJson(docsDir: string, targetDir: string): void {
-  const { report } = buildTraceWeaveReport({ docsDir });
+function writeDataJson(docsDir: string, targetDir: string, subjectOverride?: string): void {
+  const { report } = buildTraceWeaveReport(
+    subjectOverride ? { docsDir, subjectOverride } : { docsDir }
+  );
   fs.mkdirSync(targetDir, { recursive: true });
   fs.writeFileSync(path.join(targetDir, 'data.json'), JSON.stringify(report), 'utf-8');
 }
@@ -89,12 +92,12 @@ export function buildWebDashboard(options: BuildWebDashboardOptions): string {
   }
 
   if (outDir === webDistDir) {
-    writeDataJson(options.docsDir, webDistDir);
+    writeDataJson(options.docsDir, webDistDir, options.subjectOverride);
     return webDistDir;
   }
 
   copyBuiltAssets(webDistDir, outDir);
-  writeDataJson(options.docsDir, outDir);
+  writeDataJson(options.docsDir, outDir, options.subjectOverride);
   return outDir;
 }
 
@@ -108,7 +111,12 @@ export function ensureWebDashboardBuilt(docsDir: string): string {
  */
 export function prepareServeDashboard(
   docsDir: string,
-  options: { quiet?: boolean } = {}
+  options: { quiet?: boolean; subjectOverride?: string } = {}
 ): string {
-  return buildWebDashboard({ docsDir, skipViteIfPresent: false, quiet: options.quiet });
+  return buildWebDashboard({
+    docsDir,
+    skipViteIfPresent: false,
+    quiet: options.quiet,
+    subjectOverride: options.subjectOverride,
+  });
 }

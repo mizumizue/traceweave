@@ -328,8 +328,16 @@ export interface DecisionsCatalog {
   totalCount: number;
 }
 
+export type SubjectSource = 'config' | 'cli' | 'env' | 'package_json' | 'directory';
+
+export interface SubjectContext {
+  displayName: string;
+  source: SubjectSource;
+}
+
 export interface TraceWeaveReport {
   generatedAt: string;
+  subject: SubjectContext;
   summary: {
     totalNeeds: number;
     totalRequirements: number;

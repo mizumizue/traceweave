@@ -6,7 +6,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { callMcpTool, listMcpTools } from './tool-handlers.js';
 
-export async function startMcpServer(docsDir: string = './docs') {
+export async function startMcpServer(docsDir: string = './docs', subjectOverride?: string) {
   const server = new Server(
     {
       name: 'traceweave-mcp',
@@ -25,7 +25,9 @@ export async function startMcpServer(docsDir: string = './docs') {
 
   server.setRequestHandler(CallToolRequestSchema, async request => {
     const { name, arguments: args } = request.params;
-    const result = callMcpTool(docsDir, name, (args as Record<string, unknown>) || {});
+    const result = callMcpTool(docsDir, name, (args as Record<string, unknown>) || {}, {
+      subjectOverride,
+    });
     return {
       isError: result.isError,
       content: [{ type: 'text', text: result.text }],

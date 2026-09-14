@@ -8,10 +8,11 @@ import { isPathInsideRoot } from '../infrastructure/system/resolveRepoRoot.js';
 export interface ServeDashboardOptions {
   docsDir: string;
   distWeb: string;
+  subjectOverride?: string;
 }
 
 export function createDashboardServer(options: ServeDashboardOptions): http.Server {
-  const { docsDir, distWeb } = options;
+  const { docsDir, distWeb, subjectOverride } = options;
 
   return http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -31,7 +32,7 @@ export function createDashboardServer(options: ServeDashboardOptions): http.Serv
 
     if (url === '/api/data') {
       try {
-        const { report } = buildTraceWeaveReport({ docsDir });
+        const { report } = buildTraceWeaveReport({ docsDir, subjectOverride });
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(report));
       } catch (e: unknown) {
@@ -58,7 +59,7 @@ export function createDashboardServer(options: ServeDashboardOptions): http.Serv
               return;
             }
 
-            const { nodes } = buildTraceWeaveReport({ docsDir });
+            const { nodes } = buildTraceWeaveReport({ docsDir, subjectOverride });
             const tcNode = nodes.find(n => n.id === testCaseId && n.kind === 'test_case');
             if (!tcNode) {
               res.writeHead(404, { 'Content-Type': 'application/json' });

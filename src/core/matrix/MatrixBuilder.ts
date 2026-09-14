@@ -142,6 +142,7 @@ export class MatrixBuilder {
 
     return {
       generatedAt: new Date().toISOString(),
+      subject: { displayName: '', source: 'directory' },
       summary: {
         totalNeeds,
         totalRequirements,

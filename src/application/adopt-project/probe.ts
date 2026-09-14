@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
+import { resolvePackageDisplayName } from '../resolve-package-display-name.js';
 import type { ProjectProbeResult } from './types.js';
 
 // -----------------------------------------------------------------------------
@@ -26,10 +27,12 @@ export function probeProject(targetDir: string): ProjectProbeResult {
     : path.join(resolved, 'src', 'package.json');
   const hasPackageJson = fs.existsSync(pkgJsonPath);
 
+  const resolvedPackageName = resolvePackageDisplayName(resolved);
+  if (resolvedPackageName) projectName = resolvedPackageName;
+
   if (hasPackageJson) {
     try {
       const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'));
-      if (pkg.name) projectName = pkg.name;
       languages.push('JavaScript / TypeScript');
 
       const allDeps = {

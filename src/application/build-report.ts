@@ -10,6 +10,7 @@ import { MatrixBuilder } from '../core/matrix/MatrixBuilder.js';
 import { TraceGraph } from '../core/graph/TraceGraph.js';
 import { TraceWeaveReport, DocNode } from '../core/models/types.js';
 import { enrichDocNodes } from './enrich-doc-nodes.js';
+import { resolveSubjectContext } from './resolve-subject-context.js';
 
 export interface BuildReportOptions {
   docsDir?: string;
@@ -17,6 +18,8 @@ export interface BuildReportOptions {
   useCache?: boolean;
   testReportPath?: string;
   loadTestReport?: boolean;
+  projectRoot?: string;
+  subjectOverride?: string;
 }
 
 export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
@@ -25,7 +28,9 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
   nodes: DocNode[];
   parseWarnings: string[];
 } {
-  const projectRoot = resolveRepoRoot(import.meta.url);
+  const projectRoot = options.projectRoot
+    ? path.resolve(options.projectRoot)
+    : resolveRepoRoot(import.meta.url);
   const docsDir = options.docsDir
     ? path.resolve(options.docsDir)
     : path.join(projectRoot, 'docs');
@@ -73,6 +78,10 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
   const builder = new MatrixBuilder();
   const matrix = builder.buildMatrix(graph, sufficiencies);
   const report = builder.buildReport(graph, sufficiencies, strata, pyramid, matrix);
+  report.subject = resolveSubjectContext({
+    repoRoot: projectRoot,
+    cliSubject: options.subjectOverride,
+  });
 
   return { report, graph, nodes, parseWarnings };
 }

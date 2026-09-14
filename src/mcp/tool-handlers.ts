@@ -46,18 +46,29 @@ export function listMcpTools() {
   ];
 }
 
+export interface McpToolHandlerOptions {
+  subjectOverride?: string;
+}
+
 export function callMcpTool(
   docsDir: string,
   name: string,
-  args: Record<string, unknown> = {}
+  args: Record<string, unknown> = {},
+  options: McpToolHandlerOptions = {}
 ): { isError?: boolean; text: string } {
+  const reportOptions = options.subjectOverride
+    ? { docsDir, subjectOverride: options.subjectOverride }
+    : { docsDir };
+
   if (name === 'get_traceability_summary') {
-    const { report } = buildTraceWeaveReport({ docsDir });
-    return { text: JSON.stringify(report.summary, null, 2) };
+    const { report } = buildTraceWeaveReport(reportOptions);
+    return {
+      text: JSON.stringify({ subject: report.subject, summary: report.summary }, null, 2),
+    };
   }
 
   if (name === 'get_stratum_density') {
-    const { report } = buildTraceWeaveReport({ docsDir });
+    const { report } = buildTraceWeaveReport(reportOptions);
     return {
       text: JSON.stringify({ strata: report.strata, pyramid: report.pyramid }, null, 2),
     };
@@ -65,7 +76,7 @@ export function callMcpTool(
 
   if (name === 'get_requirement_status') {
     const reqId = String(args.requirementId || '');
-    const { report } = buildTraceWeaveReport({ docsDir });
+    const { report } = buildTraceWeaveReport(reportOptions);
     const row = report.matrix.find(r => r.requirementId.toLowerCase() === reqId.toLowerCase());
     const suff = report.requirements.find(r => r.requirementId.toLowerCase() === reqId.toLowerCase());
 

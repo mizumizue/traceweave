@@ -5,7 +5,8 @@ export class ConsoleReporter {
     const { summary, strata, pyramid, gaps } = report;
 
     console.log('\n\x1b[1m\x1b[36m============================================================\x1b[0m');
-    console.log('\x1b[1m\x1b[36m                   TraceWeave Quality Report                \x1b[0m');
+    const subjectName = report.subject?.displayName || 'unknown-project';
+    console.log(`\x1b[1m\x1b[36m              TraceWeave Quality Report for ${subjectName}           \x1b[0m`);
     console.log('\x1b[1m\x1b[36m============================================================\x1b[0m\n');
 
     // Summary counts

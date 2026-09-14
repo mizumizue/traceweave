@@ -19,9 +19,26 @@ test('TC-0042: MCP ツール一覧が 4 件の契約どおり公開されるこ�
 test('TC-0042: get_traceability_summary がサマリ JSON を返すこと', () => {
   const result = callMcpTool(repositoryPath('docs'), 'get_traceability_summary');
   assert.equal(result.isError, undefined);
-  const summary = JSON.parse(result.text);
-  assert.ok(summary.totalRequirements > 0);
-  assert.ok(summary.overallSufficiencyScore >= 0);
+  const body = JSON.parse(result.text);
+  assert.ok(body.subject?.displayName?.length > 0);
+  assert.ok(body.summary.totalRequirements > 0);
+  assert.ok(body.summary.overallSufficiencyScore >= 0);
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: MCP get_traceability_summary の subject 同梱
+ * - 条件: 実 docs/ を入力としてツールを呼び出す
+ * - 期待結果: 返却 JSON ルートに subject と summary が含まれること
+ * - 関連文書: TC-0060, REQ-0030, SPEC-0025
+ */
+test('TC-0060: get_traceability_summary が subject を同梱した JSON を返すこと', () => {
+  const result = callMcpTool(repositoryPath('docs'), 'get_traceability_summary');
+  const body = JSON.parse(result.text);
+  assert.ok(body.subject);
+  assert.equal(typeof body.subject.displayName, 'string');
+  assert.ok(body.subject.displayName.length > 0);
+  assert.ok(body.summary.totalRequirements > 0);
 });
 
 test('TC-0042: get_requirement_status が未検出要件で ERR_REQUIREMENT_NOT_FOUND を返すこと', () => {

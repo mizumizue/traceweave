@@ -4,7 +4,8 @@ export class MarkdownReporter {
   public static generateMarkdown(report: TraceWeaveReport): string {
     const lines: string[] = [];
 
-    lines.push('# TraceWeave Quality & Traceability Report\n');
+    const subjectName = report.subject?.displayName || 'unknown-project';
+    lines.push(`# TraceWeave 品質レポート — ${subjectName}\n`);
     lines.push(`> Generated at: ${report.generatedAt}\n`);
 
     lines.push('## 1. Summary\n');

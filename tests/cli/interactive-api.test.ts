@@ -107,7 +107,7 @@ test('TC-0011: CLI serve - 外部HTTP APIが対話型テスト実行結果を返
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error('serve did not start')), 10_000);
       child.stdout.on('data', chunk => {
-        if (String(chunk).includes('Dashboard is running')) {
+        if (String(chunk).includes('is running at')) {
           clearTimeout(timeout);
           resolve();
         }
@@ -170,7 +170,7 @@ test('TC-0040: CLI serve - /api/test/run が未知TCで404・UI除外TCで400を
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error('serve did not start')), 10_000);
       child.stdout.on('data', chunk => {
-        if (String(chunk).includes('Dashboard is running')) {
+        if (String(chunk).includes('is running at')) {
           clearTimeout(timeout);
           resolve();
         }
@@ -229,7 +229,7 @@ test('CLI serve - パストラバーサル要求を 403 で拒否すること', 
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error('serve did not start')), 10_000);
       child.stdout.on('data', chunk => {
-        if (String(chunk).includes('Dashboard is running')) {
+        if (String(chunk).includes('is running at')) {
           clearTimeout(timeout);
           resolve();
         }

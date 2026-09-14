@@ -19,7 +19,7 @@ import {
 import { DecisionsBrowser } from './components/DecisionsBrowser.js';
 import { TraceabilityGraphView } from './components/TraceabilityGraphView.js';
 import { VisualTestPyramid } from './components/VisualTestPyramid.js';
-import { Header } from './components/Header.js';
+import { Header, formatSubjectDocumentTitle } from './components/Header.js';
 import { QualityMetricsGrid } from './components/QualityMetricsGrid.js';
 import { TabNav } from './components/TabNav.js';
 import { MatrixView } from './components/MatrixView.js';
@@ -116,6 +116,12 @@ export default function App() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (report?.subject?.displayName) {
+      document.title = formatSubjectDocumentTitle(report.subject.displayName);
+    }
+  }, [report?.subject?.displayName]);
 
   // Listen for browser back / forward (popstate event)
   useEffect(() => {
@@ -369,6 +375,7 @@ export default function App() {
         {/* Header with Quick Action Toolbar (更新, 要約コピー, URL共有, CSV, JSON) */}
         <Header
           isRefreshing={isRefreshing}
+          subjectDisplayName={report.subject?.displayName}
           onRefresh={() => fetchData(true)}
           onCopySummaryMarkdown={handleCopySummaryMarkdown}
           onCopyShareUrl={handleCopyShareUrl}

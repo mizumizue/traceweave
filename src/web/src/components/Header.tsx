@@ -9,12 +9,21 @@ import {
 
 interface HeaderProps {
   isRefreshing: boolean;
+  subjectDisplayName?: string;
   onRefresh: () => void;
   onCopySummaryMarkdown: () => void;
   onCopyShareUrl: () => void;
   onExportCsv: () => void;
   onExportJson: () => void;
   onNavigateHome?: () => void;
+}
+
+export function formatSubjectHeaderSuffix(displayName: string): string {
+  return `for ${displayName}`;
+}
+
+export function formatSubjectDocumentTitle(displayName: string): string {
+  return `TraceWeave — ${displayName}`;
 }
 
 export function shouldUseInternalNavigation(event: {
@@ -41,6 +50,7 @@ export function getHeaderLinkContract(pathname = '/'): {
 
 export function Header({
   isRefreshing,
+  subjectDisplayName,
   onRefresh,
   onCopySummaryMarkdown,
   onCopyShareUrl,
@@ -82,6 +92,15 @@ export function Header({
               TraceWeave
             </h1>
           </a>
+          {subjectDisplayName ? (
+            <span
+              className="text-sm sm:text-base font-semibold text-slate-300 shrink-0"
+              title={`品質保証対象: ${subjectDisplayName}`}
+            >
+              <span className="text-slate-500 font-normal">for </span>
+              <span className="text-teal-300">{subjectDisplayName}</span>
+            </span>
+          ) : null}
           <span className="text-[11px] font-mono px-2.5 py-0.5 bg-teal-950/80 text-teal-300 border border-teal-700/60 rounded-full font-semibold shadow-sm shrink-0 whitespace-nowrap tracking-wide">
             v0.1.0 Live Matrix
           </span>
