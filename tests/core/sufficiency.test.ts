@@ -3,7 +3,77 @@ import assert from 'node:assert/strict';
 import { TraceGraph } from '../../src/core/graph/TraceGraph.js';
 import { SufficiencyScorer } from '../../src/core/sufficiency/SufficiencyScorer.js';
 import { MatrixBuilder } from '../../src/core/matrix/MatrixBuilder.js';
-import { DocNode } from '../../src/core/models/types.js';
+import { DocNode, PhaseCount, TestExecutionStatus, TestLevel } from '../../src/core/models/types.js';
+
+const emptyExecutedPhaseCounts = (): PhaseCount => ({
+  unit: 0,
+  integration_internal: 0,
+  integration_external: 0,
+  system: 0,
+  acceptance: 0,
+});
+
+function createHighRequirement(id = 'REQ-HIGH'): DocNode {
+  return {
+    id,
+    kind: 'requirement',
+    title: 'High Criticality Requirement',
+    status: 'accepted',
+    created: '2026-09-14',
+    updated: '2026-09-14',
+    scope: 'local',
+    criticality: 'high',
+    depends_on: [],
+    tags: [],
+    links: [],
+    content: '',
+  };
+}
+
+function createLinkedTestCase(
+  id: string,
+  level: TestLevel,
+  requirementId: string,
+  executionStatus?: TestExecutionStatus
+): DocNode {
+  return {
+    id,
+    kind: 'test_case',
+    title: `${level} test`,
+    status: 'accepted',
+    created: '2026-09-14',
+    updated: '2026-09-14',
+    scope: 'local',
+    test_level: level,
+    test_method: 'unit_contract',
+    execution_status: executionStatus,
+    depends_on: [],
+    verifies: [requirementId],
+    tags: [],
+    links: [],
+    content: '',
+  };
+}
+
+function addHighCriticalityPhaseSet(
+  graph: TraceGraph,
+  requirementId: string,
+  statuses: Record<TestLevel, TestExecutionStatus | undefined>
+): void {
+  const levels: TestLevel[] = [
+    'unit',
+    'integration_internal',
+    'integration_external',
+    'acceptance',
+  ];
+  for (const [index, level] of levels.entries()) {
+    graph.addNode(createLinkedTestCase(`TC-0038-${index + 1}`, level, requirementId, statuses[level]));
+  }
+}
+
+function assertAllPhaseCountsZero(counts: PhaseCount): void {
+  assert.deepEqual(counts, emptyExecutedPhaseCounts());
+}
 
 /**
  * 【テスト概要】
@@ -76,6 +146,7 @@ test('TC-0002: SufficiencyScorer - 高重要度（high）要件において各�
     scope: 'local',
     test_level: 'unit',
     test_method: 'unit_mock',
+    execution_status: 'passed',
     depends_on: [],
     verifies: ['REQ-0001'],
     tags: [],
@@ -100,6 +171,7 @@ test('TC-0002: SufficiencyScorer - 高重要度（high）要件において各�
     scope: 'local',
     test_level: 'integration_internal',
     test_method: 'api_contract',
+    execution_status: 'passed',
     depends_on: [],
     verifies: ['REQ-0001'],
     tags: [],
@@ -116,6 +188,7 @@ test('TC-0002: SufficiencyScorer - 高重要度（high）要件において各�
     scope: 'local',
     test_level: 'integration_external',
     test_method: 'api_contract',
+    execution_status: 'passed',
     depends_on: [],
     verifies: ['REQ-0001'],
     tags: [],
@@ -132,6 +205,7 @@ test('TC-0002: SufficiencyScorer - 高重要度（high）要件において各�
     scope: 'local',
     test_level: 'acceptance',
     test_method: 'exploratory_manual',
+    execution_status: 'passed',
     depends_on: [],
     verifies: ['REQ-0001'],
     tags: [],
@@ -186,6 +260,7 @@ test('TC-0002: SufficiencyScorer - 中重要度（medium）要件に対して重
     scope: 'local',
     test_level: 'unit',
     test_method: 'unit_mock',
+    execution_status: 'passed',
     depends_on: [],
     verifies: ['REQ-0002'],
     tags: [],
@@ -198,6 +273,93 @@ test('TC-0002: SufficiencyScorer - 中重要度（medium）要件に対して重
   const resMed = scorer.calculateRequirement(graph, reqMed);
   assert.equal(resMed.score, 50);
 
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: SufficiencyScorer (実行ステータスと充足度加算)
+ * - 条件: 重要度 High の要件に単体・内部結合・外部結合・受入の TC 文書を紐づけ、すべて未実行のままスコア算出
+ * - 期待結果: スコア 0%、documentedPhaseCounts は各工程 1 件を保持、実行工程件数（phaseCounts）はすべて 0 であること
+ * - 関連文書: TC-0038 Step 1, REQ-0002 AC-004, SPEC-0003
+ */
+test('TC-0038: SufficiencyScorer - 全工程が未実行のときスコア0%かつ文書工程件数のみ保持されること', () => {
+  const graph = new TraceGraph();
+  const scorer = new SufficiencyScorer();
+  const req = createHighRequirement();
+  graph.addNode(req);
+  addHighCriticalityPhaseSet(graph, req.id, {
+    unit: undefined,
+    integration_internal: undefined,
+    integration_external: undefined,
+    system: undefined,
+    acceptance: undefined,
+  });
+
+  const res = scorer.calculateRequirement(graph, req);
+
+  assert.equal(res.score, 0);
+  assert.equal(res.documentedPhaseCounts.unit, 1);
+  assert.equal(res.documentedPhaseCounts.integration_internal, 1);
+  assert.equal(res.documentedPhaseCounts.integration_external, 1);
+  assert.equal(res.documentedPhaseCounts.acceptance, 1);
+  assertAllPhaseCountsZero(res.phaseCounts);
+  assert.equal(res.executedTestCaseIds.length, 0);
+  assert.equal(res.pendingTestCaseIds.length, 4);
+  assert.equal(res.failedTestCaseIds.length, 0);
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: SufficiencyScorer (実行ステータスと充足度加算)
+ * - 条件: 重要度 High の要件に同一文書構成で単体のみ実行合格、残りは未実行または失敗
+ * - 期待結果: 充足度スコアが 30% であること
+ * - 関連文書: TC-0038 Step 2, REQ-0002 AC-004, SPEC-0003
+ */
+test('TC-0038: SufficiencyScorer - 単体のみ実行合格のとき高重要度要件のスコアが30%となること', () => {
+  const graph = new TraceGraph();
+  const scorer = new SufficiencyScorer();
+  const req = createHighRequirement();
+  graph.addNode(req);
+  addHighCriticalityPhaseSet(graph, req.id, {
+    unit: 'passed',
+    integration_internal: 'pending',
+    integration_external: 'failed',
+    system: undefined,
+    acceptance: 'pending',
+  });
+
+  const res = scorer.calculateRequirement(graph, req);
+
+  assert.equal(res.score, 30);
+  assert.equal(res.phaseCounts.unit, 1);
+  assert.equal(res.executedTestCaseIds.length, 1);
+  assert.equal(res.executedTestCaseIds[0], 'TC-0038-1');
+  assert.equal(res.pendingTestCaseIds.length, 2);
+  assert.equal(res.failedTestCaseIds.length, 1);
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: SufficiencyScorer (実行ステータスと充足度加算)
+ * - 条件: 失敗ステータスの単体テストのみが紐づく重要度 High 要件
+ * - 期待結果: 充足度スコアが 0% であること
+ * - 関連文書: TC-0038 Step 3, REQ-0002 AC-004, SPEC-0003
+ */
+test('TC-0038: SufficiencyScorer - 失敗ステータスの単体テストのみではスコア0%となること', () => {
+  const graph = new TraceGraph();
+  const scorer = new SufficiencyScorer();
+  const req = createHighRequirement();
+  graph.addNode(req);
+  graph.addNode(createLinkedTestCase('TC-0038-FAILED', 'unit', req.id, 'failed'));
+
+  const res = scorer.calculateRequirement(graph, req);
+
+  assert.equal(res.score, 0);
+  assert.equal(res.documentedPhaseCounts.unit, 1);
+  assertAllPhaseCountsZero(res.phaseCounts);
+  assert.equal(res.executedTestCaseIds.length, 0);
+  assert.equal(res.failedTestCaseIds.length, 1);
+  assert.equal(res.failedTestCaseIds[0], 'TC-0038-FAILED');
 });
 
 /**
@@ -234,6 +396,7 @@ test('SufficiencyScorer - 上流要件を持たないスタンドアロン仕様
     scope: 'local',
     test_level: 'unit',
     test_method: 'unit_contract',
+    execution_status: 'passed',
     verifies: ['SPEC-0002'],
     depends_on: [],
     tags: [],
@@ -251,6 +414,7 @@ test('SufficiencyScorer - 上流要件を持たないスタンドアロン仕様
     scope: 'local',
     test_level: 'integration_internal',
     test_method: 'unit_contract',
+    execution_status: 'passed',
     verifies: ['SPEC-0002'],
     depends_on: [],
     tags: [],
@@ -305,6 +469,7 @@ test('MatrixBuilder - 上流要件を持たないスタンドアロン仕様が�
     scope: 'local',
     test_level: 'unit',
     test_method: 'unit_contract',
+    execution_status: 'passed',
     verifies: ['SPEC-0002'],
     depends_on: [],
     tags: [],
@@ -326,5 +491,4 @@ test('MatrixBuilder - 上流要件を持たないスタンドアロン仕様が�
   assert.equal(matrix[0].allTestCases.length, 1);
   assert.equal(matrix[0].allTestCases[0].id, 'TC-0001');
 });
-
 

@@ -1,5 +1,6 @@
 import { TraceGraph } from '../graph/TraceGraph.js';
 import {
+  DocNode,
   PyramidHealth,
   PyramidHealthReport,
   RequirementSufficiency,
@@ -17,13 +18,60 @@ const PHASE_LABELS: Record<TestLevel, string> = {
   acceptance: '受入テスト (UAT)',
 };
 
+function emptyPhaseCounts(): PhaseCount {
+  return {
+    unit: 0,
+    integration_internal: 0,
+    integration_external: 0,
+    system: 0,
+    acceptance: 0,
+  };
+}
+
+function isPassed(tc: DocNode): boolean {
+  return tc.execution_status === 'passed';
+}
+
 export class BalanceAnalyzer {
+  private static tallyPassedPhases(testCases: DocNode[]): PhaseCount {
+    const counts = emptyPhaseCounts();
+    for (const tc of testCases) {
+      if (isPassed(tc) && tc.test_level && tc.test_level in counts) {
+        counts[tc.test_level]++;
+      }
+    }
+    return counts;
+  }
+
+  private resolveExecutedPhaseCounts(
+    req: RequirementSufficiency,
+    graph?: TraceGraph
+  ): PhaseCount {
+    if (!graph) {
+      return req.phaseCounts;
+    }
+
+    const node = graph.getNode(req.requirementId);
+    if (!node) {
+      return req.phaseCounts;
+    }
+
+    const testCases =
+      node.kind === 'specification'
+        ? graph.getDirectTestCases(req.requirementId)
+        : graph.getAllTestCasesForRequirement(req.requirementId);
+
+    return BalanceAnalyzer.tallyPassedPhases(testCases);
+  }
+
   /**
    * Analyzes stratum density for each of the 5 phases across all requirements.
+   * Phase counts include only test cases with execution_status === 'passed'.
    */
   public analyzeStrata(
     requirements: RequirementSufficiency[],
-    totalRequirements: number
+    totalRequirements: number,
+    graph?: TraceGraph
   ): StratumReport[] {
     const levels: TestLevel[] = [
       'unit',
@@ -48,7 +96,8 @@ export class BalanceAnalyzer {
       let totalTests = 0;
 
       for (const req of requirements) {
-        const count = req.phaseCounts[level] || 0;
+        const phaseCounts = this.resolveExecutedPhaseCounts(req, graph);
+        const count = phaseCounts[level] || 0;
         if (count > 0) {
           coveredCount++;
           totalTests += count;
@@ -81,7 +130,10 @@ export class BalanceAnalyzer {
   /**
    * Internal evaluator for test distribution across 5 phases.
    */
-  private static evaluateDistribution(counts: PhaseCount): {
+  private static evaluateDistribution(
+    counts: PhaseCount,
+    options?: { documentedTestCount?: number }
+  ): {
     status: PyramidHealth;
     warnings: string[];
     suggestions: string[];
@@ -98,12 +150,27 @@ export class BalanceAnalyzer {
     const totalIntegration = itInternal + itExternal;
     const totalTopLevel = system + uat;
     const totalTests = unit + totalIntegration + totalTopLevel;
+    const documentedTestCount = options?.documentedTestCount ?? 0;
 
     if (totalTests === 0) {
+      if (documentedTestCount > 0) {
+        return {
+          status: 'unbalanced',
+          warnings: [
+            `テストケース文書は ${documentedTestCount} 件存在しますが、実行に合格したテストケースが 1 件もありません。`,
+          ],
+          suggestions: [
+            'テストを実行し、実行レポートを結合してください。文書の作成だけでは地層密度・ピラミッド診断に加算されません。',
+          ],
+        };
+      }
+
       return {
         status: 'unbalanced',
-        warnings: ['テストケースが 1 件も登録されていません。'],
-        suggestions: ['各工程（単体・結合・総合・受入）のテストケースを作成してください。'],
+        warnings: ['実行に合格したテストケースが 1 件もありません。'],
+        suggestions: [
+          'テストケースを作成し実行レポートを結合してください。文書の作成だけでは地層密度・ピラミッド診断に加算されません。',
+        ],
       };
     }
 
@@ -236,12 +303,13 @@ export class BalanceAnalyzer {
     strata: StratumReport[],
     requirements: RequirementSufficiency[]
   ): PyramidHealthReport {
+    const testCases = graph.getTestCases();
     const countByLevel = new Map<TestLevel, number>();
     for (const s of strata) {
       countByLevel.set(s.level, s.count);
     }
 
-    const counts: PhaseCount = {
+    const countsFromStrata: PhaseCount = {
       unit: countByLevel.get('unit') || 0,
       integration_internal: countByLevel.get('integration_internal') || 0,
       integration_external: countByLevel.get('integration_external') || 0,
@@ -249,30 +317,52 @@ export class BalanceAnalyzer {
       acceptance: countByLevel.get('acceptance') || 0,
     };
 
-    const evaluated = BalanceAnalyzer.evaluateDistribution(counts);
+    const counts =
+      testCases.length > 0
+        ? BalanceAnalyzer.tallyPassedPhases(testCases)
+        : countsFromStrata;
+
+    const evaluated = BalanceAnalyzer.evaluateDistribution(counts, {
+      documentedTestCount: testCases.length,
+    });
     let status: PyramidHealth = evaluated.status;
     const warnings: string[] = [...evaluated.warnings];
     const suggestions: string[] = [...evaluated.suggestions];
 
-    // 3. Untested Specifications: Check specs with 0 test cases
+    // 3. Untested Specifications: specs with no passed test cases
     const specs = graph.getSpecifications();
-    const untestedSpecs: string[] = [];
+    const specsWithoutLinkedTc: string[] = [];
+    const specsWithoutPassedTc: string[] = [];
     for (const spec of specs) {
-      const tcs = graph.getDirectTestCases(spec.id);
-      if (tcs.length === 0) {
-        untestedSpecs.push(spec.id);
+      const linkedTcs = graph.getDirectTestCases(spec.id);
+      const passedTcs = linkedTcs.filter(isPassed);
+      if (passedTcs.length > 0) {
+        continue;
+      }
+      if (linkedTcs.length === 0) {
+        specsWithoutLinkedTc.push(spec.id);
+      } else {
+        specsWithoutPassedTc.push(spec.id);
       }
     }
 
+    const untestedSpecs = [...specsWithoutLinkedTc, ...specsWithoutPassedTc];
     if (untestedSpecs.length > 0) {
       if (['healthy', 'healthy_trophy'].includes(status) && untestedSpecs.length > specs.length * 0.4) {
         status = 'missing_specs';
       }
-      warnings.push(
-        `テスト未紐付けの詳細仕様 (SPEC) が ${untestedSpecs.length} 件存在します: [${untestedSpecs.slice(0, 5).join(', ')}${untestedSpecs.length > 5 ? '...' : ''}]`
-      );
+      if (specsWithoutLinkedTc.length > 0) {
+        warnings.push(
+          `テストケース文書が未紐付けの詳細仕様 (SPEC) が ${specsWithoutLinkedTc.length} 件存在します: [${specsWithoutLinkedTc.slice(0, 5).join(', ')}${specsWithoutLinkedTc.length > 5 ? '...' : ''}]`
+        );
+      }
+      if (specsWithoutPassedTc.length > 0) {
+        warnings.push(
+          `実行合格のテストケースがない詳細仕様 (SPEC) が ${specsWithoutPassedTc.length} 件存在します（文書のみ・未実行または失敗）: [${specsWithoutPassedTc.slice(0, 5).join(', ')}${specsWithoutPassedTc.length > 5 ? '...' : ''}]`
+        );
+      }
       suggestions.push(
-        '詳細仕様（異常系・制約条件）を直接検証するテストケース（単体または結合）を作成して verifies に紐づけてください。'
+        '詳細仕様（異常系・制約条件）を直接検証するテストケース（単体または結合）を作成して verifies に紐づけ、実行レポートを結合してください。'
       );
     }
 

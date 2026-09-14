@@ -136,6 +136,66 @@ test('TC-0003: BalanceAnalyzer - 逆アイスクリームコーン型、中間�
   assert.ok(res4.warnings.some(w => w.includes('偏重')));
 });
 
+/**
+ * 【テスト概要】
+ * - 対象: BalanceAnalyzer (実行合格フィルタ・未テスト SPEC 警告区分)
+ * - 条件: 実行合格 TC のみ紐づく SPEC、文書のみ（pending）TC のみ紐づく SPEC、TC 未紐付け SPEC を含むグラフ
+ * - 期待結果: analyzeStrata は passed のみ集計し、diagnosePyramid は文書未紐付けと実行合格なしを別警告で出力すること
+ * - 関連文書: REQ-0002, TC-0003
+ */
+test('TC-0003: BalanceAnalyzer - 実行合格 TC のみを工程集計し、文書のみと実行合格なしを区別して警告すること', () => {
+  const analyzer = new BalanceAnalyzer();
+  const graph = new TraceGraph();
+
+  graph.addNode({ id: 'REQ-1', kind: 'requirement', title: 'Req', criticality: 'high', depends_on: [] });
+  graph.addNode({ id: 'SPEC-PASS', kind: 'specification', title: 'Passed spec', depends_on: ['REQ-1'] });
+  graph.addNode({ id: 'SPEC-DOC', kind: 'specification', title: 'Document only spec', depends_on: ['REQ-1'] });
+  graph.addNode({ id: 'SPEC-EMPTY', kind: 'specification', title: 'No TC spec', depends_on: ['REQ-1'] });
+  graph.addNode({
+    id: 'TC-PASS',
+    kind: 'test_case',
+    title: 'Passed UT',
+    test_level: 'unit',
+    test_method: 'unit_mock',
+    verifies: ['SPEC-PASS'],
+    depends_on: [],
+    execution_status: 'passed',
+  });
+  graph.addNode({
+    id: 'TC-PENDING',
+    kind: 'test_case',
+    title: 'Pending UT',
+    test_level: 'unit',
+    test_method: 'unit_mock',
+    verifies: ['SPEC-DOC'],
+    depends_on: [],
+    execution_status: 'pending',
+  });
+
+  const requirements: RequirementSufficiency[] = [
+    {
+      requirementId: 'REQ-1',
+      title: 'Req',
+      criticality: 'high',
+      score: 30,
+      isFullySatisfied: false,
+      phaseCounts: { unit: 1, integration_internal: 0, integration_external: 0, system: 0, acceptance: 0 },
+      documentedPhaseCounts: { unit: 2, integration_internal: 0, integration_external: 0, system: 0, acceptance: 0 },
+      methodCounts: {},
+      associatedSpecs: ['SPEC-PASS', 'SPEC-DOC', 'SPEC-EMPTY'],
+      testCaseIds: ['TC-PASS', 'TC-PENDING'],
+      missingPhases: [],
+    },
+  ];
+
+  const strata = analyzer.analyzeStrata(requirements, 1, graph);
+  assert.equal(strata.find(s => s.level === 'unit')!.count, 1);
+
+  const pyramid = analyzer.diagnosePyramid(graph, strata, requirements);
+  assert.ok(pyramid.warnings.some(w => w.includes('テストケース文書が未紐付け') && w.includes('SPEC-EMPTY')));
+  assert.ok(pyramid.warnings.some(w => w.includes('実行合格のテストケースがない') && w.includes('SPEC-DOC')));
+});
+
 test('TC-0003: BalanceAnalyzer - 外部パラメータセットの全診断パターンが実行結果と一致すること', () => {
   const dataset = JSON.parse(
     fs.readFileSync(repositoryPath('fixtures/test-cases/TC-0011.json'), 'utf8')

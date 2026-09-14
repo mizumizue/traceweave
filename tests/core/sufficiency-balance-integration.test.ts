@@ -8,8 +8,8 @@ import { DocNode } from '../../src/core/models/types.js';
 /**
  * 【テスト概要】
  * - 対象: SufficiencyScorer, BalanceAnalyzer, TraceGraph（有向グラフと品質充足度・ピラミッド地層分析の内部結合）
- * - 条件: High/Medium/Low要件と複数工程（unit, integration_internal, system, acceptance）のTCを含むグラフを構築して結合解析を実行
- * - 期待結果: 要件ごとの重要度別スコアリング、全工程地層密度判定、ピラミッドアンチパターン診断が一貫した品質レポートとして算出されること
+ * - 条件: High/Medium/Low 要件と複数工程の TC を含むグラフを構築し、実行合格（execution_status: passed）のみがスコア加算対象となるよう TC ステータスを付与して結合解析を実行
+ * - 期待結果: 実行合格 TC のみで重要度別スコアが算出され、pending の TC は加算されないこと。100% 充足要件は全 TC 合格、一部未達要件は passed/pending 混在で REQ-0002 準拠の低スコアとなること。地層密度・ピラミッド診断も実行合格件数に基づくこと
  * - 関連文書: TC-0025, REQ-0002, REQ-0003, SPEC-0003
  */
 test('TC-0025: SufficiencyScorer & BalanceAnalyzer - 有向グラフからの重要度別スコアリングと工程地層密度・ピラミッド診断の内部結合検証', () => {
@@ -22,26 +22,26 @@ test('TC-0025: SufficiencyScorer & BalanceAnalyzer - 有向グラフからの重
     // High requirement with full coverage
     { id: 'REQ-H1', kind: 'requirement', title: '高重要度要件（完備）', criticality: 'high', depends_on: [] },
     { id: 'SPEC-H1', kind: 'specification', title: '高重要度仕様', depends_on: ['REQ-H1'] },
-    { id: 'TC-H1-UT', kind: 'test_case', title: 'UT', test_level: 'unit', test_method: 'unit_mock', verifies: ['SPEC-H1'], depends_on: [] },
-    { id: 'TC-H1-IT', kind: 'test_case', title: 'ITa', test_level: 'integration_internal', test_method: 'scenario', verifies: ['SPEC-H1'], depends_on: [] },
-    { id: 'TC-H1-ST', kind: 'test_case', title: 'ST', test_level: 'system', test_method: 'scenario', verifies: ['SPEC-H1'], depends_on: [] },
-    { id: 'TC-H1-UAT', kind: 'test_case', title: 'UAT', test_level: 'acceptance', test_method: 'exploratory_manual', verifies: ['SPEC-H1'], depends_on: [] },
+    { id: 'TC-H1-UT', kind: 'test_case', title: 'UT', test_level: 'unit', test_method: 'unit_mock', execution_status: 'passed', verifies: ['SPEC-H1'], depends_on: [] },
+    { id: 'TC-H1-IT', kind: 'test_case', title: 'ITa', test_level: 'integration_internal', test_method: 'scenario', execution_status: 'passed', verifies: ['SPEC-H1'], depends_on: [] },
+    { id: 'TC-H1-ST', kind: 'test_case', title: 'ST', test_level: 'system', test_method: 'scenario', execution_status: 'passed', verifies: ['SPEC-H1'], depends_on: [] },
+    { id: 'TC-H1-UAT', kind: 'test_case', title: 'UAT', test_level: 'acceptance', test_method: 'exploratory_manual', execution_status: 'passed', verifies: ['SPEC-H1'], depends_on: [] },
 
-    // High requirement with only UT and ITa (missing ST/ITb and UAT)
+    // High requirement: UT passed, ITa pending (documented but not executed — REQ-0002 AC-004)
     { id: 'REQ-H2', kind: 'requirement', title: '高重要度要件（一部未達）', criticality: 'high', depends_on: [] },
     { id: 'SPEC-H2', kind: 'specification', title: '高重要度仕様2', depends_on: ['REQ-H2'] },
-    { id: 'TC-H2-UT', kind: 'test_case', title: 'UT', test_level: 'unit', test_method: 'unit_mock', verifies: ['SPEC-H2'], depends_on: [] },
-    { id: 'TC-H2-IT', kind: 'test_case', title: 'ITa', test_level: 'integration_internal', test_method: 'scenario', verifies: ['SPEC-H2'], depends_on: [] },
+    { id: 'TC-H2-UT', kind: 'test_case', title: 'UT', test_level: 'unit', test_method: 'unit_mock', execution_status: 'passed', verifies: ['SPEC-H2'], depends_on: [] },
+    { id: 'TC-H2-IT', kind: 'test_case', title: 'ITa', test_level: 'integration_internal', test_method: 'scenario', execution_status: 'pending', verifies: ['SPEC-H2'], depends_on: [] },
 
-    // Medium requirement with UT + ST
+    // Medium requirement with UT + ST (both passed)
     { id: 'REQ-M1', kind: 'requirement', title: '中重要度要件', criticality: 'medium', depends_on: [] },
     { id: 'SPEC-M1', kind: 'specification', title: '中重要度仕様', depends_on: ['REQ-M1'] },
-    { id: 'TC-M1-UT', kind: 'test_case', title: 'UT', test_level: 'unit', test_method: 'unit_mock', verifies: ['SPEC-M1'], depends_on: [] },
-    { id: 'TC-M1-ST', kind: 'test_case', title: 'ST', test_level: 'system', test_method: 'scenario', verifies: ['SPEC-M1'], depends_on: [] },
+    { id: 'TC-M1-UT', kind: 'test_case', title: 'UT', test_level: 'unit', test_method: 'unit_mock', execution_status: 'passed', verifies: ['SPEC-M1'], depends_on: [] },
+    { id: 'TC-M1-ST', kind: 'test_case', title: 'ST', test_level: 'system', test_method: 'scenario', execution_status: 'passed', verifies: ['SPEC-M1'], depends_on: [] },
 
-    // Low requirement with UT
+    // Low requirement with UT (passed)
     { id: 'REQ-L1', kind: 'requirement', title: '低重要度要件', criticality: 'low', depends_on: [] },
-    { id: 'TC-L1-UT', kind: 'test_case', title: 'UT', test_level: 'unit', test_method: 'unit_mock', verifies: ['REQ-L1'], depends_on: [] },
+    { id: 'TC-L1-UT', kind: 'test_case', title: 'UT', test_level: 'unit', test_method: 'unit_mock', execution_status: 'passed', verifies: ['REQ-L1'], depends_on: [] },
   ];
 
   for (const n of nodes) {
@@ -58,10 +58,12 @@ test('TC-0025: SufficiencyScorer & BalanceAnalyzer - 有向グラフからの重
   assert.equal(h1.isFullySatisfied, true);
   assert.equal(h1.missingPhases.length, 0);
 
-  // REQ-H2: unit(30) + it_int(25) = 55 (< 80)
+  // REQ-H2: unit(30) only — ITa is pending and must not add score (REQ-0002 AC-004)
   const h2 = suffList.find(r => r.requirementId === 'REQ-H2')!;
-  assert.equal(h2.score, 55);
+  assert.equal(h2.score, 30);
   assert.equal(h2.isFullySatisfied, false);
+  assert.ok(h2.pendingTestCaseIds.includes('TC-H2-IT'));
+  assert.ok(h2.missingPhases.includes('integration_internal'));
   assert.ok(h2.missingPhases.includes('acceptance'));
 
   // REQ-M1: unit(50) + system(50) = 100 (>= 80)
@@ -82,9 +84,9 @@ test('TC-0025: SufficiencyScorer & BalanceAnalyzer - 有向グラフからの重
   assert.equal(unitStratum.density, 'heavy');
 
   const itStratum = strata.find(s => s.level === 'integration_internal')!;
-  assert.equal(itStratum.count, 2);
-  assert.equal(itStratum.coverageRatio, 0.5);
-  assert.equal(itStratum.density, 'adequate');
+  assert.equal(itStratum.count, 1);
+  assert.equal(itStratum.coverageRatio, 0.25);
+  assert.equal(itStratum.density, 'thin');
 
   const pyramid = analyzer.diagnosePyramid(graph, strata, suffList);
   assert.ok(pyramid);

@@ -117,12 +117,15 @@ export class MatrixBuilder {
 
     const untestedSpecs: string[] = [];
     for (const spec of graph.getSpecifications()) {
-      if (graph.getDirectTestCases(spec.id).length === 0) {
+      if (graph.getDirectTestCases(spec.id).every(tc => tc.execution_status !== 'passed')) {
         untestedSpecs.push(spec.id);
       }
     }
 
     const allTestCases = graph.getTestCases();
+    const passedTestCaseCount = allTestCases.filter(tc => tc.execution_status === 'passed').length;
+    const failedTestCaseCount = allTestCases.filter(tc => tc.execution_status === 'failed').length;
+    const pendingTestCaseCount = allTestCases.length - passedTestCaseCount - failedTestCaseCount;
     const inputAnalyses = TestCaseInputAnalyzer.analyzeAll(allTestCases);
     const inputModifiability = TestCaseInputAnalyzer.summarize(inputAnalyses);
     const allNodes = graph.getAllNodes();
@@ -136,6 +139,9 @@ export class MatrixBuilder {
         totalRequirements,
         totalSpecifications,
         totalTestCases,
+        passedTestCaseCount,
+        pendingTestCaseCount,
+        failedTestCaseCount,
         overallSufficiencyScore: avgScore,
         highCriticalityCoverage,
         functionalRequirementCount,

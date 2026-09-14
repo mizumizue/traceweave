@@ -185,12 +185,18 @@ export interface RequirementSufficiency {
   requirementId: string;
   title: string;
   criticality: Criticality;
-  score: number; // 0 to 100
+  score: number;
   isFullySatisfied: boolean;
+  /** Executed (passed) test counts per phase; drives score and stratum density. */
   phaseCounts: PhaseCount;
+  /** Documented test counts per phase regardless of execution status. */
+  documentedPhaseCounts: PhaseCount;
   methodCounts: Partial<MethodCount>;
   associatedSpecs: string[];
   testCaseIds: string[];
+  executedTestCaseIds: string[];
+  pendingTestCaseIds: string[];
+  failedTestCaseIds: string[];
   missingPhases: TestLevel[];
 }
 
@@ -329,6 +335,9 @@ export interface TraceWeaveReport {
     totalRequirements: number;
     totalSpecifications: number;
     totalTestCases: number;
+    passedTestCaseCount: number;
+    pendingTestCaseCount: number;
+    failedTestCaseCount: number;
     overallSufficiencyScore: number;
     highCriticalityCoverage: number;
     functionalRequirementCount: number;
