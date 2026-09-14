@@ -8,6 +8,7 @@ import {
 } from '../../../core/models/types.js';
 import { TraceabilityGraphBuilder, GRAPH_RANKS } from '../../../core/graph/TraceabilityGraphBuilder.js';
 import { KIND_META } from './DecisionsBrowser.js';
+import { RequirementClassBadge } from './RequirementClassBadge.js';
 import {
   ZoomIn,
   ZoomOut,
@@ -736,6 +737,9 @@ export function TraceabilityGraphView({
                           </div>
 
                           <div className="flex items-center gap-1">
+                            {node.requirement_class && (
+                              <RequirementClassBadge value={node.requirement_class} />
+                            )}
                             {node.criticality && (
                               <span
                                 className={`text-[9px] font-semibold px-1 py-0.2 rounded uppercase ${

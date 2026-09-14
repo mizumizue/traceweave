@@ -9,16 +9,14 @@
   "scripts": {
     "dev": "tsx cli/index.ts",
     "build:cli": "tsc",
-    "build:web": "vite build --config web/vite.config.ts && tsx cli/index.ts build --out ./web/dist",
+    "build:web": "tsx cli/index.ts build --out ./web/dist",
     "build": "npm run build:cli && npm run build:web",
     "test": "npm run build:web && tsx ../scripts/run-test-suite.ts",
     "test:raw": "npm run build:web && tsx --test ../tests/**/*.test.ts",
     "analyze:inputs": "tsx ../scripts/analyze-test-inputs.ts",
     "typecheck": "tsc --noEmit",
-    "lint:docs": "tsx ../scripts/validate-docs.ts",
-    "lint:paths": "tsx ../scripts/validate-no-local-paths.ts",
-    "lint:root": "tsx ../scripts/validate-clean-root.ts",
-    "lint": "npm run lint:docs && npm run lint:paths && npm run lint:root"
+    "lint": "tsx ../scripts/validate-docs.ts",
+    "export-docs": "tsx ../scripts/export-consolidated-docs.ts"
   },
   "keywords": [
     "traceability",

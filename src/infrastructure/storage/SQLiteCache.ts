@@ -50,7 +50,11 @@ export class SQLiteCache {
     if (row.mtime_ms !== mtimeMs) return null;
 
     try {
-      return JSON.parse(row.node_json) as DocNode;
+      const node = JSON.parse(row.node_json) as DocNode;
+      if (node.kind === 'requirement' && node.requirement_class === undefined) {
+        return null;
+      }
+      return node;
     } catch {
       return null;
     }

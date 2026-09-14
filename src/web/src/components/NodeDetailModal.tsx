@@ -8,6 +8,7 @@ import {
 import { buildFullUrl } from '../utils/urlState.js';
 import { CircularGauge } from './CircularGauge.js';
 import { InteractiveTestRunner } from './InteractiveTestRunner.js';
+import { RequirementClassBadge } from './RequirementClassBadge.js';
 import {
   appendModalHistory,
   getNodeCopyText,
@@ -202,6 +203,9 @@ export function NodeDetailModal({
               >
                 {node.kind}
               </span>
+              {node.kind === 'requirement' && (
+                <RequirementClassBadge value={node.requirement_class} showLabel size="md" />
+              )}
 
               <div className="flex items-center gap-1">
                 <span className="text-xl font-bold font-mono text-slate-100">{node.id}</span>

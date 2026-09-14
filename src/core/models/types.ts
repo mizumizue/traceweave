@@ -31,6 +31,8 @@ export type TestMethod =
 
 export type Criticality = 'high' | 'medium' | 'low';
 
+export type RequirementClass = 'functional' | 'non_functional';
+
 export type TestExecutionStatus = 'passed' | 'failed' | 'pending' | 'skipped';
 
 export type DocStatus =
@@ -124,6 +126,7 @@ export interface DocNode {
   updated: string;
   scope: 'local' | 'cross_cutting';
   criticality?: Criticality;
+  requirement_class?: RequirementClass;
   test_level?: TestLevel;
   test_method?: TestMethod;
   execution_status?: TestExecutionStatus;
@@ -211,6 +214,7 @@ export interface MatrixRow {
   requirementId: string;
   requirementTitle: string;
   criticality: Criticality;
+  requirementClass?: RequirementClass;
   score: number;
   specs: {
     id: string;
@@ -268,6 +272,7 @@ export interface DecisionsCatalogItem {
   content: string;
   filePath?: string;
   criticality?: Criticality;
+  requirement_class?: RequirementClass;
   test_level?: TestLevel;
   test_method?: TestMethod;
   // Resolved cross references
@@ -295,16 +300,24 @@ export interface DecisionsKindCounts {
   total: number;
 }
 
+export interface RequirementClassCounts {
+  functional: number;
+  non_functional: number;
+  unclassified: number;
+}
+
 export interface DecisionsFilterOptions {
   kind?: DocKind | 'all';
   tag?: string;
   status?: DocStatus | 'all';
+  requirementClass?: RequirementClass | 'all';
   query?: string;
 }
 
 export interface DecisionsCatalog {
   items: DecisionsCatalogItem[];
   kindCounts: DecisionsKindCounts;
+  requirementClassCounts: RequirementClassCounts;
   allTags: { tag: string; count: number }[];
   totalCount: number;
 }
@@ -318,6 +331,8 @@ export interface TraceWeaveReport {
     totalTestCases: number;
     overallSufficiencyScore: number;
     highCriticalityCoverage: number;
+    functionalRequirementCount: number;
+    nonFunctionalRequirementCount: number;
   };
   strata: StratumReport[];
   pyramid: PyramidHealthReport;
@@ -347,6 +362,7 @@ export interface TraceGraphVisualNode {
   title: string;
   status: DocStatus;
   criticality?: Criticality;
+  requirement_class?: RequirementClass;
   test_level?: TestLevel;
   test_method?: TestMethod;
   x: number;

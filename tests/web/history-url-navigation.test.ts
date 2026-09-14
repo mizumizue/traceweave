@@ -28,6 +28,7 @@ test('TC-0019: urlState - クエリ文字列からの状態パースと不正値
   assert.equal(defaultParsed.searchQuery, '');
   assert.equal(defaultParsed.phaseFilter, 'all');
   assert.equal(defaultParsed.criticalityFilter, 'all');
+  assert.equal(defaultParsed.requirementClassFilter, 'all');
   assert.equal(defaultParsed.scoreFilter, 'all');
   assert.equal(defaultParsed.catalogKind, 'all');
   assert.equal(defaultParsed.catalogTag, null);
@@ -36,13 +37,14 @@ test('TC-0019: urlState - クエリ文字列からの状態パースと不正値
 
   // 2. 全パラメータが指定されたクエリ文字列の正常パース
   const fullQuery =
-    '?tab=graph&node=REQ-0001&q=traceability&phase=unit&criticality=high&score=satisfied&kind=requirement&tag=core&status=accepted&highlight=upstream';
+    '?tab=graph&node=REQ-0001&q=traceability&phase=unit&criticality=high&reqclass=non_functional&score=satisfied&kind=requirement&tag=core&status=accepted&highlight=upstream';
   const fullParsed = parseUrlState(fullQuery);
   assert.equal(fullParsed.tab, 'graph');
   assert.equal(fullParsed.nodeId, 'REQ-0001');
   assert.equal(fullParsed.searchQuery, 'traceability');
   assert.equal(fullParsed.phaseFilter, 'unit');
   assert.equal(fullParsed.criticalityFilter, 'high');
+  assert.equal(fullParsed.requirementClassFilter, 'non_functional');
   assert.equal(fullParsed.scoreFilter, 'satisfied');
   assert.equal(fullParsed.catalogKind, 'requirement');
   assert.equal(fullParsed.catalogTag, 'core');
@@ -51,12 +53,13 @@ test('TC-0019: urlState - クエリ文字列からの状態パースと不正値
 
   // 3. 不正値・異常値が指定された場合の安全なフォールバック
   const invalidQuery =
-    '?tab=unknown_tab&node=%20%20&q=%20&phase=invalid_phase&criticality=super_high&score=perfect&kind=unknown_kind&status=flying&highlight=random_highlight';
+    '?tab=unknown_tab&node=%20%20&q=%20&phase=invalid_phase&criticality=super_high&reqclass=quality&score=perfect&kind=unknown_kind&status=flying&highlight=random_highlight';
   const invalidParsed = parseUrlState(invalidQuery);
   assert.equal(invalidParsed.tab, 'matrix', 'Invalid tab must fallback to matrix');
   assert.equal(invalidParsed.nodeId, null, 'Whitespace-only nodeId must fallback to null');
   assert.equal(invalidParsed.phaseFilter, 'all', 'Invalid phase must fallback to all');
   assert.equal(invalidParsed.criticalityFilter, 'all', 'Invalid criticality must fallback to all');
+  assert.equal(invalidParsed.requirementClassFilter, 'all', 'Invalid reqclass must fallback to all');
   assert.equal(invalidParsed.scoreFilter, 'all', 'Invalid score must fallback to all');
   assert.equal(invalidParsed.catalogKind, 'all', 'Invalid kind must fallback to all');
   assert.equal(invalidParsed.catalogStatus, 'all', 'Invalid status must fallback to all');
@@ -93,6 +96,7 @@ test('TC-0019: urlState - 状態オブジェクトからクリーンなクエリ
   assert.ok(partialQuery.includes('highlight=downstream'));
   assert.ok(!partialQuery.includes('phase='), 'Default phase should not be serialized');
   assert.ok(!partialQuery.includes('criticality='), 'Default criticality should not be serialized');
+  assert.ok(!partialQuery.includes('reqclass='), 'Default requirement class should not be serialized');
 
   // 3. buildFullUrl がベースURLとクエリを正しく結合すること
   const fullUrl = buildFullUrl({ tab: 'stratum' }, 'https://example.com/app');

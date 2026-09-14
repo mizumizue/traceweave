@@ -121,11 +121,11 @@ test('TC-0023: MatrixView - トレーサビリティデータのCSV・JSON・Mar
   // 1. CSV Generation
   const fullCsv = serializeMatrixCsv(sampleRows);
 
-  assert.equal(fullCsv.split('\n')[0], 'Need ID,Requirement ID,Requirement Title,Criticality,Score,Specs,Test Cases');
+  assert.equal(fullCsv.split('\n')[0], 'Need ID,Requirement ID,Requirement Title,Class,Criticality,Score,Specs,Test Cases');
   assert.equal(fullCsv.split('\n').length, 2);
   assert.equal(
     fullCsv.split('\n')[1],
-    '"","REQ-0015","マトリクス表の多軸フィルターおよびデータエクスポート","medium","100%","SPEC-0015","TC-0023(unit)"'
+    '"","REQ-0015","マトリクス表の多軸フィルターおよびデータエクスポート","","medium","100%","SPEC-0015","TC-0023(unit)"'
   );
   assert.ok(fullCsv.includes('"REQ-0015"'));
   assert.ok(fullCsv.includes('"SPEC-0015"'));
@@ -139,6 +139,6 @@ test('TC-0023: MatrixView - トレーサビリティデータのCSV・JSON・Mar
   // 3. Markdown Generation
   const fullMd = serializeMatrixMarkdown(sampleRows);
 
-  assert.ok(fullMd.startsWith('| Requirement | Criticality | Score | Specs | Tests |\n|---|---|---|---|---|\n'));
-  assert.ok(fullMd.includes('| **REQ-0015**: マトリクス表の多軸フィルターおよびデータエクスポート | medium | 100% | `SPEC-0015` | `TC-0023` |'));
+  assert.ok(fullMd.startsWith('| Requirement | Class | Criticality | Score | Specs | Tests |\n|---|---|---|---|---|---|\n'));
+  assert.ok(fullMd.includes('| **REQ-0015**: マトリクス表の多軸フィルターおよびデータエクスポート | - | medium | 100% | `SPEC-0015` | `TC-0023` |'));
 });

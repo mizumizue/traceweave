@@ -3,6 +3,7 @@ import { MatrixRow, TraceWeaveReport } from '../../../core/models/types.js';
 export interface MatrixFilterOptions {
   searchQuery?: string;
   criticality?: string;
+  requirementClass?: string;
   phase?: string;
   score?: string;
 }
@@ -19,6 +20,10 @@ export function filterMatrixRows(rows: MatrixRow[], filters: MatrixFilterOptions
       row.specs.some(spec => spec.id.toLowerCase().includes(query) || spec.title.toLowerCase().includes(query)) ||
       row.allTestCases.some(testCase => testCase.id.toLowerCase().includes(query) || testCase.title.toLowerCase().includes(query));
     const matchesCriticality = !filters.criticality || filters.criticality === 'all' || row.criticality === filters.criticality;
+    const matchesRequirementClass =
+      !filters.requirementClass ||
+      filters.requirementClass === 'all' ||
+      row.requirementClass === filters.requirementClass;
     const matchesPhase =
       !filters.phase ||
       filters.phase === 'all' ||
@@ -29,16 +34,16 @@ export function filterMatrixRows(rows: MatrixRow[], filters: MatrixFilterOptions
       (filters.score === 'satisfied' && row.score >= 80) ||
       (filters.score === 'partial' && row.score >= 50 && row.score < 80) ||
       (filters.score === 'unsatisfied' && row.score < 50);
-    return matchesSearch && matchesCriticality && matchesPhase && matchesScore;
+    return matchesSearch && matchesCriticality && matchesRequirementClass && matchesPhase && matchesScore;
   });
 }
 
 export function serializeMatrixCsv(rows: MatrixRow[]): string {
-  const header = 'Need ID,Requirement ID,Requirement Title,Criticality,Score,Specs,Test Cases\n';
+  const header = 'Need ID,Requirement ID,Requirement Title,Class,Criticality,Score,Specs,Test Cases\n';
   const body = rows.map(row => {
     const specs = `"${row.specs.map(spec => spec.id).join(';')}"`;
     const tests = `"${row.allTestCases.map(testCase => `${testCase.id}(${testCase.level})`).join(';')}"`;
-    return `"${row.needId || ''}","${row.requirementId}","${row.requirementTitle}","${row.criticality}","${row.score}%",${specs},${tests}`;
+    return `"${row.needId || ''}","${row.requirementId}","${row.requirementTitle}","${row.requirementClass || ''}","${row.criticality}","${row.score}%",${specs},${tests}`;
   });
   return header + body.join('\n');
 }
@@ -48,11 +53,12 @@ export function serializeMatrixJson(rows: MatrixRow[]): string {
 }
 
 export function serializeMatrixMarkdown(rows: MatrixRow[]): string {
-  const header = '| Requirement | Criticality | Score | Specs | Tests |\n|---|---|---|---|---|\n';
+  const header = '| Requirement | Class | Criticality | Score | Specs | Tests |\n|---|---|---|---|---|---|\n';
   const body = rows.map(row => {
     const specs = row.specs.map(spec => `\`${spec.id}\``).join(' ');
     const tests = row.allTestCases.map(testCase => `\`${testCase.id}\``).join(' ');
-    return `| **${row.requirementId}**: ${row.requirementTitle} | ${row.criticality} | ${row.score}% | ${specs} | ${tests} |`;
+    const classStr = row.requirementClass === 'non_functional' ? 'NFR' : row.requirementClass === 'functional' ? 'FR' : '-';
+    return `| **${row.requirementId}**: ${row.requirementTitle} | ${classStr} | ${row.criticality} | ${row.score}% | ${specs} | ${tests} |`;
   });
   return header + body.join('\n');
 }

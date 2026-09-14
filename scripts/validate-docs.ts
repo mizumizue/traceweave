@@ -181,6 +181,13 @@ export function validateDocs(docsDir: string = DOCS_DIR): { passed: boolean; err
       if (meta.criticality && !['high', 'medium', 'low'].includes(meta.criticality)) {
         errors.push(`${filePath}: requirement criticality must be high, medium, or low (got ${meta.criticality})`);
       }
+      if (!meta.requirement_class) {
+        errors.push(`${filePath}: requirement must declare requirement_class (functional or non_functional)`);
+      } else if (!['functional', 'non_functional'].includes(meta.requirement_class)) {
+        errors.push(
+          `${filePath}: requirement requirement_class must be functional or non_functional (got ${meta.requirement_class})`
+        );
+      }
     }
 
     if (kind === 'test_case') {
