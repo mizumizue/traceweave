@@ -32,8 +32,14 @@ import {
   List,
   Sparkles,
   Link as LinkIcon,
+  ArrowLeftRight,
+  AlertTriangle,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  ActorUseCaseMapGrouping,
+  buildActorUseCaseMap,
+} from '../utils/actorUseCaseMap.js';
 
 interface DecisionsBrowserProps {
   catalog: DecisionsCatalog;
@@ -147,7 +153,8 @@ export function DecisionsBrowser({
   const [internalStatus, setInternalStatus] = useState<DocStatus | 'all'>(selectedStatusProp ?? 'all');
   const [internalRequirementClass, setInternalRequirementClass] = useState(selectedRequirementClassProp ?? 'all');
   const [internalSearchQuery, setInternalSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'table' | 'actor-uc-map'>('grid');
+  const [mapGrouping, setMapGrouping] = useState<ActorUseCaseMapGrouping>('by-actor');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const selectedKind = selectedKindProp !== undefined ? selectedKindProp : internalKind;
@@ -220,6 +227,25 @@ export function DecisionsBrowser({
 
   const groupedItems = useMemo(() => partitionByRequirementClass(filteredItems), [filteredItems]);
 
+  const actorUseCaseMap = useMemo(
+    () =>
+      buildActorUseCaseMap(catalog, {
+        searchQuery,
+        status: selectedStatus,
+        tag: selectedTag,
+        kind: selectedKind,
+      }),
+    [catalog, searchQuery, selectedStatus, selectedTag, selectedKind]
+  );
+
+  const catalogById = useMemo(() => {
+    const map = new Map<string, DecisionsCatalogItem>();
+    for (const item of catalog.items) {
+      map.set(item.id, item);
+    }
+    return map;
+  }, [catalog.items]);
+
   const resetFilters = () => {
     handleKindSelect('all');
     handleTagSelect(null);
@@ -252,6 +278,49 @@ export function DecisionsBrowser({
       >
         <span>{prefixIcon || (meta?.short ? `[${meta.short}]` : '')}</span>
         <span className="font-bold">{ref.id}</span>
+      </button>
+    );
+  };
+
+  const renderParticipationLink = (
+    ref: DecisionsReferenceItem,
+    variant: 'use_case' | 'actor'
+  ) => {
+    const meta = KIND_META[variant];
+    const item = catalogById.get(ref.id);
+    const title = ref.title || item?.title || ref.id;
+    const excerpt =
+      variant === 'use_case'
+        ? item?.sections?.Goal
+        : item?.sections?.Role || ref.role;
+
+    return (
+      <button
+        key={ref.id}
+        type="button"
+        onClick={e => {
+          e.stopPropagation();
+          onSelectNode(ref.id);
+        }}
+        className={`w-full text-left rounded-xl border p-3 transition hover:bg-slate-950/90 ${meta.border} bg-slate-950/40 group`}
+      >
+        <div className="flex items-center gap-2">
+          <span
+            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border flex items-center gap-1 shrink-0 ${meta.badgeBg}`}
+          >
+            {meta.icon}
+            <span>{meta.short}</span>
+          </span>
+          <span className="font-mono text-[11px] font-bold text-slate-400 group-hover:text-slate-200 transition">
+            {ref.id}
+          </span>
+        </div>
+        <div className="mt-1.5 text-sm font-semibold text-slate-100 group-hover:text-indigo-200 transition leading-snug">
+          {title}
+        </div>
+        {excerpt && (
+          <p className="mt-1 text-[11px] text-slate-400 leading-relaxed line-clamp-2">{excerpt}</p>
+        )}
       </button>
     );
   };
@@ -428,6 +497,17 @@ export function DecisionsBrowser({
               >
                 <List className="w-3.5 h-3.5" />
               </button>
+              <button
+                onClick={() => setViewMode('actor-uc-map')}
+                className={`p-1.5 rounded-lg text-xs transition ${
+                  viewMode === 'actor-uc-map'
+                    ? 'bg-violet-900/60 text-violet-300 font-bold'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Actor ↔ UseCase 参加関係マップ"
+              >
+                <ArrowLeftRight className="w-3.5 h-3.5" />
+              </button>
             </div>
 
             {/* Reset */}
@@ -479,7 +559,21 @@ export function DecisionsBrowser({
       {/* Result Count and Active Filters Bar */}
       <div className="flex items-center justify-between text-xs text-slate-400 px-1">
         <div>
-          該当ドキュメント: <span className="font-bold text-slate-200">{filteredItems.length}</span> 件
+          {viewMode === 'actor-uc-map' ? (
+            <>
+              参加関係:{' '}
+              <span className="font-bold text-slate-200">
+                ACT {actorUseCaseMap.byActor.length} / UC {actorUseCaseMap.byUseCase.length}
+              </span>
+              <span className="ml-2 font-mono text-[11px] text-violet-400">
+                [リンク {actorUseCaseMap.linkCount}]
+              </span>
+            </>
+          ) : (
+            <>
+              該当ドキュメント: <span className="font-bold text-slate-200">{filteredItems.length}</span> 件
+            </>
+          )}
           {selectedKind !== 'all' && (
             <span className="ml-2 font-mono text-[11px] text-indigo-400">
               [種別: {KIND_META[selectedKind].label}]
@@ -495,12 +589,216 @@ export function DecisionsBrowser({
           )}
         </div>
         <div className="text-[11px] text-slate-400 hidden sm:block">
-          カードをクリックすると詳細モーダルが開き、相互参照を探索できます
+          {viewMode === 'actor-uc-map'
+            ? 'Actor と UseCase の参加関係を一覧表示します。ノードをクリックすると詳細モーダルが開きます'
+            : 'カードをクリックすると詳細モーダルが開き、相互参照を探索できます'}
         </div>
       </div>
 
       {/* Empty State */}
-      {filteredItems.length === 0 ? (
+      {viewMode === 'actor-uc-map' ? (
+        actorUseCaseMap.kindFilterBlocksView ? (
+          <div className="bg-slate-900/50 border border-amber-900/40 rounded-2xl p-12 text-center space-y-3">
+            <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto" />
+            <div className="text-base font-bold text-slate-300">
+              現在の種別フィルターでは Actor ↔ UseCase マップを表示できません
+            </div>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">
+              種別を「すべて」「アクター」「ユースケース」のいずれかに変更するか、フィルターをリセットしてください。
+            </p>
+            <button
+              onClick={resetFilters}
+              className="mt-2 px-4 py-2 bg-indigo-900/60 hover:bg-indigo-800/80 border border-indigo-700/60 text-indigo-200 text-xs font-semibold rounded-xl transition inline-flex items-center gap-1.5"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              フィルターをリセット
+            </button>
+          </div>
+        ) : actorUseCaseMap.byActor.length === 0 && actorUseCaseMap.byUseCase.length === 0 ? (
+          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-12 text-center space-y-3">
+            <div className="text-4xl">🔍</div>
+            <div className="text-base font-bold text-slate-300">
+              条件に一致するアクターまたはユースケースが見つかりませんでした
+            </div>
+            <button
+              onClick={resetFilters}
+              className="mt-2 px-4 py-2 bg-indigo-900/60 hover:bg-indigo-800/80 border border-indigo-700/60 text-indigo-200 text-xs font-semibold rounded-xl transition inline-flex items-center gap-1.5"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              フィルターをリセット
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-gradient-to-r from-violet-950/40 via-indigo-950/30 to-slate-900 border border-violet-900/40 rounded-2xl p-4 shadow-md">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2 text-sm font-bold text-slate-100">
+                    <ArrowLeftRight className="w-4 h-4 text-violet-400" />
+                    <span>Actor ↔ UseCase 参加関係マップ</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    各アクターが関与するユースケース、および各ユースケースに参加するアクターを一覧表示します。
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                  <span className="px-2.5 py-1 rounded-lg bg-violet-950/80 border border-violet-800/60 text-violet-200 font-mono">
+                    ACT {actorUseCaseMap.byActor.length}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-indigo-950/80 border border-indigo-800/60 text-indigo-200 font-mono">
+                    UC {actorUseCaseMap.byUseCase.length}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-700 text-slate-300 font-mono">
+                    リンク {actorUseCaseMap.linkCount}
+                  </span>
+                  {(actorUseCaseMap.orphanActors.length > 0 ||
+                    actorUseCaseMap.orphanUseCases.length > 0) && (
+                    <span className="px-2.5 py-1 rounded-lg bg-amber-950/80 border border-amber-800/60 text-amber-200 font-mono flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      孤立 {actorUseCaseMap.orphanActors.length + actorUseCaseMap.orphanUseCases.length}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-violet-900/30">
+                <span className="text-[11px] text-slate-400 font-semibold">表示起点:</span>
+                <button
+                  onClick={() => setMapGrouping('by-actor')}
+                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition ${
+                    mapGrouping === 'by-actor'
+                      ? 'bg-violet-950 text-violet-200 border-violet-600'
+                      : 'bg-slate-950/70 text-slate-300 border-slate-800 hover:border-violet-700'
+                  }`}
+                >
+                  アクター起点
+                </button>
+                <button
+                  onClick={() => setMapGrouping('by-use-case')}
+                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition ${
+                    mapGrouping === 'by-use-case'
+                      ? 'bg-indigo-950 text-indigo-200 border-indigo-600'
+                      : 'bg-slate-950/70 text-slate-300 border-slate-800 hover:border-indigo-700'
+                  }`}
+                >
+                  ユースケース起点
+                </button>
+              </div>
+            </div>
+
+            {mapGrouping === 'by-actor' ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {actorUseCaseMap.byActor.map(row => {
+                  const meta = KIND_META.actor;
+                  const isOrphan = row.useCases.length === 0;
+                  return (
+                    <div
+                      key={row.actor.id}
+                      className={`bg-slate-900/70 border rounded-2xl p-4 shadow-md ${
+                        isOrphan ? 'border-amber-800/50' : meta.border
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onSelectNode(row.actor.id)}
+                        className="w-full text-left space-y-2 group"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border flex items-center gap-1 ${meta.badgeBg}`}
+                          >
+                            {meta.icon}
+                            <span>{meta.short}</span>
+                          </span>
+                          <span className="font-mono text-xs font-bold text-slate-200 group-hover:text-violet-200 transition">
+                            {row.actor.id}
+                          </span>
+                        </div>
+                        <h3 className="text-sm font-bold text-slate-100 group-hover:text-violet-200 transition">
+                          {row.actor.title}
+                        </h3>
+                        {row.actor.sections?.Role && (
+                          <p className="text-xs text-slate-400 line-clamp-2">{row.actor.sections.Role}</p>
+                        )}
+                      </button>
+                      <div className="mt-3 pt-3 border-t border-slate-800/60">
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                          <Target className="w-2.5 h-2.5 text-indigo-400" />
+                          <span>関与ユースケース ({row.useCases.length})</span>
+                        </div>
+                        {isOrphan ? (
+                          <div className="text-[11px] text-amber-300 flex items-center gap-1.5 bg-amber-950/30 border border-amber-900/40 rounded-lg px-2.5 py-2">
+                            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                            <span>紐付けられたユースケースがありません</span>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {row.useCases.map(ref => renderParticipationLink(ref, 'use_case'))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {actorUseCaseMap.byUseCase.map(row => {
+                  const meta = KIND_META.use_case;
+                  const isOrphan = row.actors.length === 0;
+                  return (
+                    <div
+                      key={row.useCase.id}
+                      className={`bg-slate-900/70 border rounded-2xl p-4 shadow-md ${
+                        isOrphan ? 'border-amber-800/50' : meta.border
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onSelectNode(row.useCase.id)}
+                        className="w-full text-left space-y-2 group"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border flex items-center gap-1 ${meta.badgeBg}`}
+                          >
+                            {meta.icon}
+                            <span>{meta.short}</span>
+                          </span>
+                          <span className="font-mono text-xs font-bold text-slate-200 group-hover:text-indigo-200 transition">
+                            {row.useCase.id}
+                          </span>
+                        </div>
+                        <h3 className="text-sm font-bold text-slate-100 group-hover:text-indigo-200 transition">
+                          {row.useCase.title}
+                        </h3>
+                        {row.useCase.sections?.Goal && (
+                          <p className="text-xs text-slate-400 line-clamp-2">{row.useCase.sections.Goal}</p>
+                        )}
+                      </button>
+                      <div className="mt-3 pt-3 border-t border-slate-800/60">
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                          <UserCheck className="w-2.5 h-2.5 text-violet-400" />
+                          <span>参加アクター ({row.actors.length})</span>
+                        </div>
+                        {isOrphan ? (
+                          <div className="text-[11px] text-amber-300 flex items-center gap-1.5 bg-amber-950/30 border border-amber-900/40 rounded-lg px-2.5 py-2">
+                            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                            <span>actor_refs が未設定です</span>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {row.actors.map(ref => renderParticipationLink(ref, 'actor'))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )
+      ) : filteredItems.length === 0 ? (
         <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-12 text-center space-y-3">
           <div className="text-4xl">🔍</div>
           <div className="text-base font-bold text-slate-300">
