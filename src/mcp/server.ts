@@ -1,39 +1,36 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
-import { callMcpTool, listMcpTools } from './tool-handlers.js';
+import { createTraceWeaveMcpServer, type McpServerContext } from './create-server.js';
+import { startMcpHttpServer } from './http-transport.js';
 
-export async function startMcpServer(docsDir: string = './docs', subjectOverride?: string) {
-  const server = new Server(
-    {
-      name: 'traceweave-mcp',
-      version: '0.1.0',
-    },
-    {
-      capabilities: {
-        tools: {},
-      },
-    }
-  );
+export type McpTransportMode = 'stdio' | 'http';
 
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: listMcpTools(),
-  }));
+export interface StartMcpServerOptions extends Partial<McpServerContext> {
+  transport?: McpTransportMode;
+  host?: string;
+  port?: number;
+}
 
-  server.setRequestHandler(CallToolRequestSchema, async request => {
-    const { name, arguments: args } = request.params;
-    const result = callMcpTool(docsDir, name, (args as Record<string, unknown>) || {}, {
-      subjectOverride,
+export async function startMcpServer(options: StartMcpServerOptions = {}): Promise<void> {
+  const {
+    docsDir = './docs',
+    subjectOverride,
+    transport = 'stdio',
+    host = '127.0.0.1',
+    port = 3100,
+  } = options;
+
+  const context: McpServerContext = { docsDir, subjectOverride };
+
+  if (transport === 'http') {
+    const httpServer = await startMcpHttpServer({ host, port, context });
+    console.error(`TraceWeave MCP HTTP server listening on http://${host}:${port}/mcp`);
+    await new Promise<void>(resolve => {
+      httpServer.on('close', () => resolve());
     });
-    return {
-      isError: result.isError,
-      content: [{ type: 'text', text: result.text }],
-    };
-  });
+    return;
+  }
 
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
+  const server = createTraceWeaveMcpServer(context);
+  const stdioTransport = new StdioServerTransport();
+  await server.connect(stdioTransport);
 }

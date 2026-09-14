@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "traceweave": {
+      "command": "node",
+      "args": [
+        "./src/node_modules/tsx/dist/cli.mjs",
+        "./src/cli/index.ts",
+        "mcp"
+      ]
+    }
+  }
+}

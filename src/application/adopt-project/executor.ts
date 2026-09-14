@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { AdoptionMode, AdoptionOptions, BackupManifest, ProjectProbeResult } from './types.js';
 import { probeProject } from './probe.js';
 import { createBackup } from './backup.js';
-import { generateStarterDocs, generateBinWrappers, generateCursorRules } from './templates.js';
+import { generateStarterDocs, generateBinWrappers, generateCursorRules, generateMcpConfig } from './templates.js';
 
 // -----------------------------------------------------------------------------
 // 4. Adoption Executor: 適用実行
@@ -46,6 +46,7 @@ export function adoptProject(options: AdoptionOptions = {}): {
       console.log(`  - Would create TraceWeave V-Model docs (docs/needs, docs/requirements, etc.)`);
       console.log(`  - Would install bin/traceweave wrappers`);
       console.log(`  - Would install .cursor/rules`);
+      console.log(`  - Would install .cursor/mcp.json`);
       if (mode === 'restructure') {
         console.log(`  - Would migrate root source files to src/ and apply Clean-Root structure`);
       }
@@ -113,6 +114,12 @@ export function adoptProject(options: AdoptionOptions = {}): {
   const cursorRules = generateCursorRules();
   for (const [relPath, content] of Object.entries(cursorRules)) {
     writeFileTracked(relPath, content);
+  }
+
+  // 5b. Generate Cursor MCP config (only if missing)
+  const mcpConfigPath = path.join(targetDir, '.cursor', 'mcp.json');
+  if (!fs.existsSync(mcpConfigPath)) {
+    writeFileTracked('.cursor/mcp.json', generateMcpConfig());
   }
 
   // 6. Mode: Restructure (クリーンルート化)

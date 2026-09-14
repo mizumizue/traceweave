@@ -379,12 +379,25 @@ program
   .command('mcp')
   .description('Start TraceWeave MCP server for Cursor / AI Agent integration')
   .option('-d, --docs <dir>', 'Docs directory path')
+  .option('-t, --transport <mode>', 'Transport mode: stdio (default) or http', 'stdio')
+  .option('--host <host>', 'HTTP bind host (http transport only)', '127.0.0.1')
+  .option('--port <port>', 'HTTP port (http transport only)', '3100')
   .action(async (options) => {
     try {
       const docsDir = resolveDocsDir(options.docs);
       const reportOptions = getReportBuildOptions(docsDir);
+      const transport = String(options.transport || 'stdio').toLowerCase();
+      if (transport !== 'stdio' && transport !== 'http') {
+        throw new Error(`Invalid transport "${options.transport}". Use stdio or http.`);
+      }
       const { startMcpServer } = await import('../mcp/server.js');
-      await startMcpServer(docsDir, reportOptions.subjectOverride);
+      await startMcpServer({
+        docsDir,
+        subjectOverride: reportOptions.subjectOverride,
+        transport: transport as 'stdio' | 'http',
+        host: String(options.host),
+        port: Number.parseInt(String(options.port), 10),
+      });
     } catch (err) {
       exitOnError(err);
     }

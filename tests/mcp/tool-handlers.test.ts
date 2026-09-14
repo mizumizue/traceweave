@@ -10,9 +10,9 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 期待結果: SPEC-0023 / REQ-0029 の契約どおり JSON が返却されること
  * - 関連文書: TC-0042, REQ-0029, SPEC-0023
  */
-test('TC-0042: MCP ツール一覧が 4 件の契約どおり公開されること', () => {
+test('TC-0042: MCP ツール一覧が 7 件の契約どおり公開されること', () => {
   const tools = listMcpTools();
-  assert.equal(tools.length, 4);
+  assert.equal(tools.length, 7);
   assert.deepEqual(tools.map(tool => tool.name), [...MCP_TOOL_NAMES]);
 });
 
@@ -56,4 +56,25 @@ test('TC-0042: check_quality_gaps が passed フィールドを含む JSON を�
   assert.equal(typeof body.passed, 'boolean');
   assert.ok(Array.isArray(body.errors));
   assert.ok(Array.isArray(body.warnings));
+});
+
+test('TC-0061: get_traceability_matrix が matrix 配列を返すこと', () => {
+  const result = callMcpTool(repositoryPath('docs'), 'get_traceability_matrix');
+  const body = JSON.parse(result.text);
+  assert.ok(Array.isArray(body.matrix));
+  assert.ok(body.matrix.length > 0);
+});
+
+test('TC-0061: get_catalog が filteredCount を含む JSON を返すこと', () => {
+  const result = callMcpTool(repositoryPath('docs'), 'get_catalog', { kind: 'requirement' });
+  const body = JSON.parse(result.text);
+  assert.ok(body.filteredCount >= 0);
+  assert.ok(Array.isArray(body.items));
+});
+
+test('TC-0061: get_decisions が adrs と dsns を返すこと', () => {
+  const result = callMcpTool(repositoryPath('docs'), 'get_decisions');
+  const body = JSON.parse(result.text);
+  assert.ok(Array.isArray(body.adrs));
+  assert.ok(Array.isArray(body.dsns));
 });

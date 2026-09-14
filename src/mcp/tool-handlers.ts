@@ -1,11 +1,16 @@
 import { buildTraceWeaveReport } from '../application/build-report.js';
 import { checkDocs } from '../application/check-docs.js';
+import { filterCatalog, formatCatalogJson } from '../application/format-catalog.js';
+import type { DecisionsFilterOptions } from '../core/models/types.js';
 
 export const MCP_TOOL_NAMES = [
   'get_traceability_summary',
   'get_stratum_density',
   'get_requirement_status',
   'check_quality_gaps',
+  'get_traceability_matrix',
+  'get_catalog',
+  'get_decisions',
 ] as const;
 
 export type McpToolName = (typeof MCP_TOOL_NAMES)[number];
@@ -43,11 +48,49 @@ export function listMcpTools() {
         },
       },
     },
+    {
+      name: 'get_traceability_matrix',
+      description: 'Get the full requirement-to-test traceability matrix rows',
+      inputSchema: { type: 'object', properties: {} },
+    },
+    {
+      name: 'get_catalog',
+      description: 'Get cross-cutting decisions and architecture catalog with optional filters',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          kind: {
+            type: 'string',
+            description:
+              'Document kind filter (actor, use_case, requirement, specification, design, decision, quality_assurance, need, test_case, all)',
+          },
+          reqclass: {
+            type: 'string',
+            description: 'Requirement class filter (functional, non_functional, all)',
+          },
+          tag: { type: 'string', description: 'Filter by tag' },
+          status: {
+            type: 'string',
+            description: 'Document status (draft, proposed, accepted, rejected, superseded, deprecated, all)',
+          },
+          query: { type: 'string', description: 'Search keyword in title, id, or content' },
+        },
+      },
+    },
+    {
+      name: 'get_decisions',
+      description: 'Get architectural decisions (ADR) and design specifications (DSN)',
+      inputSchema: { type: 'object', properties: {} },
+    },
   ];
 }
 
 export interface McpToolHandlerOptions {
   subjectOverride?: string;
+}
+
+function buildReportOptions(docsDir: string, subjectOverride?: string) {
+  return subjectOverride ? { docsDir, subjectOverride } : { docsDir };
 }
 
 export function callMcpTool(
@@ -56,9 +99,7 @@ export function callMcpTool(
   args: Record<string, unknown> = {},
   options: McpToolHandlerOptions = {}
 ): { isError?: boolean; text: string } {
-  const reportOptions = options.subjectOverride
-    ? { docsDir, subjectOverride: options.subjectOverride }
-    : { docsDir };
+  const reportOptions = buildReportOptions(docsDir, options.subjectOverride);
 
   if (name === 'get_traceability_summary') {
     const { report } = buildTraceWeaveReport(reportOptions);
@@ -112,6 +153,47 @@ export function callMcpTool(
         null,
         2
       ),
+    };
+  }
+
+  if (name === 'get_traceability_matrix') {
+    const { report } = buildTraceWeaveReport(reportOptions);
+    return {
+      text: JSON.stringify({ matrix: report.matrix }, null, 2),
+    };
+  }
+
+  if (name === 'get_catalog') {
+    const { report } = buildTraceWeaveReport(reportOptions);
+    if (!report.catalog) {
+      return {
+        isError: true,
+        text: JSON.stringify({ error: 'ERR_CATALOG_MISSING', message: 'Catalog data is missing from report.' }, null, 2),
+      };
+    }
+    const catalogFilters: DecisionsFilterOptions = {
+      kind: (args.kind ? String(args.kind) : 'all') as DecisionsFilterOptions['kind'],
+      tag: args.tag ? String(args.tag) : undefined,
+      query: args.query ? String(args.query) : undefined,
+      status: (args.status ? String(args.status) : 'all') as DecisionsFilterOptions['status'],
+      requirementClass: (args.reqclass ? String(args.reqclass) : 'all') as DecisionsFilterOptions['requirementClass'],
+    };
+    const filtered = filterCatalog(report.catalog, catalogFilters);
+    return { text: formatCatalogJson(report.catalog, filtered) };
+  }
+
+  if (name === 'get_decisions') {
+    const { report } = buildTraceWeaveReport(reportOptions);
+    if (!report.catalog) {
+      return {
+        isError: true,
+        text: JSON.stringify({ error: 'ERR_CATALOG_MISSING', message: 'Catalog data is missing from report.' }, null, 2),
+      };
+    }
+    const adrs = report.catalog.items.filter(i => i.kind === 'decision');
+    const dsns = report.catalog.items.filter(i => i.kind === 'design');
+    return {
+      text: JSON.stringify({ adrs, dsns }, null, 2),
     };
   }
 

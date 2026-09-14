@@ -90,6 +90,11 @@ test.describe('TraceWeave Adoption Engine (adopt-project)', () => {
     assert.ok(fs.existsSync(path.join(tempBaseDir, 'bin', 'traceweave.cmd')));
     assert.ok(fs.existsSync(path.join(tempBaseDir, 'bin', 'traceweave.ps1')));
 
+    // 3b. Cursor MCP 設定が生成されていること
+    assert.ok(fs.existsSync(path.join(tempBaseDir, '.cursor', 'mcp.json')));
+    const mcpConfig = JSON.parse(fs.readFileSync(path.join(tempBaseDir, '.cursor', 'mcp.json'), 'utf-8'));
+    assert.ok(mcpConfig.mcpServers?.traceweave);
+
     // 4. validateDocs でスキーマ検査をパスすること
     const validation = validateDocs(path.join(tempBaseDir, 'docs'));
     assert.equal(validation.errors.length, 0, `Validation errors: ${validation.errors.join(', ')}`);

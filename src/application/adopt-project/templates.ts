@@ -362,6 +362,21 @@ exit 1
   };
 }
 
+export function generateMcpConfig(): string {
+  return JSON.stringify(
+    {
+      mcpServers: {
+        traceweave: {
+          command: 'traceweave',
+          args: ['mcp', '-d', './docs'],
+        },
+      },
+    },
+    null,
+    2
+  );
+}
+
 export function generateCursorRules(): Record<string, string> {
   const repoRoot = resolveRepoRoot(import.meta.url);
   const schemaPath = path.join(repoRoot, '.cursor', 'rules', 'docs-document-schema.mdc');

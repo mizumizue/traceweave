@@ -79,6 +79,7 @@ test('TC-0031: DecisionsCatalogBuilder - 主要種別集約・相互参照（ACT
     'DSN-0016',
     'DSN-0017',
     'DSN-0018',
+    'DSN-0019',
     'NEED-0008',
     'NEED-0009',
     'REQ-0015',
@@ -100,6 +101,7 @@ test('TC-0031: DecisionsCatalogBuilder - 主要種別集約・相互参照（ACT
     'TC-0031',
     'TC-0035',
     'TC-0041',
+    'TC-0061',
     'UC-0001',
     'UC-0003',
   ].sort());
