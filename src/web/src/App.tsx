@@ -18,7 +18,7 @@ import {
 } from './utils/urlState.js';
 import { DecisionsBrowser } from './components/DecisionsBrowser.js';
 import { TraceabilityGraphView } from './components/TraceabilityGraphView.js';
-import { VisualTestPyramid } from './components/VisualTestPyramid.js';
+import { PYRAMID_LAYERS } from './components/VisualTestPyramid.js';
 import { Header, formatSubjectDocumentTitle } from './components/Header.js';
 import { QualityMetricsGrid } from './components/QualityMetricsGrid.js';
 import { TabNav } from './components/TabNav.js';
@@ -393,9 +393,12 @@ export default function App() {
             if (msg) toast.info(msg);
           }}
           onSelectRequirementClass={cls => {
-            setRequirementClassFilter(cls);
+            const next = requirementClassFilter === cls ? 'all' : cls;
+            setRequirementClassFilter(next);
             setActiveTab('matrix');
-            toast.info(cls === 'functional' ? '機能要件 (FR) で絞り込みました' : '非機能要件 (NFR) で絞り込みました');
+            if (next !== 'all') {
+              toast.info(next === 'functional' ? '機能要件 (FR) で絞り込みました' : '非機能要件 (NFR) で絞り込みました');
+            }
           }}
         />
 
@@ -450,8 +453,13 @@ export default function App() {
             strata={report.strata}
             pyramid={report.pyramid}
             onFilterPhase={phase => {
-              setPhaseFilter(phase);
+              const next = phaseFilter === phase ? 'all' : phase;
+              setPhaseFilter(next);
               setActiveTab('matrix');
+              if (next !== 'all') {
+                const layer = PYRAMID_LAYERS.find(item => item.level === phase);
+                if (layer) toast.info(`マトリクスを "${layer.name}" で絞り込みました`);
+              }
             }}
           />
         )}

@@ -10,7 +10,6 @@ import {
   Filter,
   Info,
 } from 'lucide-react';
-import { toast } from 'sonner';
 
 export interface PyramidLayer {
   level: TestLevel;
@@ -69,9 +68,7 @@ export function VisualTestPyramid({ strata, pyramid, onFilterPhase }: VisualTest
   // Layers from top of pyramid to base (V-Model descending order)
   const pyramidLayers = PYRAMID_LAYERS;
   const selectLayer = createPyramidLayerClickHandler((phase: TestLevel) => {
-    const layer = pyramidLayers.find(item => item.level === phase);
     onFilterPhase?.(phase);
-    if (layer) toast.info(`マトリクスを "${layer.name}" で絞り込みました`);
   });
 
   const statusConfig = {

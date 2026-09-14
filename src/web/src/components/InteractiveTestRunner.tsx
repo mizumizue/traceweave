@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { TestCaseInputAnalyzer } from '../../../core/analyzer/TestCaseInputAnalyzer.js';
+import { formatTestRunCommand } from '../../../core/testing/formatTestRunCommand.js';
 
 interface InteractiveTestRunnerProps {
   node: DocNode;
@@ -55,7 +56,7 @@ export function InteractiveTestRunner({ node, onTestExecuted }: InteractiveTestR
       : status === 'failed' ? 'text-rose-400'
       : status === 'skipped' ? 'text-slate-400'
       : 'text-amber-400';
-    const testCmd = `npm test`;
+    const testCmd = formatTestRunCommand(node.id);
     return (
       <div className="bg-slate-950/80 border border-slate-800/90 rounded-xl p-5 space-y-4 shadow-lg">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800/80">

@@ -171,8 +171,9 @@ export function MatrixView({
             <span className="text-[11px] text-slate-500 font-medium">クイック条件:</span>
             <button
               onClick={() => {
-                onRequirementClassFilterChange('functional');
-                toast.info('機能要件 (FR) で絞り込みました');
+                const next = requirementClassFilter === 'functional' ? 'all' : 'functional';
+                onRequirementClassFilterChange(next);
+                if (next !== 'all') toast.info('機能要件 (FR) で絞り込みました');
               }}
               className={`px-3 py-1 rounded-full text-xs border transition ${
                 requirementClassFilter === 'functional'
@@ -184,8 +185,9 @@ export function MatrixView({
             </button>
             <button
               onClick={() => {
-                onRequirementClassFilterChange('non_functional');
-                toast.info('非機能要件 (NFR) で絞り込みました');
+                const next = requirementClassFilter === 'non_functional' ? 'all' : 'non_functional';
+                onRequirementClassFilterChange(next);
+                if (next !== 'all') toast.info('非機能要件 (NFR) で絞り込みました');
               }}
               className={`px-3 py-1 rounded-full text-xs border transition ${
                 requirementClassFilter === 'non_functional'
@@ -197,8 +199,9 @@ export function MatrixView({
             </button>
             <button
               onClick={() => {
-                onCriticalityFilterChange('high');
-                toast.info('High重要度要件で絞り込みました');
+                const next = criticalityFilter === 'high' ? 'all' : 'high';
+                onCriticalityFilterChange(next);
+                if (next !== 'all') toast.info('High重要度要件で絞り込みました');
               }}
               className={`px-3 py-1 rounded-full text-xs border transition ${
                 criticalityFilter === 'high'
@@ -211,8 +214,9 @@ export function MatrixView({
 
             <button
               onClick={() => {
-                onScoreFilterChange('unsatisfied');
-                toast.info('要改善要件で絞り込みました');
+                const next = scoreFilter === 'unsatisfied' ? 'all' : 'unsatisfied';
+                onScoreFilterChange(next);
+                if (next !== 'all') toast.info('要改善要件で絞り込みました');
               }}
               className={`px-3 py-1 rounded-full text-xs border transition ${
                 scoreFilter === 'unsatisfied'
@@ -225,8 +229,9 @@ export function MatrixView({
 
             <button
               onClick={() => {
-                onPhaseFilterChange('unit');
-                toast.info('単体テスト (UT) で絞り込みました');
+                const next = phaseFilter === 'unit' ? 'all' : 'unit';
+                onPhaseFilterChange(next);
+                if (next !== 'all') toast.info('単体テスト (UT) で絞り込みました');
               }}
               className={`px-3 py-1 rounded-full text-xs border transition ${
                 phaseFilter === 'unit'

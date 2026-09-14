@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseTestCaseFilter } from '../src/core/testing/formatTestRunCommand.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -80,6 +81,50 @@ function parseTapReport(tapContent: string, executedAt: string): {
   return { results, passedCount, failedCount, skippedCount };
 }
 
+function summarizeResults(results: Record<string, TestCaseExecution>): {
+  passedCount: number;
+  failedCount: number;
+  skippedCount: number;
+} {
+  let passedCount = 0;
+  let failedCount = 0;
+  let skippedCount = 0;
+
+  for (const entry of Object.values(results)) {
+    if (entry.status === 'passed') passedCount += 1;
+    else if (entry.status === 'failed') failedCount += 1;
+    else skippedCount += 1;
+  }
+
+  return { passedCount, failedCount, skippedCount };
+}
+
+function loadExistingReport(): TestSuiteSummary | null {
+  if (!fs.existsSync(REPORT_FILE)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(REPORT_FILE, 'utf-8')) as TestSuiteSummary;
+  } catch {
+    return null;
+  }
+}
+
+function mergeReports(
+  existing: TestSuiteSummary | null,
+  partial: Pick<TestSuiteSummary, 'results' | 'generatedAt'>
+): TestSuiteSummary {
+  const results = { ...(existing?.results ?? {}), ...partial.results };
+  const { passedCount, failedCount, skippedCount } = summarizeResults(results);
+
+  return {
+    generatedAt: partial.generatedAt,
+    totalTests: passedCount + failedCount + skippedCount,
+    passedCount,
+    failedCount,
+    skippedCount,
+    results,
+  };
+}
+
 async function ensureWebDistBuilt(): Promise<void> {
   const webDistIndex = path.join(ROOT, 'src', 'web', 'dist', 'index.html');
   if (process.env.TW_FORCE_WEB_BUILD === '1' || !fs.existsSync(webDistIndex)) {
@@ -100,6 +145,8 @@ async function ensureWebDistBuilt(): Promise<void> {
 }
 
 async function runTests(): Promise<void> {
+  const testCaseFilter = parseTestCaseFilter(process.argv.slice(2));
+
   await ensureWebDistBuilt();
 
   const tsxCli = path.join(ROOT, 'src', 'node_modules', 'tsx', 'dist', 'cli.mjs');
@@ -111,19 +158,28 @@ async function runTests(): Promise<void> {
   }
 
   const executedAt = new Date().toISOString();
-  console.log('🚀 Running test suite with deterministic report capture...');
+  if (testCaseFilter) {
+    console.log(`🚀 Running filtered test suite for ${testCaseFilter}...`);
+  } else {
+    console.log('🚀 Running test suite with deterministic report capture...');
+  }
+
+  const nodeArgs = [
+    tsxCli,
+    '--test',
+    '--test-reporter=spec',
+    '--test-reporter-destination=stdout',
+    '--test-reporter=tap',
+    `--test-reporter-destination=${tapFile}`,
+  ];
+  if (testCaseFilter) {
+    nodeArgs.push(`--test-name-pattern=${testCaseFilter}`);
+  }
+  nodeArgs.push(testsPattern);
 
   const child = spawn(
     process.execPath,
-    [
-      tsxCli,
-      '--test',
-      '--test-reporter=spec',
-      '--test-reporter-destination=stdout',
-      '--test-reporter=tap',
-      `--test-reporter-destination=${tapFile}`,
-      testsPattern,
-    ],
+    nodeArgs,
     {
       cwd: path.join(ROOT, 'src'),
       env: {
@@ -156,7 +212,7 @@ async function runTests(): Promise<void> {
       }
     }
 
-    const summary: TestSuiteSummary = {
+    const partialSummary = {
       generatedAt: executedAt,
       totalTests: passedCount + failedCount + skippedCount,
       passedCount,
@@ -164,6 +220,16 @@ async function runTests(): Promise<void> {
       skippedCount,
       results,
     };
+
+    const summary = testCaseFilter
+      ? mergeReports(loadExistingReport(), partialSummary)
+      : partialSummary;
+
+    if (testCaseFilter && !results[testCaseFilter]) {
+      console.warn(
+        `\x1b[33m⚠ No automated test matched ${testCaseFilter}. The report was not updated for this id.\x1b[0m`
+      );
+    }
 
     fs.writeFileSync(REPORT_FILE, JSON.stringify(summary, null, 2), 'utf-8');
     console.log(`\n\x1b[32m✔ Test execution report successfully generated at: ${REPORT_FILE}\x1b[0m`);
