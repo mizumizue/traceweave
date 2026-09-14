@@ -113,8 +113,8 @@ traceweave/
 
 ## 4. クイックスタート
 
-> 💡 **インストールと外部プロジェクト導入**: 前提要件、クローンからの初期セットアップ、グローバルリンク、別プロジェクトへの適用（一時適用／完全再構成）は **[INSTALL_GUIDE.md](INSTALL_GUIDE.md)** を参照してください。  
-> 💡 **利用ガイド**: CLI の全オプション、Web ダッシュボードの各ビュー、Cursor / Claude Desktop などとの **MCP サーバー設定** は **[USER_GUIDE.md](USER_GUIDE.md)** を参照してください。
+💡 **インストールと外部プロジェクト導入**: 前提要件、クローンからの初期セットアップ、グローバルリンク、別プロジェクトへの適用（一時適用／完全再構成）は **[INSTALL_GUIDE.md](INSTALL_GUIDE.md)** を参照してください。  
+💡 **利用ガイド**: CLI の全オプション、Web ダッシュボードの各ビュー、Cursor / Claude Desktop などとの **MCP サーバー設定** は **[USER_GUIDE.md](USER_GUIDE.md)** を参照してください。
 
 ### CLI コマンドの利用
 
