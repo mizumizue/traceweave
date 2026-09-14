@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { DocParser } from '../infrastructure/parser/DocParser.js';
-import { resolveRepoRoot } from '../infrastructure/system/resolveRepoRoot.js';
+import { resolveProjectLayout } from '../infrastructure/system/resolveRepoRoot.js';
 import { SQLiteCache } from '../infrastructure/storage/SQLiteCache.js';
 import { TestReportLoader } from '../infrastructure/testing/TestReportLoader.js';
 import { SufficiencyScorer } from '../core/sufficiency/SufficiencyScorer.js';
@@ -28,12 +28,11 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
   nodes: DocNode[];
   parseWarnings: string[];
 } {
-  const projectRoot = options.projectRoot
-    ? path.resolve(options.projectRoot)
-    : resolveRepoRoot(import.meta.url);
-  const docsDir = options.docsDir
-    ? path.resolve(options.docsDir)
-    : path.join(projectRoot, 'docs');
+  const { projectRoot, docsDir } = resolveProjectLayout({
+    docsDir: options.docsDir,
+    projectRoot: options.projectRoot,
+    moduleUrl: import.meta.url,
+  });
   if (!fs.existsSync(docsDir) || !fs.statSync(docsDir).isDirectory()) {
     throw new Error(`Docs directory not found: ${docsDir}`);
   }

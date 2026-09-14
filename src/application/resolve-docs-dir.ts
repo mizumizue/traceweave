@@ -14,10 +14,10 @@ export function resolveDocsDir(requestedPath?: string): string {
   }
 
   const candidateDirs = [
-    path.resolve(CLI_DIR, '../../docs'),
-    path.resolve(CLI_DIR, '../docs'),
     path.resolve(process.cwd(), './docs'),
     path.resolve(process.cwd(), '../docs'),
+    path.resolve(CLI_DIR, '../../docs'),
+    path.resolve(CLI_DIR, '../docs'),
   ];
   const resolved = candidateDirs.find(d => fs.existsSync(d) && fs.statSync(d).isDirectory());
   if (!resolved) {

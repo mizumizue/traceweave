@@ -3,7 +3,7 @@ import { Command } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
 import { checkDocs } from '../application/check-docs.js';
-import { buildTraceWeaveReport, type BuildReportOptions } from '../application/build-report.js';
+import { buildTraceWeaveReport } from '../application/build-report.js';
 import { resolveDocsDir } from '../application/resolve-docs-dir.js';
 import { createDashboardServer } from '../application/serve-dashboard.js';
 import { filterCatalog, formatCatalogJson, formatCatalogMarkdown } from '../application/format-catalog.js';
@@ -24,7 +24,7 @@ function exitOnError(err: unknown): never {
   process.exit(1);
 }
 
-function getReportBuildOptions(docsDir: string): BuildReportOptions {
+function getReportBuildOptions(docsDir: string): { docsDir: string; subjectOverride?: string } {
   const globalOpts = program.opts<{ subject?: string }>();
   const subjectOverride = globalOpts.subject?.trim();
   return subjectOverride ? { docsDir, subjectOverride } : { docsDir };

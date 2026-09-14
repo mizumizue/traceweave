@@ -2,6 +2,47 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+export interface ResolveProjectLayoutOptions {
+  docsDir?: string;
+  projectRoot?: string;
+  moduleUrl?: string;
+}
+
+/**
+ * Resolve host project root + docs for adopted / symlinked CLI runs.
+ * Prefers explicit paths, then docsDir parent, then process.cwd(), then CLI package root.
+ */
+export function resolveProjectLayout(
+  options: ResolveProjectLayoutOptions = {}
+): { projectRoot: string; docsDir: string } {
+  const moduleUrl = options.moduleUrl ?? import.meta.url;
+
+  if (options.projectRoot && options.docsDir) {
+    return {
+      projectRoot: path.resolve(options.projectRoot),
+      docsDir: path.resolve(options.docsDir),
+    };
+  }
+
+  if (options.docsDir) {
+    const docsDir = path.resolve(options.docsDir);
+    const projectRoot =
+      options.projectRoot ??
+      (path.basename(docsDir) === 'docs' ? path.dirname(docsDir) : resolveRepoRoot(moduleUrl));
+    return { projectRoot: path.resolve(projectRoot), docsDir };
+  }
+
+  const cwdDocs = path.join(process.cwd(), 'docs');
+  if (fs.existsSync(cwdDocs) && fs.statSync(cwdDocs).isDirectory()) {
+    return { projectRoot: process.cwd(), docsDir: cwdDocs };
+  }
+
+  const projectRoot = options.projectRoot
+    ? path.resolve(options.projectRoot)
+    : resolveRepoRoot(moduleUrl);
+  return { projectRoot, docsDir: path.join(projectRoot, 'docs') };
+}
+
 /**
  * Walk upward from a module location until docs/ and src/package.json coexist.
  * Works for both source (src/**) and compiled (src/dist/**) entrypoints.
