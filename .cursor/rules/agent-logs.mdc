@@ -6,7 +6,7 @@ alwaysApply: true
 
 # Agent Log & Work-Unit Commit
 
-実装・改善・調査・文書起票など、**ファイル変更を伴う作業単位**を完了したら、**1 作業単位 = 1 ログ = 1 コミット**とする。`agent-logs/` は `.cursorignore` 対象のため **読み取り・検索・参照はしない**（ユーザーが明示的に閲覧を求めた場合のみ例外）。
+実装・改善・調査・文書起票など、**ファイル変更を伴う作業単位**を完了したら、**1 作業単位 = 1 ログ = 1 コミット**とする。`agent-logs/` はコンテキスト取得のために **読み取り・検索・参照はしない**（ユーザーが明示的に閲覧を求めた場合のみ例外）。
 
 ## 作業単位の定義
 
@@ -17,11 +17,12 @@ alwaysApply: true
 ## 完了フロー（順序固定）
 
 1. **検証** — `npm --prefix src run lint` および必要な `npm --prefix src test` を実行し、結果を記録する。
-2. **ログ起票** — `agent-logs/AL-YYYYMMDD-NNN.md` を新規作成する。
-3. **コミット** — 作業変更とログを **同一コミット** に含める（`git add` → `git commit`）。
-4. **コミット記録** — コミット直後にフロントマター `commit:` にハッシュを記録する（任意だが推奨）。
+2. **ログ起票** — `agent-logs/AL-YYYYMMDD-NNN.md` を新規作成する（`commit:` フィールドは書かない）。
+3. **コミット** — 作業変更とログを **同一コミット** に含める（`git add` → `git commit`）。件名は必ず `AL-YYYYMMDD-NNN:` で始める。
 
-## コミットメッセージ
+**コミット後にログへハッシュを追記したり、`git commit --amend` でハッシュを埋める作業は禁止。** amend するとコミット OID が変わり、ログ内ハッシュは必ずずれる。
+
+## コミットメッセージ（ログ↔コミットの正本）
 
 ```
 AL-YYYYMMDD-NNN: <title>
@@ -31,8 +32,14 @@ Log: agent-logs/AL-YYYYMMDD-NNN.md
 <why を 1〜2 文。任意>
 ```
 
-- 件名は必ずログ ID で始める（`git log --grep AL-` で追跡可能）。
+- **件名の `AL-YYYYMMDD-NNN` がログとコミットを結ぶ唯一の安定キー**（`git log --grep 'AL-YYYYMMDD-NNN' -1` で常に最新 OID を解決できる）。
 - push はユーザー明示指示時のみ。
+
+## ブランチ（任意）
+
+- **既定:** 現在のブランチ上で 1 作業単位 = 1 コミット。ブランチ名は任意。
+- **PR・並行作業時（推奨）:** `work/AL-YYYYMMDD-NNN-<短い説明>` のように作業単位ごとにブランチを切る。マージ後も件名の AL-ID で追跡する。
+- ブランチはハッシュ問題の代替ではない。OID 解決は常にコミットメッセージの AL-ID に委ねる。
 
 ## ファイル命名
 
@@ -51,17 +58,18 @@ status: done
 entrypoint: path-a | path-b | path-c | path-d | n/a
 trigger: ユーザー指示または関連文書 ID の要約
 related: []
-commit: "<git commit hash>"  # 任意。コミット直後に記録
 created: "YYYY-MM-DD"
 updated: "YYYY-MM-DD"
 ---
 ```
 
+- レガシーログに残る `commit:` は参照しない（無視してよい）。新規ログには含めない。
+
 ## 必須本文（`## Content` 直下）
 
 1. **`### Objective`** — 課題と対応方針（ストーリー重視）。**課題:** で困りごと、**対応:** で何をどう向き合うかを書く。実装手順の列挙は避ける。
 2. **`### Completion Criteria`** — 完了条件チェックリスト（`[x]` / `[ ]`）。
-3. **`### Changes`** — 意味単位（3〜5 件）ごとの Summary。各 Summary は状況・対応・狙いを含む手厚い説明（2〜4 文）。ファイル単位の全件列挙は不要。フロントマター `commit:` をファイル一覧の正本とする。
+3. **`### Changes`** — 意味単位（3〜5 件）ごとの Summary。各 Summary は状況・対応・狙いを含む手厚い説明（2〜4 文）。ファイル単位の全件列挙は不要。差分一覧は Git（下記コマンド）に委譲する。
 4. **`### Outcome`** — 変更の結果、何がどうなるか（人間向け）。利用者・運用・システムの振る舞いがどう変わるかを 1〜3 文で書く。ファイル差分や Changes の再掲は禁止。該当なしは `N/A`。
 5. **`### Deferred`** — （任意）この作業単位に含まれないもの。分割コミット時に後続 AL-ID を列挙。該当なしは省略可。
 6. **`### Improvements`** — 改善時のみ（Before / After / How Measured）。該当なしは `N/A`。
@@ -72,7 +80,7 @@ updated: "YYYY-MM-DD"
 
 | 方向 | 方法 |
 |------|------|
-| ログ → コミット | フロントマター `commit:` または `git log --grep AL-YYYYMMDD-NNN -1` |
+| ログ → コミット | `git log --grep 'AL-YYYYMMDD-NNN' -1 --format=%H`（正本） |
 | コミット → ログ | 件名の `AL-YYYYMMDD-NNN` または本文 `Log: agent-logs/...` |
 | コミットの変更内容 | `git show "$(git log --grep 'AL-YYYYMMDD-NNN' -1 --format=%H)" --stat` — IDE 閲覧は `git switch --detach <hash>` → `git switch -`。詳細は `agent-logs/README.md` |
 
@@ -81,5 +89,6 @@ updated: "YYYY-MM-DD"
 - `agent-logs/` をコンテキスト取得のために読むこと。
 - 検証未実行の成功記載、計測根拠のない改善主張。
 - 作業単位をまたぐ単一コミット、またはログなしコミット（ファイル変更がある場合）。
+- コミット後にログへ OID を追記するための `git commit --amend`（pre-commit フックの自動修正を含める場合を除く）。
 - Outcome に Changes の再掲やファイル名の列挙をすること。
-- Changes にファイル全件列挙をすること（`commit:` に委譲）。
+- Changes にファイル全件列挙をすること（Git に委譲）。

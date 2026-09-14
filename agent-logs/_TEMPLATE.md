@@ -8,7 +8,6 @@ status: done
 entrypoint: path-d
 trigger: <ユーザー指示または REQ-xxxx / ADR-xxxx 等>
 related: []
-commit: ""
 created: "YYYY-MM-DD"
 updated: "YYYY-MM-DD"
 ---
@@ -27,9 +26,10 @@ updated: "YYYY-MM-DD"
 
 ### Changes
 
-ファイル単位の一覧: `commit: <hash>`（コミット後に記録）
+コミット OID・ファイル一覧は **コミットメッセージの AL-ID** から解決する（ログにハッシュは書かない）。
 
 ```bash
+git log --grep 'AL-YYYYMMDD-NNN' -1 --format=%H
 git show "$(git log --grep 'AL-YYYYMMDD-NNN' -1 --format=%H)" --stat
 git switch --detach "$(git log --grep 'AL-YYYYMMDD-NNN' -1 --format=%H)" && git switch -
 ```
