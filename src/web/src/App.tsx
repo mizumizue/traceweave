@@ -469,6 +469,8 @@ export default function App() {
             onStatusChange={status => setCatalogStatus(status)}
             selectedRequirementClass={requirementClassFilter}
             onRequirementClassChange={setRequirementClassFilter}
+            searchQuery={searchQuery}
+            onSearchQueryChange={setSearchQuery}
           />
         )}
 

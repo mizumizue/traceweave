@@ -21,6 +21,12 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function exitOnError(err: unknown): never {
+  const message = err instanceof Error ? err.message : String(err);
+  console.error(`\x1b[31m✖ Error: ${message}\x1b[0m`);
+  process.exit(1);
+}
+
 function resolveDocsDir(requestedPath?: string): string {
   if (requestedPath) {
     const resolved = path.resolve(requestedPath);
@@ -56,7 +62,12 @@ program
   .option('-d, --docs <dir>', 'Docs directory path')
   .option('-s, --strict', 'Fail if any requirement is untested or not fully satisfied', false)
   .action((options) => {
-    const docsDir = resolveDocsDir(options.docs);
+    let docsDir: string;
+    try {
+      docsDir = resolveDocsDir(options.docs);
+    } catch (err) {
+      exitOnError(err);
+    }
     console.log(`\n🔍 Checking docs in "${docsDir}"...`);
     const result = checkDocs({
       docsDir,
@@ -90,18 +101,19 @@ program
   .option('-f, --format <format>', 'Output format (text, json, markdown)', 'text')
   .option('-o, --out <file>', 'Output file path (optional)')
   .action((options) => {
-    const docsDir = resolveDocsDir(options.docs);
-    const { report } = buildTraceWeaveReport({ docsDir });
+    try {
+      const docsDir = resolveDocsDir(options.docs);
+      const { report } = buildTraceWeaveReport({ docsDir });
 
-    if (options.format === 'json') {
-      const output = JSON.stringify(report, null, 2);
-      if (options.out) {
-        fs.writeFileSync(options.out, output, 'utf-8');
-        console.log(`Report written to ${options.out}`);
-      } else {
-        console.log(output);
-      }
-    } else if (options.format === 'markdown') {
+      if (options.format === 'json') {
+        const output = JSON.stringify(report, null, 2);
+        if (options.out) {
+          fs.writeFileSync(options.out, output, 'utf-8');
+          console.log(`Report written to ${options.out}`);
+        } else {
+          console.log(output);
+        }
+      } else if (options.format === 'markdown') {
       const output = MarkdownReporter.generateMarkdown(report);
       if (options.out) {
         fs.writeFileSync(options.out, output, 'utf-8');
@@ -109,8 +121,11 @@ program
       } else {
         console.log(output);
       }
-    } else {
-      ConsoleReporter.printSummary(report);
+      } else {
+        ConsoleReporter.printSummary(report);
+      }
+    } catch (err) {
+      exitOnError(err);
     }
   });
 
@@ -122,11 +137,12 @@ program
   .option('-f, --format <format>', 'Output format (text, json, markdown, csv)', 'text')
   .option('-o, --out <file>', 'Output file path (optional)')
   .action((options) => {
-    const docsDir = resolveDocsDir(options.docs);
-    const { report } = buildTraceWeaveReport({ docsDir });
+    try {
+      const docsDir = resolveDocsDir(options.docs);
+      const { report } = buildTraceWeaveReport({ docsDir });
 
-    if (options.format === 'json') {
-      const output = JSON.stringify(report.matrix, null, 2);
+      if (options.format === 'json') {
+        const output = JSON.stringify(report.matrix, null, 2);
       if (options.out) {
         fs.writeFileSync(options.out, output, 'utf-8');
         console.log(`Matrix written to ${options.out}`);
@@ -155,8 +171,11 @@ program
       } else {
         console.log(output);
       }
-    } else {
-      ConsoleReporter.printMatrixText(report);
+      } else {
+        ConsoleReporter.printMatrixText(report);
+      }
+    } catch (err) {
+      exitOnError(err);
     }
   });
 
@@ -169,9 +188,10 @@ program
   .option('-f, --format <format>', 'Output format (text, json, markdown)', 'text')
   .option('-o, --out <file>', 'Output file path (optional)')
   .action((options) => {
-    const docsDir = resolveDocsDir(options.docs);
-    const { nodes } = buildTraceWeaveReport({ docsDir });
-    const analyses = TestCaseInputAnalyzer.analyzeAll(nodes);
+    try {
+      const docsDir = resolveDocsDir(options.docs);
+      const { nodes } = buildTraceWeaveReport({ docsDir });
+      const analyses = TestCaseInputAnalyzer.analyzeAll(nodes);
     const summary = TestCaseInputAnalyzer.summarize(analyses);
 
     let output = '';
@@ -198,11 +218,14 @@ program
       output = TestCaseInputAnalyzer.formatText(summary);
     }
 
-    if (options.out) {
-      fs.writeFileSync(options.out, output, 'utf-8');
-      console.log(`Input analysis written to ${options.out}`);
-    } else {
-      console.log(output);
+      if (options.out) {
+        fs.writeFileSync(options.out, output, 'utf-8');
+        console.log(`Input analysis written to ${options.out}`);
+      } else {
+        console.log(output);
+      }
+    } catch (err) {
+      exitOnError(err);
     }
   });
 
@@ -214,19 +237,22 @@ program
   .option('-k, --kind <kind>', 'Filter by document kind (actor, use_case, requirement, specification, design, decision, quality_assurance, need, test_case, all)', 'all')
   .option('--reqclass <class>', 'Filter requirements by class (functional, non_functional, all)', 'all')
   .option('-t, --tag <tag>', 'Filter by tag')
+  .option('--status <status>', 'Filter by document status (draft, proposed, accepted, rejected, superseded, deprecated, all)', 'all')
   .option('-q, --query <query>', 'Search keyword in title, id, or content')
   .option('-f, --format <format>', 'Output format (text, json, markdown)', 'text')
   .option('-o, --out <file>', 'Output file path (optional)')
   .action((options) => {
-    const docsDir = resolveDocsDir(options.docs);
-    const { report } = buildTraceWeaveReport({ docsDir });
-    const catalog = report.catalog || DecisionsCatalogBuilder.build(report.nodes || []);
-    const filtered = DecisionsCatalogBuilder.filter(catalog, {
-      kind: options.kind,
-      tag: options.tag,
-      query: options.query,
-      requirementClass: options.reqclass,
-    });
+    try {
+      const docsDir = resolveDocsDir(options.docs);
+      const { report } = buildTraceWeaveReport({ docsDir });
+      const catalog = report.catalog || DecisionsCatalogBuilder.build(report.nodes || []);
+      const filtered = DecisionsCatalogBuilder.filter(catalog, {
+        kind: options.kind,
+        tag: options.tag,
+        query: options.query,
+        status: options.status,
+        requirementClass: options.reqclass,
+      });
 
     if (options.format === 'json') {
       const output = JSON.stringify(
@@ -282,8 +308,11 @@ program
       } else {
         console.log(output);
       }
-    } else {
-      ConsoleReporter.printCatalog(catalog, filtered);
+      } else {
+        ConsoleReporter.printCatalog(catalog, filtered);
+      }
+    } catch (err) {
+      exitOnError(err);
     }
   });
 
@@ -295,11 +324,12 @@ program
   .option('-f, --format <format>', 'Output format (text, json)', 'text')
   .option('-o, --out <file>', 'Output file path (optional)')
   .action((options) => {
-    const docsDir = resolveDocsDir(options.docs);
-    const { report } = buildTraceWeaveReport({ docsDir });
-    const catalog = report.catalog || DecisionsCatalogBuilder.build(report.nodes || []);
+    try {
+      const docsDir = resolveDocsDir(options.docs);
+      const { report } = buildTraceWeaveReport({ docsDir });
+      const catalog = report.catalog || DecisionsCatalogBuilder.build(report.nodes || []);
 
-    if (options.format === 'json') {
+      if (options.format === 'json') {
       const adrs = catalog.items.filter(i => i.kind === 'decision');
       const dsns = catalog.items.filter(i => i.kind === 'design');
       const output = JSON.stringify({ adrs, dsns }, null, 2);
@@ -309,8 +339,11 @@ program
       } else {
         console.log(output);
       }
-    } else {
-      ConsoleReporter.printDecisions(catalog);
+      } else {
+        ConsoleReporter.printDecisions(catalog);
+      }
+    } catch (err) {
+      exitOnError(err);
     }
   });
 
@@ -321,9 +354,13 @@ program
   .option('-d, --docs <dir>', 'Docs directory path')
   .option('-o, --out <dir>', 'Output directory', './src/web/dist')
   .action((options) => {
-    const docsDir = resolveDocsDir(options.docs);
-    const outDir = buildWebDashboard({ docsDir, outDir: options.out });
-    console.log(`\n\x1b[32m✔ TraceWeave static dashboard built successfully in "${outDir}"\x1b[0m\n`);
+    try {
+      const docsDir = resolveDocsDir(options.docs);
+      const outDir = buildWebDashboard({ docsDir, outDir: options.out });
+      console.log(`\n\x1b[32m✔ TraceWeave static dashboard built successfully in "${outDir}"\x1b[0m\n`);
+    } catch (err) {
+      exitOnError(err);
+    }
   });
 
 // Command: serve
@@ -334,10 +371,20 @@ program
   .option('-d, --docs <dir>', 'Docs directory path')
   .option('-r, --restart', 'Force restart and kill any previous process occupying the port')
   .action(async (options) => {
+    let docsDir: string;
+    try {
+      docsDir = resolveDocsDir(options.docs);
+    } catch (err) {
+      exitOnError(err);
+    }
     const port = parseInt(options.port, 10);
-    const docsDir = resolveDocsDir(options.docs);
 
-    const distWeb = ensureWebDashboardBuilt(docsDir);
+    let distWeb: string;
+    try {
+      distWeb = ensureWebDashboardBuilt(docsDir);
+    } catch (err) {
+      exitOnError(err);
+    }
 
     // Free port if already occupied by a previous process
     const isAvailable = await PortManager.isPortAvailable(port);
@@ -388,29 +435,55 @@ program
           body += chunk;
         });
         req.on('end', () => {
-          try {
-            const payload = JSON.parse(body);
-            if (!TestRunnerRegistry.isExecutable(payload.testCaseId)) {
+          void (async () => {
+            try {
+              const payload = JSON.parse(body);
+              const testCaseId = String(payload.testCaseId || '');
+              if (!testCaseId) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'ERR_INVALID_REQUEST: testCaseId is required', status: 'error' }));
+                return;
+              }
+
+              const { nodes } = buildTraceWeaveReport({ docsDir });
+              const tcNode = nodes?.find(n => n.id === testCaseId && n.kind === 'test_case');
+              if (!tcNode) {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(
+                  JSON.stringify({
+                    error: 'ERR_UNKNOWN_TEST_CASE',
+                    message: `テストケース "${testCaseId}" は登録されていません。`,
+                    status: 'error',
+                  })
+                );
+                return;
+              }
+
+              if (!tcNode.ui_executable || !TestRunnerRegistry.isExecutable(testCaseId)) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(
+                  JSON.stringify({
+                    error: 'ERR_NOT_UI_EXECUTABLE',
+                    message: `テストケース "${testCaseId}" はUI実行に対応していません（単純な入出力のみで実行できないテストのため除外）。`,
+                    reason: tcNode.inputAnalysis?.reasonDescription,
+                    status: 'error',
+                  })
+                );
+                return;
+              }
+
+              const result = await TestRunnerRegistry.runTestAsync({
+                testCaseId,
+                inputs: payload.inputs || {},
+                expected: payload.expected,
+              });
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify(result));
+            } catch (e: any) {
               res.writeHead(400, { 'Content-Type': 'application/json' });
-              res.end(
-                JSON.stringify({
-                  error: `テストケース "${payload.testCaseId}" はUI実行に対応していません（単純な入出力のみで実行できないテストのため除外）。`,
-                  status: 'error',
-                })
-              );
-              return;
+              res.end(JSON.stringify({ error: e.message, status: 'error' }));
             }
-            const result = TestRunnerRegistry.runTest({
-              testCaseId: payload.testCaseId,
-              inputs: payload.inputs || {},
-              expected: payload.expected,
-            });
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(result));
-          } catch (e: any) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: e.message, status: 'error' }));
-          }
+          })();
         });
         return;
       }
@@ -464,9 +537,13 @@ program
   .description('Start TraceWeave MCP server for Cursor / AI Agent integration')
   .option('-d, --docs <dir>', 'Docs directory path')
   .action(async (options) => {
-    const docsDir = resolveDocsDir(options.docs);
-    const { startMcpServer } = await import('../mcp/server.js');
-    await startMcpServer(docsDir);
+    try {
+      const docsDir = resolveDocsDir(options.docs);
+      const { startMcpServer } = await import('../mcp/server.js');
+      await startMcpServer(docsDir);
+    } catch (err) {
+      exitOnError(err);
+    }
   });
 
 // Command: adopt

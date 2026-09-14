@@ -21,13 +21,19 @@ test('TC-0010: TestRunnerRegistry - 外部パラメータファイルからデ�
   assert.equal(dataset.testCaseId, 'TC-0010');
   assert.ok(dataset.patterns.length >= 5, 'Should have at least 5 parameter combinations');
 
-  const batchResult = TestRunnerRegistry.runDataset(dataset);
-  assert.equal(batchResult.datasetId, 'TC-0010');
-  assert.equal(batchResult.total, dataset.patterns.length);
-  assert.equal(batchResult.passed, dataset.patterns.length, 'All preset patterns should pass');
-  assert.equal(batchResult.failed, 0);
+  // TC-0010 は UI 実行対象外のため、同一ロジックの TC-0002 ハンドラでパターンを検証する
+  const results = dataset.patterns.map(pattern =>
+    TestRunnerRegistry.runTest({
+      testCaseId: 'TC-0002',
+      inputs: pattern.inputs,
+      expected: pattern.expected,
+    })
+  );
+  assert.equal(results.length, dataset.patterns.length);
+  assert.equal(results.filter(r => r.status === 'passed').length, dataset.patterns.length, 'All preset patterns should pass');
+  assert.equal(results.filter(r => r.status !== 'passed').length, 0);
 
-  for (const r of batchResult.results) {
+  for (const r of results) {
     assert.equal(r.status, 'passed');
     assert.equal(r.isMatch, true);
     assert.ok(typeof r.durationMs === 'number');
@@ -47,7 +53,7 @@ test('TC-0010: TestRunnerRegistry - 外部パラメータファイルからデ�
 test('TC-0010: TestRunnerRegistry - 手動入力パラメータによるテスト実行と期待値不一致（mismatch）の厳格な検知ができること', () => {
   // 1. Valid custom input matching expected
   const validRun = TestRunnerRegistry.runTest({
-    testCaseId: 'TC-0010',
+    testCaseId: 'TC-0002',
     inputs: {
       criticality: 'high',
       phaseCounts: {
@@ -71,7 +77,7 @@ test('TC-0010: TestRunnerRegistry - 手動入力パラメータによるテス�
 
   // 2. Mismatch detection (User specifies wrong expected)
   const mismatchRun = TestRunnerRegistry.runTest({
-    testCaseId: 'TC-0010',
+    testCaseId: 'TC-0002',
     inputs: {
       criticality: 'high',
       phaseCounts: { unit: 1, integration_internal: 0, integration_external: 0, system: 0, acceptance: 0 },
@@ -95,7 +101,7 @@ test('TC-0010: TestRunnerRegistry - 手動入力パラメータによるテス�
  */
 test('TC-0010: TestRunnerRegistry - 外部環境依存テスト（非単純I/O）のUI実行除外および不一致検知が正しく行われること', () => {
   // 1. Pure calculation tests are executable
-  assert.equal(TestRunnerRegistry.isExecutable('TC-0010'), true);
+  assert.equal(TestRunnerRegistry.isExecutable('TC-0010'), false, 'TC-0010 has external parameter_file and is excluded from UI');
   assert.equal(TestRunnerRegistry.isExecutable('TC-0011'), true);
   assert.equal(TestRunnerRegistry.isExecutable('TC-0002'), true);
   assert.equal(TestRunnerRegistry.isExecutable('TC-0003'), true);

@@ -46,6 +46,8 @@ interface DecisionsBrowserProps {
   onStatusChange?: (status: DocStatus | 'all') => void;
   selectedRequirementClass?: string;
   onRequirementClassChange?: (requirementClass: string) => void;
+  searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
 }
 
 export const KIND_META: Record<
@@ -137,12 +139,14 @@ export function DecisionsBrowser({
   onStatusChange,
   selectedRequirementClass: selectedRequirementClassProp,
   onRequirementClassChange,
+  searchQuery: searchQueryProp,
+  onSearchQueryChange,
 }: DecisionsBrowserProps) {
   const [internalKind, setInternalKind] = useState<DocKind | 'all'>(selectedKindProp ?? 'all');
   const [internalTag, setInternalTag] = useState<string | null>(selectedTagProp ?? null);
   const [internalStatus, setInternalStatus] = useState<DocStatus | 'all'>(selectedStatusProp ?? 'all');
   const [internalRequirementClass, setInternalRequirementClass] = useState(selectedRequirementClassProp ?? 'all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [internalSearchQuery, setInternalSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -151,6 +155,12 @@ export function DecisionsBrowser({
   const selectedStatus = selectedStatusProp !== undefined ? selectedStatusProp : internalStatus;
   const selectedRequirementClass =
     selectedRequirementClassProp !== undefined ? selectedRequirementClassProp : internalRequirementClass;
+  const searchQuery = searchQueryProp !== undefined ? searchQueryProp : internalSearchQuery;
+
+  const handleSearchQueryChange = (query: string) => {
+    setInternalSearchQuery(query);
+    onSearchQueryChange?.(query);
+  };
 
   const handleKindSelect = (kind: DocKind | 'all') => {
     setInternalKind(kind);
@@ -215,7 +225,7 @@ export function DecisionsBrowser({
     handleTagSelect(null);
     handleStatusSelect('all');
     handleRequirementClassSelect('all');
-    setSearchQuery('');
+    handleSearchQueryChange('');
     toast.info('決め事カタログのフィルターをリセットしました');
   };
 
@@ -342,12 +352,12 @@ export function DecisionsBrowser({
               type="text"
               placeholder="決め事のID、タイトル、本文、タグで横断検索..."
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => handleSearchQueryChange(e.target.value)}
               className="w-full pl-9 pr-8 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition shadow-inner"
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery('')}
+                onClick={() => handleSearchQueryChange('')}
                 className="absolute right-2.5 top-2.5 text-slate-500 hover:text-slate-300 text-xs"
               >
                 ✕

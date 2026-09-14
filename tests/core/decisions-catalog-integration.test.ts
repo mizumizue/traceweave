@@ -56,8 +56,8 @@ test('TC-0031: DecisionsCatalogBuilder - 主要種別集約・相互参照（ACT
   );
   assert.ok(decisionsWithDesign.length > 0, 'At least one decision must have related designs');
   assert.deepEqual(
-    catalog.items.find(i => i.id === 'ADR-0002')?.relatedDesigns?.map(i => i.id),
-    ['DSN-0001']
+    catalog.items.find(i => i.id === 'ADR-0002')?.relatedDesigns?.map(i => i.id)?.sort(),
+    ['DSN-0001', 'DSN-0019'].sort()
   );
 
   // 3. Test filtering by kind
@@ -93,12 +93,14 @@ test('TC-0031: DecisionsCatalogBuilder - 主要種別集約・相互参照（ACT
     'SPEC-0019',
     'SPEC-0020',
     'SPEC-0021',
+    'SPEC-0023',
     'TC-0006',
     'TC-0020',
     'TC-0023',
     'TC-0026',
     'TC-0031',
     'TC-0035',
+    'TC-0041',
     'UC-0001',
     'UC-0003',
   ].sort());

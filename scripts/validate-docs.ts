@@ -26,6 +26,10 @@ const KINDS: Record<string, { kind: string; prefix: string }> = {
   'test-cases': { kind: 'test_case', prefix: 'TC' },
 };
 
+function isRetiredDocStatus(status: unknown): boolean {
+  return status === 'deprecated' || status === 'superseded';
+}
+
 const HEADINGS: Record<string, string[]> = {
   need: ['### Background', '### Problem', '### Desired Outcome'],
   actor: ['### Role', '### Responsibilities', '### Interactions'],
@@ -315,7 +319,7 @@ export function validateDocs(docsDir: string = DOCS_DIR): { passed: boolean; err
     }
 
     // Out-of-Scope boundary guard for active REQ/SPEC
-    if ((kind === 'requirement' || kind === 'specification') && meta.status !== 'deprecated') {
+    if ((kind === 'requirement' || kind === 'specification') && !isRetiredDocStatus(meta.status)) {
       const outOfScopeTags = ['clean-root', 'encapsulation', 'bin-wrapper', 'repository-structure'];
       const matchedOosTags = (meta.tags || []).filter((t: string) => outOfScopeTags.includes(t));
       if (matchedOosTags.length > 0) {
@@ -342,7 +346,7 @@ export function validateDocs(docsDir: string = DOCS_DIR): { passed: boolean; err
       }
     }
 
-    if (kind === 'requirement' && meta.status !== 'deprecated') {
+    if (kind === 'requirement' && !isRetiredDocStatus(meta.status)) {
       const acLines = body.match(/^- AC-\d{3}:[^\r\n]+/gm) || [];
       if (acLines.length === 0) {
         errors.push(`${filePath}: [fence-lite] requirement must declare at least one "- AC-xxx:" criterion`);
@@ -356,7 +360,7 @@ export function validateDocs(docsDir: string = DOCS_DIR): { passed: boolean; err
       }
     }
 
-    if ((kind === 'requirement' || kind === 'specification') && meta.status !== 'deprecated') {
+    if ((kind === 'requirement' || kind === 'specification') && !isRetiredDocStatus(meta.status)) {
       const implPathRegex = /(?:tests?|src)\/[a-zA-Z0-9_\-\/]+\.(?:ts|js|tsx|jsx)/g;
       const foundImplPaths = body.match(implPathRegex);
       if (foundImplPaths && foundImplPaths.length > 0) {
@@ -380,7 +384,7 @@ export function validateDocs(docsDir: string = DOCS_DIR): { passed: boolean; err
   const specCoveredByDsn = new Set<string>();
 
   for (const doc of docs) {
-    if (doc.meta.kind === 'specification' && doc.meta.status !== 'deprecated') {
+    if (doc.meta.kind === 'specification' && !isRetiredDocStatus(doc.meta.status)) {
       activeSpecIds.add(doc.meta.id);
     }
     if (doc.meta.kind === 'design') {

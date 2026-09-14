@@ -55,7 +55,7 @@ export async function startMcpServer(docsDir: string = './docs') {
         },
         {
           name: 'check_quality_gaps',
-          description: 'List untested requirements, missing integration tests, and broken links',
+          description: 'List untested requirements, missing integration tests, and documentation quality gaps via checkDocs',
           inputSchema: {
             type: 'object',
             properties: {
@@ -112,10 +112,19 @@ export async function startMcpServer(docsDir: string = './docs') {
 
       if (!row) {
         return {
+          isError: true,
           content: [
             {
               type: 'text',
-              text: `Requirement ${reqId} not found in docs.`,
+              text: JSON.stringify(
+                {
+                  error: 'ERR_REQUIREMENT_NOT_FOUND',
+                  requirementId: reqId,
+                  message: `Requirement ${reqId} not found in docs.`,
+                },
+                null,
+                2
+              ),
             },
           ],
         };

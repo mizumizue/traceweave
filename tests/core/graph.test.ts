@@ -268,3 +268,83 @@ test('TraceGraph - 上流要件（REQ）を持たないスタンドアロン仕�
   assert.equal(standalones[0].id, 'SPEC-0002');
 });
 
+/**
+ * 【テスト概要】
+ * - 対象: TraceGraph (グラフ構築性能)
+ * - 条件: NEED→REQ→SPEC→TC の鎖を 250 セット（計 1,000 ノード）で合成生成
+ * - 期待結果: 構築と detectCycles() の合計が 50ms 以内で完了すること
+ * - 関連文書: TC-0039, SPEC-0002, QA-0001
+ */
+test('TC-0039: TraceGraph - 1,000ノード規模のグラフ構築と循環検知が50ms以内に完了すること', () => {
+  const graph = new TraceGraph();
+  const baseDate = '2026-09-12';
+
+  for (let i = 0; i < 250; i++) {
+    const suffix = String(i).padStart(4, '0');
+    const need: DocNode = {
+      id: `NEED-P${suffix}`,
+      kind: 'need',
+      title: `Need ${i}`,
+      status: 'accepted',
+      created: baseDate,
+      updated: baseDate,
+      scope: 'local',
+      depends_on: [],
+      tags: [],
+      links: [],
+      content: '',
+    };
+    const req: DocNode = {
+      id: `REQ-P${suffix}`,
+      kind: 'requirement',
+      title: `Req ${i}`,
+      status: 'accepted',
+      created: baseDate,
+      updated: baseDate,
+      scope: 'local',
+      depends_on: [`NEED-P${suffix}`],
+      tags: [],
+      links: [],
+      content: '',
+    };
+    const spec: DocNode = {
+      id: `SPEC-P${suffix}`,
+      kind: 'specification',
+      title: `Spec ${i}`,
+      status: 'accepted',
+      created: baseDate,
+      updated: baseDate,
+      scope: 'local',
+      depends_on: [`REQ-P${suffix}`],
+      tags: [],
+      links: [],
+      content: '',
+    };
+    const tc: DocNode = {
+      id: `TC-P${suffix}`,
+      kind: 'test_case',
+      title: `TC ${i}`,
+      status: 'accepted',
+      created: baseDate,
+      updated: baseDate,
+      scope: 'local',
+      depends_on: [],
+      verifies: [`SPEC-P${suffix}`],
+      tags: [],
+      links: [],
+      content: '',
+    };
+    graph.addNode(need);
+    graph.addNode(req);
+    graph.addNode(spec);
+    graph.addNode(tc);
+  }
+
+  const start = performance.now();
+  const cycles = graph.detectCycles();
+  const elapsed = performance.now() - start;
+
+  assert.equal(cycles.length, 0);
+  assert.ok(elapsed < 50, `expected graph build + cycle detection < 50ms, got ${elapsed.toFixed(2)}ms`);
+});
+

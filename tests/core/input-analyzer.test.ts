@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { DocParser } from '../../src/infrastructure/parser/DocParser.js';
 import { TestCaseInputAnalyzer } from '../../src/core/analyzer/TestCaseInputAnalyzer.js';
+import { TestRunnerRegistry } from '../../src/core/testing/TestRunnerRegistry.js';
 import { DocNode } from '../../src/core/models/types.js';
 import { repositoryPath } from '../helpers/repo-path.js';
 
@@ -157,6 +158,28 @@ test('TestCaseInputAnalyzer - Rule 4: 単純入出力の充足度計算テスト
  * - 期待結果: 変更可能・不可の件数が整合し、CLIやレポート用の日本語フォーマットテキストが正しく生成されること
  * - 関連文書: ADR-0003, REQ-0009, SPEC-0009
  */
+/**
+ * 【テスト概要】
+ * - 対象: TestCaseInputAnalyzer と TestRunnerRegistry の UI 実行除外整合性
+ * - 条件: 外部環境依存の TC-0010（parameter_file）と TC-0004（scenario）を解析
+ * - 期待結果: ui_executable が false かつ TestRunnerRegistry に未登録であること
+ * - 関連文書: TC-0040, REQ-0009, SPEC-0008, ADR-0003
+ */
+test('TC-0040: TestCaseInputAnalyzer と TestRunnerRegistry - 外部依存TCがUI実行除外かつレジストリ未登録であること', () => {
+  const parser = new DocParser();
+  const tc10 = parser.parseFile(repositoryPath('docs/test-cases/TC-0010.md'));
+  const tc4 = parser.parseFile(repositoryPath('docs/test-cases/TC-0004.md'));
+  assert.ok(tc10 && tc4);
+
+  for (const node of [tc10!, tc4!]) {
+    const analysis = TestCaseInputAnalyzer.analyze(node);
+    assert.equal(node.ui_executable, false);
+    assert.equal(analysis.isModifiable, false);
+    assert.equal(analysis.reasonCode, 'external_environment_dependency');
+    assert.equal(TestRunnerRegistry.isExecutable(node.id), false);
+  }
+});
+
 test('TestCaseInputAnalyzer - analyzeAll と summarize によりリポジトリ全体のテストケース入力変更可否サマリーが集計・フォーマット出力できること', () => {
   const parser = new DocParser();
   const nodes = parser.parseDirectory(repositoryPath('docs'));

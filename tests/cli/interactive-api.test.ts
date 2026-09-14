@@ -140,3 +140,63 @@ test('TC-0011: CLI serve - 外部HTTP APIが対話型テスト実行結果を返
     child.kill();
   }
 });
+
+/**
+ * 【テスト概要】
+ * - 対象: POST /api/test/run のエラー契約
+ * - 条件: 未登録 TC-ID と UI 実行除外 TC-ID を順に呼び出す
+ * - 期待結果: 未登録は 404、除外対象は 400 が返ること
+ * - 関連文書: TC-0040, SPEC-0008, REQ-0009
+ */
+test('TC-0040: CLI serve - /api/test/run が未知TCで404・UI除外TCで400を返すこと', async () => {
+  const port = 33000 + Math.floor(Math.random() * 1000);
+  const child = spawn(
+    process.execPath,
+    [
+      repositoryPath('src/node_modules/tsx/dist/cli.mjs'),
+      repositoryPath('src/cli/index.ts'),
+      'serve',
+      '--port',
+      String(port),
+      '--docs',
+      repositoryPath('docs'),
+    ],
+    { cwd: repositoryPath(), stdio: ['ignore', 'pipe', 'pipe'] }
+  );
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('serve did not start')), 10_000);
+      child.stdout.on('data', chunk => {
+        if (String(chunk).includes('Dashboard is running')) {
+          clearTimeout(timeout);
+          resolve();
+        }
+      });
+      child.once('error', error => {
+        clearTimeout(timeout);
+        reject(error);
+      });
+    });
+
+    const unknown = await fetch(`http://127.0.0.1:${port}/api/test/run`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ testCaseId: 'TC-9999', inputs: {} }),
+    });
+    assert.equal(unknown.status, 404);
+    const unknownBody = await unknown.json() as { error: string };
+    assert.equal(unknownBody.error, 'ERR_UNKNOWN_TEST_CASE');
+
+    const excluded = await fetch(`http://127.0.0.1:${port}/api/test/run`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ testCaseId: 'TC-0010', inputs: {} }),
+    });
+    assert.equal(excluded.status, 400);
+    const excludedBody = await excluded.json() as { error: string };
+    assert.equal(excludedBody.error, 'ERR_NOT_UI_EXECUTABLE');
+  } finally {
+    child.kill();
+  }
+});

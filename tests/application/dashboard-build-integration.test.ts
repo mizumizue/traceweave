@@ -101,3 +101,21 @@ test('TC-0026: buildTraceWeaveReport - レポート統合・静的データペ�
     fs.rmSync(outDir, { recursive: true, force: true });
   }
 });
+
+/**
+ * 【テスト概要】
+ * - 対象: buildTraceWeaveReport（システムレベル統合）
+ * - 条件: 実 docs/ を入力に TraceWeaveReport 全主要フィールドを生成
+ * - 期待結果: matrix と requirements の件数一致、catalog/graph が非空であること
+ * - 関連文書: TC-0041, REQ-0001, REQ-0004, SPEC-0005
+ */
+test('TC-0041: buildTraceWeaveReport - TraceWeaveReport 統合生成がダッシュボード契約を満たすこと', () => {
+  const { report } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
+
+  assert.ok(report.summary.totalRequirements > 0);
+  assert.equal(report.matrix.length, report.requirements.length);
+  assert.equal(report.strata.length, 5);
+  assert.ok(report.catalog && report.catalog.totalCount > 0);
+  assert.ok(report.graph && report.graph.nodes.length > 0);
+  assert.ok(report.graph.edges.length > 0);
+});

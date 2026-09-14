@@ -12,6 +12,8 @@ import {
 
 export type TestHandler = (inputs: Record<string, any>) => { actual: any; logs: string[] };
 
+const EXECUTION_TIMEOUT_MS = 3000;
+
 export class TestRunnerRegistry {
   private static handlers = new Map<string, TestHandler>();
 
@@ -48,7 +50,6 @@ export class TestRunnerRegistry {
       };
     };
     this.register('TC-0002', sufficiencyHandler);
-    this.register('TC-0010', sufficiencyHandler);
 
     // TC-0003 / TC-0011: Pyramid health diagnostics (Pure calculation logic with simple inputs & outputs)
     const pyramidHandler: TestHandler = inputs => {
@@ -111,6 +112,36 @@ export class TestRunnerRegistry {
    * Executes a registered test case logic with custom inputs and optional expected comparison.
    * If the test case is not registered (i.e. cannot be run with simple I/O), returns an error result.
    */
+  public static async runTestAsync(request: TestRunRequest): Promise<TestRunResult> {
+    return new Promise<TestRunResult>(resolve => {
+      let settled = false;
+      const finish = (result: TestRunResult) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(result);
+      };
+
+      const timer = setTimeout(() => {
+        finish({
+          testCaseId: request.testCaseId,
+          status: 'error',
+          actual: null,
+          expected: request.expected,
+          isMatch: false,
+          durationMs: EXECUTION_TIMEOUT_MS,
+          logs: [`[ERR_EXECUTION_TIMEOUT] 実行が ${EXECUTION_TIMEOUT_MS}ms を超過しました`],
+          error: `ERR_EXECUTION_TIMEOUT: 実行が ${EXECUTION_TIMEOUT_MS}ms を超過しました`,
+          executedAt: new Date().toISOString(),
+        });
+      }, EXECUTION_TIMEOUT_MS);
+
+      setImmediate(() => {
+        finish(this.runTest(request));
+      });
+    });
+  }
+
   public static runTest(request: TestRunRequest): TestRunResult {
     const start = performance.now();
     const handler = this.handlers.get(request.testCaseId);
