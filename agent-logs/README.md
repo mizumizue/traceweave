@@ -22,14 +22,14 @@ Cursor Agent が**作業単位**ごとに残す実行証跡の保管場所。実
 | 方向 | 追跡方法 |
 |------|----------|
 | ログ → コミット | `git log --grep AL-20260914-001 -1 --oneline` |
-| コミット → ログ | 件名の `AL-*` ID、または本文 `Log: agents-log/AL-....md` |
+| コミット → ログ | 件名の `AL-*` ID、または本文 `Log: agent-logs/AL-....md` |
 
 コミット例:
 
 ```
-AL-20260914-001: agents-log 運用基盤と作業単位コミット連携
+AL-20260914-001: agent-logs 運用基盤と作業単位コミット連携
 
-Log: agents-log/AL-20260914-001.md
+Log: agent-logs/AL-20260914-001.md
 
 Agent が 1 作業単位 = 1 ログ = 1 コミットで証跡を残す運用を定義する。
 ```
@@ -37,12 +37,12 @@ Agent が 1 作業単位 = 1 ログ = 1 コミットで証跡を残す運用を�
 ## Agent 向け運用
 
 - `.cursorignore` により Agent の通常コンテキストから除外される（**書き込み専用**）。
-- スキーマと完了フローは `.cursor/rules/agents-log.mdc` が正本。
+- スキーマと完了フローは `.cursor/rules/agent-logs.mdc` が正本。
 - ファイル名: `AL-YYYYMMDD-NNN.md`（例: `AL-20260914-001.md`）。
 
 ## テンプレート
 
-新規ログは `agents-log/_TEMPLATE.md` をコピーして作成する。
+新規ログは `agent-logs/_TEMPLATE.md` をコピーして作成する。
 
 ## レガシー
 

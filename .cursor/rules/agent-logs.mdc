@@ -1,12 +1,12 @@
 ---
-description: 作業単位で commit し agents-log/ に証跡を残す（閲覧・検索はしない）
+description: 作業単位で commit し agent-logs/ に証跡を残す（閲覧・検索はしない）
 globs: **/*
 alwaysApply: true
 ---
 
 # Agent Log & Work-Unit Commit
 
-実装・改善・調査・文書起票など、**ファイル変更を伴う作業単位**を完了したら、**1 作業単位 = 1 ログ = 1 コミット**とする。`agents-log/` は `.cursorignore` 対象のため **読み取り・検索・参照はしない**（ユーザーが明示的に閲覧を求めた場合のみ例外）。
+実装・改善・調査・文書起票など、**ファイル変更を伴う作業単位**を完了したら、**1 作業単位 = 1 ログ = 1 コミット**とする。`agent-logs/` は `.cursorignore` 対象のため **読み取り・検索・参照はしない**（ユーザーが明示的に閲覧を求めた場合のみ例外）。
 
 ## 作業単位の定義
 
@@ -17,7 +17,7 @@ alwaysApply: true
 ## 完了フロー（順序固定）
 
 1. **検証** — `npm --prefix src run lint` および必要な `npm --prefix src test` を実行し、結果を記録する。
-2. **ログ起票** — `agents-log/AL-YYYYMMDD-NNN.md` を新規作成する。
+2. **ログ起票** — `agent-logs/AL-YYYYMMDD-NNN.md` を新規作成する。
 3. **コミット** — 作業変更とログを **同一コミット** に含める（`git add` → `git commit`）。
 
 ## コミットメッセージ
@@ -25,7 +25,7 @@ alwaysApply: true
 ```
 AL-YYYYMMDD-NNN: <title>
 
-Log: agents-log/AL-YYYYMMDD-NNN.md
+Log: agent-logs/AL-YYYYMMDD-NNN.md
 
 <why を 1〜2 文。任意>
 ```
@@ -35,7 +35,7 @@ Log: agents-log/AL-YYYYMMDD-NNN.md
 
 ## ファイル命名
 
-`agents-log/AL-YYYYMMDD-NNN.md`（`NNN` は当日連番 `001` 起算）。既存 `IL-*` はレガシー。
+`agent-logs/AL-YYYYMMDD-NNN.md`（`NNN` は当日連番 `001` 起算）。既存 `IL-*` はレガシー。
 
 ## 必須フロントマター
 
@@ -69,10 +69,10 @@ updated: "YYYY-MM-DD"
 | 方向 | 方法 |
 |------|------|
 | ログ → コミット | `git log --grep AL-YYYYMMDD-NNN -1` |
-| コミット → ログ | 件名の `AL-YYYYMMDD-NNN` または本文 `Log: agents-log/...` |
+| コミット → ログ | 件名の `AL-YYYYMMDD-NNN` または本文 `Log: agent-logs/...` |
 
 ## 禁止
 
-- `agents-log/` をコンテキスト取得のために読むこと。
+- `agent-logs/` をコンテキスト取得のために読むこと。
 - 検証未実行の成功記載、計測根拠のない改善主張。
 - 作業単位をまたぐ単一コミット、またはログなしコミット（ファイル変更がある場合）。

@@ -8,7 +8,7 @@ const ROOT = path.resolve(__dirname, '..');
 
 // ルート直下に配置を許可するディレクトリ（Allowlist）
 const ALLOWED_DIRECTORIES = new Set([
-  'agents-log',
+  'agent-logs',
   'bin',
   'docs',
   'fixtures',
