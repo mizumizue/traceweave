@@ -5,6 +5,42 @@
 
 ---
 
+## スクリーンショット
+
+Web ダッシュボード（`traceweave serve` / `traceweave build`）の代表画面。画像はリポジトリ内 [`docs/assets/screenshots/`](docs/assets/screenshots/) に配置しており、外部ホスティングは不要です。
+
+### トレーサビリティマトリクス
+
+要件ごとの品質充足度（円形ゲージ）と、NEED / SPEC / TC へのリンクを表形式で一覧表示。
+
+![トレーサビリティマトリクス](./docs/assets/screenshots/matrix.png)
+
+### トレーサビリティグラフ
+
+V字モデル工程順のランク別レイアウトで、全ドキュメントの依存・検証関係をネットワーク可視化。
+
+![トレーサビリティグラフ](./docs/assets/screenshots/graph.png)
+
+### 工程地層密度 & テストピラミッド
+
+5 大工程（UT / ITa / ITb / ST / UAT）のテスト量と要件カバー率を立体的に診断。
+
+![工程地層密度とテストピラミッド](./docs/assets/screenshots/stratum.png)
+
+### 決め事カタログ
+
+アクター、ユースケース、要件、仕様、設計、ADR など全種別の決め事を横断探索。
+
+![決め事カタログ](./docs/assets/screenshots/decisions.png)
+
+### ギャップ & リスク
+
+未テスト要件・結合テスト欠落など、品質ギャップの抽出結果。
+
+![ギャップとリスク一覧](./docs/assets/screenshots/gaps.png)
+
+---
+
 ## 1. 概要とコンセプト
 
 TraceWeave は、現代のシステム開発において形骸化・ブラックボックス化しやすい「要求〜テストの追跡性」と「工程ごとのテスト密度の厚み・薄み」を一目で解読可能にするツールです。
