@@ -91,9 +91,9 @@ Resolve any detected failures:
 
 **Completion criterion**: `npm --prefix src run lint` terminates with exit code 0 (`PASS: All XX docs strictly follow docs-document-schema.mdc!`).
 
-### 6. audit (Independent SubAgent Review Gate)
+### 6. audit (Independent Review Gate)
 
-For major features or new multi-document trees, launch an independent SubAgent via the `Task` tool (`generalPurpose`) to eliminate context bias. (For small revisions, localized doc fixes, or lightweight changes, this SubAgent gate is optional and running `npm --prefix src run lint` is sufficient).
+For major features or new multi-document trees, run the `traceweave-docs-audit` skill (full branch) or launch an independent SubAgent via the `Task` tool (`generalPurpose`) using its fence-deep checklist. (For small revisions, localized doc fixes, or lightweight changes, `npm --prefix src run lint` alone is sufficient).
 
 #### SubAgent Prompt Template:
 ```text

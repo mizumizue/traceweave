@@ -184,7 +184,40 @@ AI エージェントは `.cursor/skills/traceweave-adopt/SKILL.md` を自律的
 
 ---
 
-## 7. トラブルシューティング (Troubleshooting)
+## 7. Cursor スキルのインストール (`traceweave-install-skills`)
+
+TraceWeave 付属の Cursor スキル（文書監査、V字モデル起票、導入、テストレビュー等）は `.cursor/skills/` に同梱されています。本リポジトリ内では追加作業は不要です。
+
+別マシンや外部プロジェクトへコピーする場合:
+
+```bash
+# 個人スキルへ配備（全ワークスペースで利用可能）
+npm --prefix src run install-skills -- --target personal
+
+# 外部プロジェクトへ配備（ルールも同梱）
+npm --prefix src run install-skills -- --target project --project-dir "/path/to/target" --with-rules
+
+# 変更内容の事前確認
+npm --prefix src run install-skills -- --dry-run
+```
+
+シェルラッパー:
+
+```bash
+./.cursor/skills/traceweave-install-skills/scripts/install-skills.sh --target personal
+```
+
+### ドキュメント監査スキル (`traceweave-docs-audit`)
+
+文書管理がルールに沿っているかを監査するスキルです。エージェントに次のように指示できます:
+
+> 「ドキュメント管理を audit して」「V字モデル文書がルールに沿っているかチェックして」
+
+監査は **sweep**（`npm --prefix src run lint` + `./bin/traceweave check`）と **fence-deep**（抽象度・境界の意味論チェック）の2段階で実行されます。
+
+---
+
+## 8. トラブルシューティング (Troubleshooting)
 
 ### Q. `./bin/traceweave check` で "Docs directory not found" と表示される
 - 引数でドキュメントの場所を明示してください：

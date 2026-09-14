@@ -15,7 +15,8 @@
     "test:raw": "npm run build:web && tsx --test ../tests/**/*.test.ts",
     "analyze:inputs": "tsx ../scripts/analyze-test-inputs.ts",
     "typecheck": "tsc --noEmit",
-    "lint": "tsx ../scripts/validate-docs.ts",
+    "lint": "tsx ../scripts/run-governance-lint.ts",
+    "install-skills": "tsx ../scripts/install-cursor-skills.ts",
     "export-docs": "tsx ../scripts/export-consolidated-docs.ts"
   },
   "keywords": [
