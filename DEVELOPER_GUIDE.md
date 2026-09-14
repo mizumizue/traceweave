@@ -112,7 +112,24 @@ traceweave/
 
 ---
 
-## 5. テスト・ビルド・実行コマンド
+## 5. テストケースの二軸モデル（工程層 vs 実行レイヤ）
+
+`docs/test-cases/TC-xxxx.md` の `test_level` / `test_method` と、`tests/` 配下のテストファイル配置は**別の軸**で管理する。混同するとピラミッド診断やカバレッジ集計を誤読する。
+
+| 軸 | フィールド / 配置 | 意味 |
+|---|---|---|
+| **工程層（V字モデル上の検証層）** | TC フロントマターの `test_level`（`unit` / `integration_internal` / `integration_external` / `system` / `acceptance`）および `test_method` | その TC が**どの工程・手法で要件を検証するか**を文書化する。ピラミッド健全性・地層密度の集計はこの軸を使う。 |
+| **実行レイヤ（自動テストの実装配置）** | `tests/core/`, `tests/infrastructure/`, `tests/cli/`, `tests/web/` 等 | Node.js テストスイートの**技術的な実行単位**。同一 TC が `tests/core/` に置かれていても、検証対象が CLI 契約であれば `test_level: integration_external` と記述しうる。 |
+
+**運用ルール**
+
+- TC 文書の `test_level` は「テストファイルのフォルダ名」ではなく「検証する工程」を表す。
+- 自動テストの配置は `.cursor/rules/test-writing-guidelines.mdc` および `traceweave-test-fixture` スキルの判定マトリクスに従う。
+- 合否は TC 文書に書かず、`reports/test-results.json`（ADR-0006）のみを正本とする。
+
+---
+
+## 6. テスト・ビルド・実行コマンド
 
 ```bash
 # ドキュメントスキーマの検証

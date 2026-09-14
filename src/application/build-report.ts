@@ -9,6 +9,7 @@ import { BalanceAnalyzer } from '../core/analyzer/BalanceAnalyzer.js';
 import { MatrixBuilder } from '../core/matrix/MatrixBuilder.js';
 import { TraceGraph } from '../core/graph/TraceGraph.js';
 import { TraceWeaveReport, DocNode } from '../core/models/types.js';
+import { enrichDocNodes } from './enrich-doc-nodes.js';
 
 export interface BuildReportOptions {
   docsDir?: string;
@@ -42,14 +43,15 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
   }
 
   const parser = new DocParser(cache);
-  const rawNodes = parser.parseDirectory(docsDir);
+  const parsedNodes = parser.parseDirectory(docsDir);
   const parseWarnings = parser.getLastWarnings();
+  const enrichedNodes = enrichDocNodes(parsedNodes);
 
   const reportData =
     options.loadTestReport !== false
       ? TestReportLoader.loadReport(options.testReportPath)
       : null;
-  const nodes = TestReportLoader.mergeReportIntoNodes(rawNodes, reportData);
+  const nodes = TestReportLoader.mergeReportIntoNodes(enrichedNodes, reportData);
 
   const graph = new TraceGraph();
   for (const node of nodes) {

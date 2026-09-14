@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import {
   TraceWeaveReport,
   DocNode,
+  DecisionsCatalog,
 } from '../../core/models/types.js';
 import { Toaster, toast } from 'sonner';
 import {
@@ -15,7 +16,6 @@ import {
   getHomeUrlState,
   isOnlySearchQueryChanged,
 } from './utils/urlState.js';
-import { DecisionsCatalogBuilder } from '../../core/decisions/DecisionsCatalogBuilder.js';
 import { DecisionsBrowser } from './components/DecisionsBrowser.js';
 import { TraceabilityGraphView } from './components/TraceabilityGraphView.js';
 import { VisualTestPyramid } from './components/VisualTestPyramid.js';
@@ -34,6 +34,29 @@ import {
   serializeMatrixCsv,
   serializeReportJson,
 } from './utils/matrixData.js';
+
+const EMPTY_CATALOG: DecisionsCatalog = {
+  items: [],
+  kindCounts: {
+    need: 0,
+    actor: 0,
+    use_case: 0,
+    requirement: 0,
+    specification: 0,
+    design: 0,
+    decision: 0,
+    quality_assurance: 0,
+    test_case: 0,
+    total: 0,
+  },
+  requirementClassCounts: {
+    functional: 0,
+    non_functional: 0,
+    unclassified: 0,
+  },
+  allTags: [],
+  totalCount: 0,
+};
 
 export default function App() {
   const initialUrlState = useMemo(() => parseUrlState(), []);
@@ -212,37 +235,7 @@ export default function App() {
     syncBrowserHistory(currentState, { replace: isOnlySearchQueryChanged(prevState, currentState) });
   }, [currentState]);
 
-  // Decisions catalog data (with fallback build)
-  const catalogData = useMemo(() => {
-    if (report?.catalog) {
-      return report.catalog;
-    }
-    if (report?.nodes) {
-      return DecisionsCatalogBuilder.build(report.nodes);
-    }
-    return {
-      items: [],
-      kindCounts: {
-        need: 0,
-        actor: 0,
-        use_case: 0,
-        requirement: 0,
-        specification: 0,
-        design: 0,
-        decision: 0,
-        quality_assurance: 0,
-        test_case: 0,
-        total: 0,
-      },
-      requirementClassCounts: {
-        functional: 0,
-        non_functional: 0,
-        unclassified: 0,
-      },
-      allTags: [],
-      totalCount: 0,
-    };
-  }, [report]);
+  const catalogData = useMemo(() => report?.catalog ?? EMPTY_CATALOG, [report]);
 
   // Reset filters
   const handleResetFilters = () => {

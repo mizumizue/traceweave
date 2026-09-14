@@ -3,21 +3,22 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import http from 'node:http';
 import { spawn } from 'node:child_process';
+import { enrichDocNodes } from '../../src/application/enrich-doc-nodes.js';
 import { DocParser } from '../../src/infrastructure/parser/DocParser.js';
 import { TestRunnerRegistry } from '../../src/core/testing/TestRunnerRegistry.js';
 import { repositoryPath } from '../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
- * - 対象: DocParser & 対話型テスト実行機構
- * - 条件: parameter_file を持つテストケース (TC-0010) および外部環境依存のテストケース (TC-0004) をパース
+ * - 対象: DocParser, enrichDocNodes & 対話型テスト実行機構
+ * - 条件: parameter_file を持つテストケース (TC-0010) および外部環境依存のテストケース (TC-0004) をパース後 enrichment
  * - 期待結果: TC-0010 は外部JSONパラメータが自動読み込みされ、外部ファイル依存としてUI実行対象外(ui_executable: false)となる一方、TC-0004 も除外判定されること
  * - 関連文書: TC-0011, REQ-0010, SPEC-0010
  */
 test('TC-0011: DocParser - parameter_file のパースと外部パラメータデータセットの自動ロードおよびUI実行可否判定ができること', () => {
   const parser = new DocParser();
   const tcPath = repositoryPath('docs/test-cases/TC-0010.md');
-  const node = parser.parseFile(tcPath);
+  const node = enrichDocNodes([parser.parseFile(tcPath)!])[0];
 
   assert.ok(node, 'TC-0010 node should parse successfully');
   assert.equal(node.id, 'TC-0010');
@@ -31,7 +32,7 @@ test('TC-0011: DocParser - parameter_file のパースと外部パラメータ�
   assert.equal(node.inputAnalysis.reasonCode, 'external_environment_dependency');
 
   const tc4Path = repositoryPath('docs/test-cases/TC-0004.md');
-  const node4 = parser.parseFile(tc4Path);
+  const node4 = enrichDocNodes([parser.parseFile(tc4Path)!])[0];
   assert.equal(node4?.ui_executable, false, 'TC-0004 should be excluded from UI execution (ui_executable: false)');
   assert.equal(node4?.inputAnalysis?.isModifiable, false);
   assert.equal(node4?.inputAnalysis?.reasonCode, 'external_environment_dependency');

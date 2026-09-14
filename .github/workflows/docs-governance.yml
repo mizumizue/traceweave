@@ -1,0 +1,40 @@
+name: Docs Governance
+
+on:
+  push:
+    paths:
+      - 'docs/**'
+      - 'src/infrastructure/governance/**'
+      - 'scripts/validate-docs.ts'
+      - 'scripts/run-governance-lint.ts'
+      - '.github/workflows/docs-governance.yml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'src/infrastructure/governance/**'
+      - 'scripts/validate-docs.ts'
+      - 'scripts/run-governance-lint.ts'
+      - '.github/workflows/docs-governance.yml'
+
+jobs:
+  governance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: src/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: src
+
+      - name: Governance lint (schema + fence-lite)
+        run: npm run lint
+        working-directory: src
+
+      - name: Traceability check
+        run: ./bin/traceweave check

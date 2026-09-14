@@ -3,7 +3,6 @@ import path from 'node:path';
 import matter from 'gray-matter';
 import { DocNode } from '../../core/models/types.js';
 import { SQLiteCache } from '../storage/SQLiteCache.js';
-import { TestCaseInputAnalyzer } from '../../core/analyzer/TestCaseInputAnalyzer.js';
 
 export class DocParser {
   private cache: SQLiteCache | null = null;
@@ -188,12 +187,6 @@ export class DocParser {
         content: parsed.content,
         sections,
       };
-
-      // Script-based deterministic analysis of test input modifiability
-      if (node.kind === 'test_case') {
-        node.inputAnalysis = TestCaseInputAnalyzer.analyze(node);
-        node.ui_executable = node.inputAnalysis.isModifiable;
-      }
 
       return node;
     } catch (e: unknown) {

@@ -18,6 +18,7 @@ const ALLOWED_DIRECTORIES = new Set([
   'tests',
   '.cursor',
   '.git',
+  '.github',
   '.traceweave-backup',
 ]);
 

@@ -1,53 +1,27 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { checkDocs } from '../application/check-docs.js';
 import { buildTraceWeaveReport } from '../application/build-report.js';
+import { resolveDocsDir } from '../application/resolve-docs-dir.js';
+import { createDashboardServer } from '../application/serve-dashboard.js';
+import { filterCatalog, formatCatalogJson, formatCatalogMarkdown } from '../application/format-catalog.js';
+import { formatTestInputsOutput } from '../application/format-test-inputs.js';
 import { ConsoleReporter } from '../infrastructure/reporters/ConsoleReporter.js';
 import { MarkdownReporter } from '../infrastructure/reporters/MarkdownReporter.js';
 import { HtmlReporter } from '../infrastructure/reporters/HtmlReporter.js';
-import { TestRunnerRegistry } from '../core/testing/TestRunnerRegistry.js';
-import { TestCaseInputAnalyzer } from '../core/analyzer/TestCaseInputAnalyzer.js';
-import { DecisionsCatalogBuilder } from '../core/decisions/DecisionsCatalogBuilder.js';
 import { PortManager } from '../infrastructure/system/PortManager.js';
-import { isPathInsideRoot } from '../infrastructure/system/resolveRepoRoot.js';
 import { adoptProject, rollbackAdoption, type AdoptionMode } from '../application/adopt-project.js';
 import {
   buildWebDashboard,
   prepareServeDashboard,
 } from '../application/build-web-dashboard.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 function exitOnError(err: unknown): never {
   const message = err instanceof Error ? err.message : String(err);
   console.error(`\x1b[31m✖ Error: ${message}\x1b[0m`);
   process.exit(1);
-}
-
-function resolveDocsDir(requestedPath?: string): string {
-  if (requestedPath) {
-    const resolved = path.resolve(requestedPath);
-    if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) {
-      throw new Error(`Docs directory not found: ${resolved}`);
-    }
-    return resolved;
-  }
-  const candidateDirs = [
-    path.resolve(__dirname, '../../docs'),
-    path.resolve(__dirname, '../docs'),
-    path.resolve(process.cwd(), requestedPath || './docs'),
-    path.resolve(process.cwd(), '../docs'),
-  ];
-  const resolved = candidateDirs.find(d => fs.existsSync(d) && fs.statSync(d).isDirectory());
-  if (!resolved) {
-    throw new Error('Docs directory not found');
-  }
-  return resolved;
 }
 
 const program = new Command();
@@ -200,33 +174,14 @@ program
   .action((options) => {
     try {
       const docsDir = resolveDocsDir(options.docs);
-      const { nodes } = buildTraceWeaveReport({ docsDir });
-      const analyses = TestCaseInputAnalyzer.analyzeAll(nodes);
-    const summary = TestCaseInputAnalyzer.summarize(analyses);
-
-    let output = '';
-    if (options.format === 'json') {
-      output = JSON.stringify(summary, null, 2);
-    } else if (options.format === 'markdown') {
-      const lines: string[] = [
-        '# TraceWeave - Test Case Input Modifiability Analysis\n',
-        `- **Total Test Cases**: ${summary.totalTestCases}`,
-        `- **Modifiable (UI変更可能)**: ${summary.modifiableCount}`,
-        `- **Unmodifiable (UI除外)**: ${summary.unmodifiableCount}\n`,
-        '| ID | Title | Level / Method | Status | Rule & Classification | Modifiable Fields |',
-        '|---|---|---|---|---|---|',
-      ];
-      for (const item of summary.items) {
-        const status = item.isModifiable ? '✔ Modifiable' : '✖ Excluded';
-        const fields = item.fields.length > 0 ? item.fields.map(f => `\`${f.name}\``).join(', ') : '-';
-        lines.push(
-          `| **${item.testCaseId}** | ${item.title} | \`${item.testLevel}/${item.testMethod}\` | **${status}** | ${item.analysisRule}: ${item.reasonDescription} | ${fields} |`
-        );
+      const { report } = buildTraceWeaveReport({ docsDir });
+      if (!report.inputModifiability) {
+        throw new Error('Input modifiability summary is missing from report');
       }
-      output = lines.join('\n');
-    } else {
-      output = TestCaseInputAnalyzer.formatText(summary);
-    }
+      const output = formatTestInputsOutput(
+        report.inputModifiability,
+        options.format as 'text' | 'json' | 'markdown'
+      );
 
       if (options.out) {
         fs.writeFileSync(options.out, output, 'utf-8');
@@ -255,8 +210,11 @@ program
     try {
       const docsDir = resolveDocsDir(options.docs);
       const { report } = buildTraceWeaveReport({ docsDir });
-      const catalog = report.catalog || DecisionsCatalogBuilder.build(report.nodes || []);
-      const filtered = DecisionsCatalogBuilder.filter(catalog, {
+      if (!report.catalog) {
+        throw new Error('Catalog data is missing from report');
+      }
+      const catalog = report.catalog;
+      const filtered = filterCatalog(catalog, {
         kind: options.kind,
         tag: options.tag,
         query: options.query,
@@ -264,60 +222,22 @@ program
         requirementClass: options.reqclass,
       });
 
-    if (options.format === 'json') {
-      const output = JSON.stringify(
-        {
-          totalCount: catalog.totalCount,
-          filteredCount: filtered.length,
-          kindCounts: catalog.kindCounts,
-          requirementClassCounts: catalog.requirementClassCounts,
-          items: filtered,
-        },
-        null,
-        2
-      );
-      if (options.out) {
-        fs.writeFileSync(options.out, output, 'utf-8');
-        console.log(`Catalog JSON written to ${options.out}`);
-      } else {
-        console.log(output);
-      }
-    } else if (options.format === 'markdown') {
-      const lines: string[] = [
-        '# TraceWeave - Decisions & Architecture Catalog\n',
-        `- **Total Registered**: ${catalog.totalCount}`,
-        `- **Matching**: ${filtered.length}`,
-        `- **Requirement class**: FR ${catalog.requirementClassCounts.functional} / NFR ${catalog.requirementClassCounts.non_functional}\n`,
-        '| Kind | ID | Class | Status | Title | Cross References | Tags |',
-        '|---|---|---|---|---|---|---|',
-      ];
-      for (const item of filtered) {
-        const refs: string[] = [];
-        if (item.relatedActors?.length) refs.push(`ACT:${item.relatedActors.map(a => a.id).join(',')}`);
-        if (item.relatedUseCases?.length) refs.push(`UC:${item.relatedUseCases.map(u => u.id).join(',')}`);
-        if (item.relatedDecisions?.length) refs.push(`ADR:${item.relatedDecisions.map(d => d.id).join(',')}`);
-        if (item.relatedDesigns?.length) refs.push(`DSN:${item.relatedDesigns.map(d => d.id).join(',')}`);
-        if (item.relatedReqs?.length) refs.push(`REQ:${item.relatedReqs.map(r => r.id).join(',')}`);
-        if (item.relatedSpecs?.length) refs.push(`SPEC:${item.relatedSpecs.map(s => s.id).join(',')}`);
-        const refsStr = refs.join('; ') || '-';
-        const tagsStr = item.tags.length > 0 ? item.tags.map(t => `\`${t}\``).join(' ') : '-';
-        const classStr =
-          item.kind === 'requirement'
-            ? item.requirement_class === 'non_functional'
-              ? 'NFR'
-              : item.requirement_class === 'functional'
-                ? 'FR'
-                : '-'
-            : '-';
-        lines.push(`| \`${item.kind}\` | **${item.id}** | ${classStr} | ${item.status} | ${item.title} | ${refsStr} | ${tagsStr} |`);
-      }
-      const output = lines.join('\n');
-      if (options.out) {
-        fs.writeFileSync(options.out, output, 'utf-8');
-        console.log(`Catalog Markdown written to ${options.out}`);
-      } else {
-        console.log(output);
-      }
+      if (options.format === 'json') {
+        const output = formatCatalogJson(catalog, filtered);
+        if (options.out) {
+          fs.writeFileSync(options.out, output, 'utf-8');
+          console.log(`Catalog JSON written to ${options.out}`);
+        } else {
+          console.log(output);
+        }
+      } else if (options.format === 'markdown') {
+        const output = formatCatalogMarkdown(catalog, filtered);
+        if (options.out) {
+          fs.writeFileSync(options.out, output, 'utf-8');
+          console.log(`Catalog Markdown written to ${options.out}`);
+        } else {
+          console.log(output);
+        }
       } else {
         ConsoleReporter.printCatalog(catalog, filtered);
       }
@@ -337,7 +257,10 @@ program
     try {
       const docsDir = resolveDocsDir(options.docs);
       const { report } = buildTraceWeaveReport({ docsDir });
-      const catalog = report.catalog || DecisionsCatalogBuilder.build(report.nodes || []);
+      if (!report.catalog) {
+        throw new Error('Catalog data is missing from report');
+      }
+      const catalog = report.catalog;
 
       if (options.format === 'json') {
       const adrs = catalog.items.filter(i => i.kind === 'decision');
@@ -408,121 +331,7 @@ program
       }
     }
 
-    const server = http.createServer((req, res) => {
-      // CORS & Cache-Control headers for all responses
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-
-      if (req.method === 'OPTIONS') {
-        res.writeHead(204);
-        res.end();
-        return;
-      }
-
-      const url = req.url?.split('?')[0] || '/';
-
-      if (url === '/api/data') {
-        try {
-          const { report } = buildTraceWeaveReport({ docsDir });
-          res.writeHead(200, {
-            'Content-Type': 'application/json',
-          });
-          res.end(JSON.stringify(report));
-        } catch (e: any) {
-          res.writeHead(500, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: e.message }));
-        }
-        return;
-      }
-
-      if (url === '/api/test/run' && req.method === 'POST') {
-        let body = '';
-        req.on('data', chunk => {
-          body += chunk;
-        });
-        req.on('end', () => {
-          void (async () => {
-            try {
-              const payload = JSON.parse(body);
-              const testCaseId = String(payload.testCaseId || '');
-              if (!testCaseId) {
-                res.writeHead(400, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'ERR_INVALID_REQUEST: testCaseId is required', status: 'error' }));
-                return;
-              }
-
-              const { nodes } = buildTraceWeaveReport({ docsDir });
-              const tcNode = nodes?.find(n => n.id === testCaseId && n.kind === 'test_case');
-              if (!tcNode) {
-                res.writeHead(404, { 'Content-Type': 'application/json' });
-                res.end(
-                  JSON.stringify({
-                    error: 'ERR_UNKNOWN_TEST_CASE',
-                    message: `テストケース "${testCaseId}" は登録されていません。`,
-                    status: 'error',
-                  })
-                );
-                return;
-              }
-
-              if (!tcNode.ui_executable || !TestRunnerRegistry.isExecutable(testCaseId)) {
-                res.writeHead(400, { 'Content-Type': 'application/json' });
-                res.end(
-                  JSON.stringify({
-                    error: 'ERR_NOT_UI_EXECUTABLE',
-                    message: `テストケース "${testCaseId}" はUI実行に対応していません（単純な入出力のみで実行できないテストのため除外）。`,
-                    reason: tcNode.inputAnalysis?.reasonDescription,
-                    status: 'error',
-                  })
-                );
-                return;
-              }
-
-              const result = await TestRunnerRegistry.runTestAsync({
-                testCaseId,
-                inputs: payload.inputs || {},
-                expected: payload.expected,
-              });
-              res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify(result));
-            } catch (e: any) {
-              res.writeHead(400, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ error: e.message, status: 'error' }));
-            }
-          })();
-        });
-        return;
-      }
-
-      const relativePath = url === '/' ? 'index.html' : url.replace(/^\/+/, '');
-      const targetFile = path.resolve(distWeb, relativePath);
-
-      if (!isPathInsideRoot(distWeb, targetFile)) {
-        res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
-        res.end('Forbidden');
-        return;
-      }
-
-      if (fs.existsSync(targetFile) && fs.statSync(targetFile).isFile()) {
-        const ext = path.extname(targetFile);
-        const mimeTypes: Record<string, string> = {
-          '.html': 'text/html',
-          '.js': 'text/javascript',
-          '.css': 'text/css',
-          '.json': 'application/json',
-          '.svg': 'image/svg+xml',
-        };
-        res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
-        fs.createReadStream(targetFile).pipe(res);
-      } else {
-        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-        res.end('Not found');
-      }
-    });
+    const server = createDashboardServer({ docsDir, distWeb });
 
     let retried = false;
     server.on('error', async (err: NodeJS.ErrnoException) => {

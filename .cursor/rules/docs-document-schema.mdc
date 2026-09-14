@@ -92,3 +92,18 @@ links: [] # 非依存の横断参照
 - `decision`: 関連設計がある場合は `links: [DSN-...]`
 - `test_case`: 検証対象を `verifies: [REQ-..., SPEC-...]`、`depends_on: []`
 - **DSN カバレッジ**: 全ての有効な `specification` は、自身を具現化する `design` を持たなければならない（100% カバレッジ）。
+
+## 5. Fence-lite（機械検証）
+
+`npm --prefix src run lint`（`validateDocs.ts`）が自動検査する抽象度境界。違反時は `[fence-lite]` エラーで失敗する。
+
+| 層 | 禁止例 | 移す先 |
+|---|---|---|
+| **NEED** | `` `sonner` ``, `` `VisualTestPyramid` ``（全 Content セクション） | 期待成果の自然言語 |
+| **REQ** | `1920px`, `Sticky`, ベジェ, `` `get_traceability_summary` ``, `traceweave check`, `` `serve` `` | SPEC / DSN |
+| **REQ (functional)** | `3秒以内` 等の SLA | SPEC Constraints |
+| **REQ/SPEC** | `src/...`, `tests/...` パス | DSN / TC |
+| **active REQ/SPEC** | `clean-root`, `encapsulation` タグ | ADR |
+
+- CLI 契約を REQ に書く場合は `links: [SPEC-xxxx]` で SPEC を横断参照する。
+- CI では `.github/workflows/docs-governance.yml` が `lint` + `./bin/traceweave check` を実行する。

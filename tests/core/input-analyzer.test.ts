@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import { enrichDocNodes } from '../../src/application/enrich-doc-nodes.js';
 import { DocParser } from '../../src/infrastructure/parser/DocParser.js';
 import { TestCaseInputAnalyzer } from '../../src/core/analyzer/TestCaseInputAnalyzer.js';
 import { TestRunnerRegistry } from '../../src/core/testing/TestRunnerRegistry.js';
@@ -171,7 +172,7 @@ test('TC-0040: TestCaseInputAnalyzer と TestRunnerRegistry - 外部依存TCがU
   const tc4 = parser.parseFile(repositoryPath('docs/test-cases/TC-0004.md'));
   assert.ok(tc10 && tc4);
 
-  for (const node of [tc10!, tc4!]) {
+  for (const node of enrichDocNodes([tc10!, tc4!])) {
     const analysis = TestCaseInputAnalyzer.analyze(node);
     assert.equal(node.ui_executable, false);
     assert.equal(analysis.isModifiable, false);

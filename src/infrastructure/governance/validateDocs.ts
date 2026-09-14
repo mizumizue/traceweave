@@ -83,6 +83,80 @@ export interface DocItem {
   body: string;
 }
 
+const DOC_ID_BACKTICK = /`(NEED|REQ|SPEC|DSN|ADR|QA|TC|ACT|UC)-\d{4,}`/;
+
+const NEED_ALLOWED_SCHEMA_TOKENS = new Set([
+  'depends_on',
+  'verifies',
+  'actor_refs',
+  'requirement_refs',
+  'links',
+]);
+
+const CLI_SUBCOMMAND_BACKTICK =
+  /`(?:check|matrix|report|build|serve|catalog|decisions|mcp|adopt|test-inputs|inputs)`/;
+
+function extractContentBody(body: string): string {
+  const parts = body.split(/^## Content\s*$/m);
+  return parts.length < 2 ? body : parts.slice(1).join('## Content');
+}
+
+function findBacktickImplementationLeaks(text: string): string[] {
+  const leaks: string[] = [];
+  const backtickMatches = text.match(/`[^`]+`/g) ?? [];
+
+  for (const match of backtickMatches) {
+    if (DOC_ID_BACKTICK.test(match)) continue;
+    const inner = match.slice(1, -1);
+    if (NEED_ALLOWED_SCHEMA_TOKENS.has(inner)) continue;
+    if (/^[a-z][a-z0-9-]*$/.test(inner) || /^[A-Z][a-zA-Z0-9]*$/.test(inner)) {
+      leaks.push(match);
+    }
+  }
+
+  return [...new Set(leaks)];
+}
+
+function findNeedImplementationLeaks(body: string): string[] {
+  return findBacktickImplementationLeaks(extractContentBody(body));
+}
+
+function findRequirementFenceLeaks(body: string, requirementClass: string | undefined): string[] {
+  const leaks: string[] = [];
+  const content = extractContentBody(body);
+  const statementMatch = content.match(/^### Statement\s*[\r\n]+([\s\S]*?)(?=^### Acceptance Criteria\s*$)/m);
+  const statement = statementMatch?.[1] ?? '';
+  const acLines = content.match(/^- AC-\d{3}:[^\r\n]+/gm) ?? [];
+  const reqText = [statement, ...acLines].join('\n');
+
+  if (requirementClass === 'functional' && /\d+秒以内/.test(reqText)) {
+    leaks.push('functional requirement must not declare timing SLA (move to SPEC Constraints)');
+  }
+  if (/\d+px\b/i.test(reqText)) {
+    leaks.push('pixel dimensions (e.g. 1920px)');
+  }
+  if (/\bSticky\b/i.test(reqText)) {
+    leaks.push('CSS presentation token "Sticky"');
+  }
+  if (/ベジェ|Bezier/i.test(reqText)) {
+    leaks.push('rendering technique (Bezier)');
+  }
+  if (/depends_on:\s*\[/i.test(reqText)) {
+    leaks.push('schema field notation "depends_on: [...]"');
+  }
+  if (/`(?:get|check)_[a-z_]+`/i.test(reqText)) {
+    leaks.push('MCP tool identifier in backticks');
+  }
+  if (/\btraceweave\s+[a-z][a-z0-9-]*/i.test(reqText)) {
+    leaks.push('CLI subcommand invocation (route command names to SPEC)');
+  }
+  if (CLI_SUBCOMMAND_BACKTICK.test(reqText)) {
+    leaks.push('CLI subcommand name in backticks (route to SPEC)');
+  }
+
+  return leaks;
+}
+
 export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): { passed: boolean; errors: string[]; docs: DocItem[] } {
   const errors: string[] = [];
   const docs: DocItem[] = [];
@@ -337,6 +411,15 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): { passed: bool
       }
     }
 
+    if (kind === 'need' && !isRetiredDocStatus(meta.status)) {
+      const needLeaks = findNeedImplementationLeaks(body);
+      for (const leak of needLeaks) {
+        errors.push(
+          `${filePath}: [fence-lite] need must not name implementation artifacts (found ${leak}). Express outcomes only.`
+        );
+      }
+    }
+
     if (kind === 'requirement' && !isRetiredDocStatus(meta.status)) {
       const acLines = body.match(/^- AC-\d{3}:[^\r\n]+/gm) || [];
       if (acLines.length === 0) {
@@ -348,6 +431,10 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): { passed: bool
             `${filePath}: [fence-lite] Acceptance criterion must follow "- AC-xxx: Given ... When ... Then ...": ${line}`
           );
         }
+      }
+      const reqLeaks = findRequirementFenceLeaks(body, meta.requirement_class);
+      for (const leak of reqLeaks) {
+        errors.push(`${filePath}: [fence-lite] requirement must express observable outcomes only (found ${leak})`);
       }
     }
 

@@ -135,3 +135,248 @@ test('validateDocs - test_case 本文の ### Evidence セクションが ADR-000
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 });
+
+function writeMinimalNeedWithDesiredOutcome(docsDir: string, desiredOutcome: string): void {
+  const needDir = path.join(docsDir, 'needs');
+  fs.mkdirSync(needDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(needDir, 'NEED-0001.md'),
+    `---
+schema_version: 3
+id: NEED-0001
+kind: need
+title: Sample need
+status: accepted
+created: "2026-09-12"
+updated: "2026-09-12"
+scope: local
+depends_on: []
+tags: [test]
+links: []
+---
+## Content
+
+### Background
+Background.
+
+### Problem
+Problem.
+
+### Desired Outcome
+${desiredOutcome}
+`,
+    'utf8'
+  );
+}
+
+function writeRequirementWithAc(docsDir: string, statement: string, acLine: string): void {
+  const reqDir = path.join(docsDir, 'requirements');
+  fs.mkdirSync(reqDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(reqDir, 'REQ-0001.md'),
+    `---
+schema_version: 3
+id: REQ-0001
+kind: requirement
+title: Sample requirement
+status: accepted
+created: "2026-09-12"
+updated: "2026-09-12"
+scope: local
+depends_on: []
+tags: [test]
+links: []
+requirement_class: functional
+---
+## Content
+
+### Statement
+${statement}
+
+### Acceptance Criteria
+${acLine}
+`,
+    'utf8'
+  );
+}
+
+/**
+ * 【テスト概要】
+ * - 対象: validateDocs (NEED Desired Outcome の fence-lite 検査)
+ * - 条件: Desired Outcome に実装ライブラリ名 `sonner` を含む NEED フィクスチャを検証
+ * - 期待結果: passed: false となり、implementation artifacts エラーが返ること
+ */
+test('validateDocs - NEED の Desired Outcome に実装名がある場合は fence-lite 違反となること', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tw-validate-docs-need-'));
+  try {
+    const docsDir = path.join(tempDir, 'docs');
+    writeMinimalNeedWithDesiredOutcome(docsDir, 'Integrate `sonner` for toast feedback.');
+
+    const result = validateDocs(docsDir);
+    assert.equal(result.passed, false);
+    assert.ok(
+      result.errors.some((err) => err.includes('implementation artifacts') && err.includes('sonner')),
+      `Expected need fence-lite error, got: ${result.errors.join(', ')}`
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: validateDocs (NEED Problem セクションの fence-lite 検査)
+ * - 条件: Problem に実装コンポーネント名 `VisualTestPyramid` を含む NEED フィクスチャを検証
+ * - 期待結果: passed: false となり、implementation artifacts エラーが返ること
+ */
+test('validateDocs - NEED の Problem セクションに実装名がある場合は fence-lite 違反となること', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tw-validate-docs-need-problem-'));
+  try {
+    const docsDir = path.join(tempDir, 'docs');
+    const needDir = path.join(docsDir, 'needs');
+    fs.mkdirSync(needDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(needDir, 'NEED-0001.md'),
+      `---
+schema_version: 3
+id: NEED-0001
+kind: need
+title: Sample need
+status: accepted
+created: "2026-09-12"
+updated: "2026-09-12"
+scope: local
+depends_on: []
+tags: [test]
+links: []
+---
+## Content
+
+### Background
+Background.
+
+### Problem
+Missing \`VisualTestPyramid\` visualization.
+
+### Desired Outcome
+Outcome without code names.
+`,
+      'utf8'
+    );
+
+    const result = validateDocs(docsDir);
+    assert.equal(result.passed, false);
+    assert.ok(
+      result.errors.some(
+        (err) => err.includes('implementation artifacts') && err.includes('VisualTestPyramid')
+      ),
+      `Expected need Problem fence-lite error, got: ${result.errors.join(', ')}`
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: validateDocs (NEED Problem セクションの許容トークン)
+ * - 条件: Problem にスキーマフィールド名 `depends_on` を含む NEED フィクスチャを検証
+ * - 期待結果: passed: true となり、スキーマトークンは誤検知されないこと
+ */
+test('validateDocs - NEED の Problem にスキーマフィールド名がある場合は fence-lite を通過すること', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tw-validate-docs-need-schema-'));
+  try {
+    const docsDir = path.join(tempDir, 'docs');
+    const needDir = path.join(docsDir, 'needs');
+    fs.mkdirSync(needDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(needDir, 'NEED-0001.md'),
+      `---
+schema_version: 3
+id: NEED-0001
+kind: need
+title: Sample need
+status: accepted
+created: "2026-09-12"
+updated: "2026-09-12"
+scope: local
+depends_on: []
+tags: [test]
+links: []
+---
+## Content
+
+### Background
+Background.
+
+### Problem
+Links use \`depends_on\` and \`verifies\`.
+
+### Desired Outcome
+Navigate related documents.
+`,
+      'utf8'
+    );
+
+    const result = validateDocs(docsDir);
+    assert.equal(result.passed, true, result.errors.join(', '));
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: validateDocs (REQ の fence-lite 検査)
+ * - 条件: AC にピクセル寸法 1920px を含む REQ フィクスチャを検証
+ * - 期待結果: passed: false となり、observable outcomes エラーが返ること
+ */
+test('validateDocs - REQ の AC にピクセル寸法がある場合は fence-lite 違反となること', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tw-validate-docs-req-'));
+  try {
+    const docsDir = path.join(tempDir, 'docs');
+    writeRequirementWithAc(
+      docsDir,
+      'Show a graph.',
+      '- AC-001: Given graph When view Then width is 1920px.'
+    );
+
+    const result = validateDocs(docsDir);
+    assert.equal(result.passed, false);
+    assert.ok(
+      result.errors.some((err) => err.includes('observable outcomes') && err.includes('1920px')),
+      `Expected requirement fence-lite error, got: ${result.errors.join(', ')}`
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: validateDocs (REQ の CLI サブコマンド fence-lite 検査)
+ * - 条件: AC に `traceweave check` 呼び出しを含む REQ フィクスチャを検証
+ * - 期待結果: passed: false となり、CLI subcommand エラーが返ること
+ */
+test('validateDocs - REQ に CLI サブコマンド呼び出しがある場合は fence-lite 違反となること', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tw-validate-docs-req-cli-'));
+  try {
+    const docsDir = path.join(tempDir, 'docs');
+    writeRequirementWithAc(
+      docsDir,
+      'Provide CLI.',
+      '- AC-001: Given docs When traceweave check runs Then exit code is 0.'
+    );
+
+    const result = validateDocs(docsDir);
+    assert.equal(result.passed, false);
+    assert.ok(
+      result.errors.some(
+        (err) => err.includes('observable outcomes') && err.includes('CLI subcommand')
+      ),
+      `Expected CLI fence-lite error, got: ${result.errors.join(', ')}`
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});

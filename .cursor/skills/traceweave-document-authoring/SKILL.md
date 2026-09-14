@@ -76,11 +76,12 @@ Write Markdown content adhering strictly to schema headings:
 
 **Completion criterion**: Every document contains the exact heading sequence for its `kind`, with valid frontmatter metadata.
 
-### 5. verify (Run deterministic validation)
+### 5. verify (Run deterministic validation — mandatory for every doc change)
 
-Run the project validation script:
+Run the project validation script before declaring any document work complete:
 ```bash
 npm --prefix src run lint
+./bin/traceweave check
 ```
 Resolve any detected failures:
 - Kind/directory mismatch, invalid ID, or filename stem mismatch.
@@ -88,12 +89,15 @@ Resolve any detected failures:
 - Out-of-Scope boundary violations in active requirements or specifications.
 - Missing `external` tag on interface specifications.
 - DSN coverage gaps for active specifications.
+- **Fence-lite abstraction leaks** (`[fence-lite]` in lint output):
+  - **NEED**: no implementation names in backticks anywhere under `## Content` (packages, components). Schema tokens (`depends_on`, `verifies`) and document IDs are allowed.
+  - **REQ**: no pixel/CSS/rendering details, MCP tool IDs, `traceweave <cmd>` invocations, or backtick CLI subcommand names. Functional REQ must not declare timing SLAs. Route contracts to SPEC; add `links: [SPEC-xxxx]` when referencing CLI/MCP contracts.
 
-**Completion criterion**: `npm --prefix src run lint` terminates with exit code 0 (`PASS: All XX docs strictly follow docs-document-schema.mdc!`).
+**Completion criterion**: Both commands exit 0. Never skip lint for "small" doc edits — fence-lite exists precisely to catch recurring boundary leaks mechanically.
 
 ### 6. audit (Independent Review Gate)
 
-For major features or new multi-document trees, run the `traceweave-docs-audit` skill (full branch) or launch an independent SubAgent via the `Task` tool (`generalPurpose`) using its fence-deep checklist. (For small revisions, localized doc fixes, or lightweight changes, `npm --prefix src run lint` alone is sufficient).
+For major features or new multi-document trees, run the `traceweave-docs-audit` skill (full branch) or launch an independent SubAgent via the `Task` tool (`generalPurpose`) using its fence-deep checklist. Localized doc fixes still require Step 5 lint; Step 6 adds semantic fence-deep beyond regex.
 
 #### SubAgent Prompt Template:
 ```text

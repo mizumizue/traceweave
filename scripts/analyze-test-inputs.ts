@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 import path from 'node:path';
 import { DocParser } from '../src/infrastructure/parser/DocParser.js';
+import { enrichDocNodes } from '../src/application/enrich-doc-nodes.js';
 import { TestCaseInputAnalyzer } from '../src/core/analyzer/TestCaseInputAnalyzer.js';
 
 const docsDir = path.resolve(process.argv[2] || './docs');
@@ -11,7 +12,7 @@ const format = process.argv.includes('--json')
   : 'text';
 
 const parser = new DocParser();
-const nodes = parser.parseDirectory(docsDir);
+const nodes = enrichDocNodes(parser.parseDirectory(docsDir));
 const analyses = TestCaseInputAnalyzer.analyzeAll(nodes);
 const summary = TestCaseInputAnalyzer.summarize(analyses);
 

@@ -66,6 +66,6 @@
 
 ## 4. リポジトリ構成とクリーンルート規約
 
-lucid-memories の設計指針（ADR-0008, ADR-0006）に厳格に準拠し、リポジトリルートには製品のガバナンス・全体構成マップ（`README.md`, `USER_GUIDE.md`, `ARCHITECTURE.md`, `DEVELOPER_GUIDE.md`）、除外設定（`.gitignore`）、および実行用ラッパー（`bin/`）のみを最前面に配置する。
+lucid-memories のクリーンルート指針を参考に、TraceWeave ではリポジトリ構成を [ADR-0004](docs/decisions/ADR-0004.md)（Web 資材の `src/web/` カプセル化）および [ADR-0005](docs/decisions/ADR-0005.md)（`node_modules` / `dist` の `src/` 集約）で管理する。リポジトリルートには製品のガバナンス・全体構成マップ（`README.md`, `USER_GUIDE.md`, `ARCHITECTURE.md`, `DEVELOPER_GUIDE.md`）、除外設定（`.gitignore`）、および実行用ラッパー（`bin/`）のみを最前面に配置する。
 
 `package.json`, `tsconfig.json`、依存パッケージ群（`node_modules/`）、およびビルド成果物（`dist/`）を含むすべての実装資産は `src/` 配下に完全カプセル化する（Web ダッシュボード開発資材・成果物は `src/web/` 内）。ルート直下に個別の開発資材、ビルド成果物、依存キャッシュディレクトリを一切露出させない。すべての CLI コマンドは `bin/traceweave` ラッパーが `NODE_PATH` を自動解決して透過実行する。
