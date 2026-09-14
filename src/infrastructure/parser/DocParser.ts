@@ -109,17 +109,19 @@ export class DocParser {
       const contentSplit = content.split(/^## Content\s*$/m);
       const body = contentSplit.length > 1 ? contentSplit.slice(1).join('## Content') : content;
 
-      // Extract ### headings and content (ADR-0006: test_case keeps spec sections only)
+      // Extract ### headings and content (ADR-0006: test_case keeps spec sections only).
+      // Split by headings instead of regex lookahead: a blank line after `### Title` must not
+      // yield an empty section (multiline `$` in the old regex stopped at the first line break).
       const testCaseSections = new Set(['Objective', 'Preconditions', 'Steps', 'Expected Results']);
-      const headingRegex = /^### ([^\r\n]+)\r?\n([\s\S]*?)(?=(?:^### [^\r\n]+)|$)/gm;
-      let match;
-      while ((match = headingRegex.exec(body)) !== null) {
-        const headingTitle = match[1].trim();
+      const headingBlocks = body.split(/^### /m).slice(1);
+      for (const block of headingBlocks) {
+        const newlineIdx = block.indexOf('\n');
+        if (newlineIdx === -1) continue;
+        const headingTitle = block.slice(0, newlineIdx).trim();
         if (data.kind === 'test_case' && !testCaseSections.has(headingTitle)) {
           continue;
         }
-        const headingBody = match[2].trim();
-        sections[headingTitle] = headingBody;
+        sections[headingTitle] = block.slice(newlineIdx + 1).trim();
       }
 
       const execution_status = data.kind === 'test_case' ? 'pending' : data.execution_status || undefined;

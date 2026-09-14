@@ -54,6 +54,14 @@ export class SQLiteCache {
       if (node.kind === 'requirement' && node.requirement_class === undefined) {
         return null;
       }
+      if (
+        node.sections &&
+        Object.keys(node.sections).length > 0 &&
+        Object.values(node.sections).every(value => !value?.trim()) &&
+        node.content.includes('### ')
+      ) {
+        return null;
+      }
       return node;
     } catch {
       return null;
