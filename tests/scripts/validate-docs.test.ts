@@ -5,6 +5,81 @@ import path from 'node:path';
 import os from 'node:os';
 import { validateDocs } from '../../scripts/validate-docs.js';
 
+function writeMinimalSpecification(docsDir: string, reqId = 'REQ-0001'): void {
+  const specDir = path.join(docsDir, 'specifications');
+  fs.mkdirSync(specDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(specDir, 'SPEC-0001.md'),
+    `---
+schema_version: 3
+id: SPEC-0001
+kind: specification
+title: Sample specification
+status: accepted
+created: "2026-09-12"
+updated: "2026-09-12"
+scope: local
+depends_on: [${reqId}]
+tags: [test]
+links: []
+---
+## Content
+
+### Contract
+Sample contract.
+
+### Inputs
+None.
+
+### Outputs
+Success.
+
+### Errors
+None.
+
+### Constraints
+None.
+`,
+    'utf8'
+  );
+}
+
+function writeMinimalDesign(docsDir: string): void {
+  const designDir = path.join(docsDir, 'design');
+  fs.mkdirSync(designDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(designDir, 'DSN-0001.md'),
+    `---
+schema_version: 3
+id: DSN-0001
+kind: design
+title: Sample design
+status: accepted
+created: "2026-09-12"
+updated: "2026-09-12"
+scope: local
+depends_on: [SPEC-0001]
+tags: [test]
+links: []
+---
+## Content
+
+### Decision
+Sample decision.
+
+### Structure
+Sample structure.
+
+### Data Flow
+Input to output.
+
+### Trade-offs
+None.
+`,
+    'utf8'
+  );
+}
+
 function writeMinimalRequirement(docsDir: string): void {
   const reqDir = path.join(docsDir, 'requirements');
   fs.mkdirSync(reqDir, { recursive: true });
@@ -376,6 +451,56 @@ test('validateDocs - REQ に CLI サブコマンド呼び出しがある場合�
       ),
       `Expected CLI fence-lite error, got: ${result.errors.join(', ')}`
     );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: validateDocs (REQ の SPEC カバレッジ検査)
+ * - 条件: 有効な REQ のみを置き、どの SPEC も depends_on で参照しないフィクスチャを検証
+ * - 期待結果: passed: true のまま、孤児 REQ の Coverage gap 警告が返ること
+ */
+test('validateDocs - 有効な REQ がどの SPEC からも depends_on されない場合は孤児として警告されること', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tw-validate-docs-orphan-req-'));
+  try {
+    const docsDir = path.join(tempDir, 'docs');
+    writeMinimalRequirement(docsDir);
+
+    const result = validateDocs(docsDir);
+    assert.equal(result.passed, true);
+    assert.ok(
+      result.warnings.some((warn) =>
+        warn.includes('Coverage gap: Active requirement "REQ-0001" has no matching specification (SPEC-) depending on it.')
+      ),
+      `Expected orphan REQ coverage warning, got errors=[${result.errors.join(', ')}] warnings=[${result.warnings.join(', ')}]`
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: validateDocs (REQ の SPEC カバレッジ検査)
+ * - 条件: REQ と SPEC.depends_on [REQ-0001]、および DSN を揃えた最小フィクスチャを検証
+ * - 期待結果: 孤児 REQ の Coverage gap エラーが発生しないこと
+ */
+test('validateDocs - 有効な REQ が SPEC の depends_on で参照されている場合は孤児扱いにならないこと', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tw-validate-docs-covered-req-'));
+  try {
+    const docsDir = path.join(tempDir, 'docs');
+    writeMinimalRequirement(docsDir);
+    writeMinimalSpecification(docsDir);
+    writeMinimalDesign(docsDir);
+
+    const result = validateDocs(docsDir);
+    assert.ok(
+      !result.warnings.some((warn) => warn.includes('Coverage gap: Active requirement "REQ-0001"')),
+      `Unexpected orphan REQ coverage warning: ${result.warnings.join(', ')}`
+    );
+    assert.equal(result.passed, true, `Validation failed with errors: ${result.errors.join(', ')}`);
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }

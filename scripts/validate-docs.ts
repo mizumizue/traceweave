@@ -14,6 +14,12 @@ if (process.argv[1] && process.argv[1].endsWith('validate-docs.ts')) {
     console.log(
       `\x1b[32mPASS: schema OK (${result.docs.length} docs). fence-lite OK. fence-deep: not_verified.\x1b[0m`
     );
+    if (result.warnings.length > 0) {
+      console.warn(`\x1b[33mWARN: ${result.warnings.length} warning(s):\x1b[0m`);
+      for (const warn of result.warnings) {
+        console.warn(`  - ${warn}`);
+      }
+    }
     process.exit(0);
   }
 }

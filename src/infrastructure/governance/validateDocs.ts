@@ -157,13 +157,19 @@ function findRequirementFenceLeaks(body: string, requirementClass: string | unde
   return leaks;
 }
 
-export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): { passed: boolean; errors: string[]; docs: DocItem[] } {
+export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): {
+  passed: boolean;
+  errors: string[];
+  warnings: string[];
+  docs: DocItem[];
+} {
   const errors: string[] = [];
+  const warnings: string[] = [];
   const docs: DocItem[] = [];
   const allIds = new Set<string>();
 
   if (!fs.existsSync(docsDir)) {
-    return { passed: true, errors: [], docs: [] };
+    return { passed: true, errors: [], warnings: [], docs: [] };
   }
 
   const subdirs = fs.readdirSync(docsDir);
@@ -457,6 +463,31 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): { passed: bool
     }
   }
 
+  // Check SPEC coverage for active requirements
+  const activeReqIds = new Set<string>();
+  const reqCoveredBySpec = new Set<string>();
+
+  for (const doc of docs) {
+    if (doc.meta.kind === 'requirement' && !isRetiredDocStatus(doc.meta.status)) {
+      activeReqIds.add(doc.meta.id);
+    }
+    if (doc.meta.kind === 'specification' && !isRetiredDocStatus(doc.meta.status)) {
+      for (const dep of doc.meta.depends_on || []) {
+        if (dep.startsWith('REQ-')) {
+          reqCoveredBySpec.add(dep);
+        }
+      }
+    }
+  }
+
+  for (const reqId of activeReqIds) {
+    if (!reqCoveredBySpec.has(reqId)) {
+      warnings.push(
+        `Coverage gap: Active requirement "${reqId}" has no matching specification (SPEC-) depending on it.`
+      );
+    }
+  }
+
   // Check DSN coverage for active specifications
   const activeSpecIds = new Set<string>();
   const specCoveredByDsn = new Set<string>();
@@ -486,6 +517,7 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): { passed: bool
   return {
     passed: errors.length === 0,
     errors,
+    warnings,
     docs,
   };
 }

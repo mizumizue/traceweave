@@ -91,6 +91,7 @@ links: [] # 非依存の横断参照
 - `use_case`: `actor_refs: [ACT-...]`, `requirement_refs: [REQ-...]`
 - `decision`: 関連設計がある場合は `links: [DSN-...]`
 - `test_case`: 検証対象を `verifies: [REQ-..., SPEC-...]`、`depends_on: []`
+- **SPEC カバレッジ（警告）**: 有効な `requirement` に `depends_on` で参照する `specification` が無い場合は `validateDocs` が警告を出す（起票途中の孤児 REQ を許容）。`links` は精緻化の代わりにならない。DSN カバレッジは引き続き error。
 - **DSN カバレッジ**: 全ての有効な `specification` は、自身を具現化する `design` を持たなければならない（100% カバレッジ）。
 
 ## 5. Fence-lite（機械検証）

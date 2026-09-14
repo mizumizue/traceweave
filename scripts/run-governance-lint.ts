@@ -10,7 +10,14 @@ const ROOT = path.resolve(__dirname, '..');
 
 export interface GovernanceLintResult {
   passed: boolean;
-  docs: { passed: boolean; errorCount: number; errors: string[]; docCount: number };
+  docs: {
+    passed: boolean;
+    errorCount: number;
+    errors: string[];
+    warningCount: number;
+    warnings: string[];
+    docCount: number;
+  };
   localPaths: { passed: boolean; findingCount: number; findings: string[] };
   cleanRoot: { passed: boolean; violationCount: number; violations: string[] };
 }
@@ -24,6 +31,8 @@ export function runGovernanceLint(rootDir: string = ROOT): GovernanceLintResult 
     passed: docsResult.passed,
     errorCount: docsResult.errors.length,
     errors: docsResult.errors,
+    warningCount: docsResult.warnings.length,
+    warnings: docsResult.warnings,
     docCount: docsResult.docs.length,
   };
 
@@ -55,6 +64,14 @@ function printResult(result: GovernanceLintResult): void {
     console.log(
       `\x1b[32mPASS: schema (${docs.docCount} docs). fence-lite OK.\x1b[0m`
     );
+    if (docs.warningCount > 0) {
+      console.warn(
+        `\x1b[33mWARN: validate-docs — ${docs.warningCount} warning(s)\x1b[0m`
+      );
+      for (const warn of docs.warnings) {
+        console.warn(`  - ${warn}`);
+      }
+    }
   } else {
     console.error(`\x1b[31mFAIL: validate-docs — ${docs.errorCount} error(s)\x1b[0m`);
     for (const err of docs.errors) {

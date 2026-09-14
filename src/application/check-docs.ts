@@ -57,6 +57,9 @@ export function checkDocs(options: CheckOptions = {}): CheckResult {
   for (const err of schemaResult.errors) {
     errors.push(`[schema] ${err}`);
   }
+  for (const warn of schemaResult.warnings) {
+    warnings.push(`[schema] ${warn}`);
+  }
 
   try {
     const { report, graph, nodes, parseWarnings } = buildTraceWeaveReport({
