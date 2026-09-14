@@ -19,6 +19,7 @@ alwaysApply: true
 1. **検証** — `npm --prefix src run lint` および必要な `npm --prefix src test` を実行し、結果を記録する。
 2. **ログ起票** — `agent-logs/AL-YYYYMMDD-NNN.md` を新規作成する。
 3. **コミット** — 作業変更とログを **同一コミット** に含める（`git add` → `git commit`）。
+4. **コミット記録** — コミット直後にフロントマター `commit:` にハッシュを記録する（任意だが推奨）。
 
 ## コミットメッセージ
 
@@ -50,6 +51,7 @@ status: done
 entrypoint: path-a | path-b | path-c | path-d | n/a
 trigger: ユーザー指示または関連文書 ID の要約
 related: []
+commit: "<git commit hash>"  # 任意。コミット直後に記録
 created: "YYYY-MM-DD"
 updated: "YYYY-MM-DD"
 ---
@@ -57,22 +59,27 @@ updated: "YYYY-MM-DD"
 
 ## 必須本文（`## Content` 直下）
 
-1. **`### Objective`** — 何のために行ったか。
+1. **`### Objective`** — 課題と対応方針（ストーリー重視）。**課題:** で困りごと、**対応:** で何をどう向き合うかを書く。実装手順の列挙は避ける。
 2. **`### Completion Criteria`** — 完了条件チェックリスト（`[x]` / `[ ]`）。
-3. **`### Changes`** — Path / Action / Summary（相対パスのみ）。
-4. **`### Improvements`** — 改善時のみ（Before / After / How Measured）。該当なしは `N/A`。
-5. **`### Verification`** — 実行コマンドと結果。
-6. **`### Notes`** — 判断理由、SubAgent ID、フォローアップ。
+3. **`### Changes`** — 意味単位（3〜5 件）ごとの Summary。各 Summary は状況・対応・狙いを含む手厚い説明（2〜4 文）。ファイル単位の全件列挙は不要。フロントマター `commit:` をファイル一覧の正本とする。
+4. **`### Outcome`** — 変更の結果、何がどうなるか（人間向け）。利用者・運用・システムの振る舞いがどう変わるかを 1〜3 文で書く。ファイル差分や Changes の再掲は禁止。該当なしは `N/A`。
+5. **`### Deferred`** — （任意）この作業単位に含まれないもの。分割コミット時に後続 AL-ID を列挙。該当なしは省略可。
+6. **`### Improvements`** — 改善時のみ（Before / After / How Measured）。該当なしは `N/A`。
+7. **`### Verification`** — 実行コマンドと結果。
+8. **`### Notes`** — 判断理由、SubAgent ID、フォローアップ。
 
 ## 追跡の双方向リンク
 
 | 方向 | 方法 |
 |------|------|
-| ログ → コミット | `git log --grep AL-YYYYMMDD-NNN -1` |
+| ログ → コミット | フロントマター `commit:` または `git log --grep AL-YYYYMMDD-NNN -1` |
 | コミット → ログ | 件名の `AL-YYYYMMDD-NNN` または本文 `Log: agent-logs/...` |
+| コミットの変更内容 | `git show "$(git log --grep 'AL-YYYYMMDD-NNN' -1 --format=%H)" --stat` — IDE 閲覧は `git switch --detach <hash>` → `git switch -`。詳細は `agent-logs/README.md` |
 
 ## 禁止
 
 - `agent-logs/` をコンテキスト取得のために読むこと。
 - 検証未実行の成功記載、計測根拠のない改善主張。
 - 作業単位をまたぐ単一コミット、またはログなしコミット（ファイル変更がある場合）。
+- Outcome に Changes の再掲やファイル名の列挙をすること。
+- Changes にファイル全件列挙をすること（`commit:` に委譲）。
