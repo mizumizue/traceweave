@@ -1,6 +1,6 @@
 # TraceWeave インストール & 導入ガイド (Installation & Adoption Guide)
 
-本書は、**TraceWeave**（トレースウィーブ）の動作環境要件、初期セットアップ、CLI コマンドおよび MCP 連携の有効化、ならびに**異なる構造を持つ外部プロジェクトへの導入・適用手順（一時適用／完全再構成）**を網羅した公式ガイドです。
+**TraceWeave**（トレースウィーブ）の動作要件、初期セットアップ、MCP 連携、外部プロジェクトへの導入（一時適用／完全再構成）を説明するガイドです。
 
 ---
 
@@ -15,9 +15,9 @@
 
 ## 2. TraceWeave 本体のセットアップ (Quick Setup)
 
-リポジトリをクローンした後、`./bin/traceweave` を実行するだけで初回の依存関係インストールと Web ビルドが自動で行われます。
+リポジトリをクローンしたあと、`./bin/traceweave` を実行すれば、初回の依存関係インストールと Web ビルドは自動で行われます。
 
-> 💡 **クリーンルート規約**: TraceWeave では `package.json` や `node_modules` がすべて `src/` 配下にカプセル化されています。通常は手動の `npm install` は不要です。
+> 💡 **クリーンルート規約**: `package.json` や `node_modules` はすべて `src/` 配下にあります。通常は手動の `npm install` は不要です。
 
 ```bash
 # 1. リポジトリのクローン
@@ -31,7 +31,8 @@ cd traceweave
 ./bin/traceweave serve
 ```
 
-Windows 環境（PowerShell / コマンドプロンプト）の場合は以下のように実行します：
+Windows 環境（PowerShell / コマンドプロンプト）では次のように実行します。
+
 ```powershell
 # PowerShell
 .\bin\traceweave.ps1 check
@@ -44,7 +45,7 @@ Windows 環境（PowerShell / コマンドプロンプト）の場合は以下�
 
 ## 3. グローバル利用の設定 (CLI をどこからでも呼ぶ)
 
-端末内のあらゆる作業ディレクトリから `traceweave` コマンドを実行できるようにするには、`npm link` を使用してグローバル登録します。
+どの作業ディレクトリからでも `traceweave` を実行するには、`npm link` でグローバル登録します。
 
 ```bash
 # src/ ディレクトリをグローバルリンク
@@ -61,11 +62,11 @@ traceweave --version
 
 ## 4. AI エージェント連携（MCP サーバーの登録）
 
-TraceWeave は **Model Context Protocol (MCP)** を標準サポートしています。Cursor や Claude Desktop 等の AI エージェントに登録することで、エージェントが自律的にトレーサビリティ分析や品質診断を実行できます。
+TraceWeave は **Model Context Protocol (MCP)** に対応しています。Cursor や Claude Desktop などの AI エージェントに登録すると、トレーサビリティ分析や品質診断を実行できます。
 
 ### Cursor での設定 (`.cursor/mcp.json`)
 
-プロジェクトまたはグローバルの `.cursor/mcp.json` に以下を追記します：
+プロジェクトまたはグローバルの `.cursor/mcp.json` に次を追記します。
 
 ```json
 {
@@ -79,7 +80,8 @@ TraceWeave は **Model Context Protocol (MCP)** を標準サポートしてい�
 }
 ```
 
-※ `traceweave` をグローバルリンクしている場合は以下のようにシンプルに記述できます：
+`traceweave` をグローバルリンクしている場合は、次のように書けます。
+
 ```json
 {
   "mcpServers": {
@@ -95,16 +97,16 @@ TraceWeave は **Model Context Protocol (MCP)** を標準サポートしてい�
 
 ## 5. 異種プロジェクトへの TraceWeave 導入 (Adoption Engine)
 
-既存の別プロジェクト（構造や言語、ドキュメント配置が異なる任意のリポジトリ）に対して TraceWeave を導入するためのスクリプトおよび CLI コマンドが用意されています。
+構造や言語、ドキュメント配置が異なる既存プロジェクトへ、TraceWeave を導入する CLI があります。
 
-目的に応じて **「解析・一時適用モード」** と **「完全再構成モード」** の 2 つを選択できます。**破壊的な変更となる可能性があるため、実行前には必ず安全なバックアップが自動取得されます。**
+目的に応じて **「解析・一時適用モード」** と **「完全再構成モード」** の 2 つを選べます。ファイルを動かす可能性があるため、実行前にバックアップを自動取得します。
 
 ### 導入モードの比較
 
 | 項目 | ① 解析・一時適用モード (`overlay`) | ② 完全再構成モード (`restructure`) |
 |---|---|---|
-| **目的** | 既存プロジェクトを壊さず、最小限の工数でトレーサビリティを試用・分析したい | TraceWeave 標準のクリーンルート規約に沿って根本から再編したい |
-| **既存コードの移動** | なし（既存構造を完全に温存） | あり（ルート直下の資材を `src/` 配下に整理・カプセル化） |
+| **目的** | 既存プロジェクトを壊さず、少ない工数でトレーサビリティを試用・分析したい | TraceWeave 標準のクリーンルート規約に沿って再編したい |
+| **既存コードの移動** | なし（既存構造を維持） | あり（ルート直下の資材を `src/` 配下に整理） |
 | **バックアップ対象** | 既存の `docs/`, `bin/`, 上書き対象ファイル | プロジェクト全体（`.git`, `node_modules` を除く全資産） |
 | **生成資材** | `docs/` スケルトン、`bin/` ラッパー、`.cursor/rules/` | `docs/`、`bin/`、`src/` 集約、クリーン `.gitignore`、`DEVELOPER_GUIDE.md` |
 | **推奨ユースケース** | 既存の商用プロダクト、モノレポ、まず品質診断を試したい場合 | 新規プロジェクト、またはクリーンアーキテクチャへ本格刷新したい場合 |
@@ -113,7 +115,7 @@ TraceWeave は **Model Context Protocol (MCP)** を標準サポートしてい�
 
 ### 手順 A: 解析・一時適用モード (`--mode overlay`)
 
-既存のプロジェクト構造を維持したまま、TraceWeave の V字モデル文書骨格（`docs/`）と実行ラッパー（`bin/`）をアドオンします。
+既存のプロジェクト構造を維持したまま、TraceWeave の V 字モデル文書骨格（`docs/`）と実行ラッパー（`bin/`）を追加します。
 
 ```bash
 # 1. 変更計画の事前確認（ドライラン）
@@ -125,16 +127,16 @@ TraceWeave は **Model Context Protocol (MCP)** を標準サポートしてい�
 
 #### 実行後の状態
 - 対象プロジェクト直下に `docs/`（NEED, REQ, SPEC, DSN, ACT, UC, QA, TC, ADR）が配置されます。
-- 対象プロジェクトの `bin/traceweave` ラッパーが配置され、対象ディレクトリ内で直接 `./bin/traceweave check` や `./bin/traceweave serve` が実行可能になります。
-- 変更前の既存資産は `.traceweave-backup/<タイムスタンプ>_overlay/` に安全に退避されます。
+- 対象プロジェクトの `bin/traceweave` ラッパーが配置され、対象ディレクトリ内で `./bin/traceweave check` や `./bin/traceweave serve` を直接実行できます。
+- 変更前の既存資産は `.traceweave-backup/<タイムスタンプ>_overlay/` に退避されます。
 
 ---
 
 ### 手順 B: 完全再構成モード (`--mode restructure`)
 
-対象プロジェクトを、TraceWeave が推奨するクリーンルート規約（ルート直下のガバナンス純化、`src/` 配下への実装カプセル化）へ完全に再編成します。
+対象プロジェクトを、TraceWeave が推奨するクリーンルート規約（ルート直下はガバナンス文書中心、実装は `src/` 配下）へ再編成します。
 
-> ⚠️ **注意**: 本モードはファイルの移動を伴う破壊的変更です。未コミットの変更がある場合はエラーで停止します（`--force` で上書き可能ですが、コミット後の実行を強く推奨します）。
+> ⚠️ **注意**: このモードはファイルの移動を伴う破壊的変更です。未コミットの変更がある場合はエラーで停止します（`--force` で上書きできますが、コミット後の実行を推奨します）。
 
 ```bash
 # 1. 変更計画の事前確認（ドライラン）
@@ -147,23 +149,24 @@ TraceWeave は **Model Context Protocol (MCP)** を標準サポートしてい�
 #### 実行後の状態
 - ルート直下の `package.json`, `tsconfig.json` 等が `src/` 配下へ移設され、ルートがクリーンに保たれます。
 - ルート直下に `DEVELOPER_GUIDE.md`、`SYSTEM_OVERVIEW.md`、`bin/` ラッパーが配備されます。
-- 完全バックアップが `.traceweave-backup/<タイムスタンプ>_restructure/` に保存されます。
+- バックアップが `.traceweave-backup/<タイムスタンプ>_restructure/` に保存されます。
 
 ---
 
-### 手順 C: 万が一のためのロールバック (Rollback)
+### 手順 C: ロールバック (Rollback)
 
-適用の結果を元に戻したい場合は、バックアップ時に自動生成された `backup-manifest.json` を指定してワンコマンドで完全復元できます。
+適用結果を元に戻す場合は、バックアップ時に生成された `backup-manifest.json` を指定して 1 コマンドで復元できます。
 
 ```bash
 # バックアップディレクトリを指定して復元
 ./bin/traceweave adopt "/path/to/target-project" --rollback "/path/to/target-project/.traceweave-backup/20260913083000_restructure"
 ```
-復元処理により、TraceWeave によって新規作成されたファイルは安全に削除され、退避されていた元ファイルが元の位置へ復元されます。
+
+復元処理により、TraceWeave が新規作成したファイルは削除され、退避していた元ファイルが元の位置へ戻ります。
 
 ---
 
-## 5.5 品質セットアップ（adopt 品質キット）
+### 品質セットアップ（adopt 品質キット）
 
 `overlay` / `restructure` いずれの adopt でも、次が自動配備されます。
 
@@ -189,28 +192,28 @@ TraceWeave は **Model Context Protocol (MCP)** を標準サポートしてい�
 
 ## 6. Cursor スキルを使った自律導入 (`traceweave-adopt`)
 
-Cursor AI エージェントを利用している場合、手動でコマンドを打つことなく、対話を通じて自然言語で適用できます。
+Cursor AI エージェントを使っている場合、手動でコマンドを打たなくても、自然言語で指示できます。
 
 ### 実行例
-AI エージェントに対して以下のように指示します：
+
+AI エージェントに対して次のように指示します。
 
 > 「このプロジェクトに TraceWeave を解析・一時適用モードで導入して」  
 > または  
 > 「TraceWeave の推奨するクリーンルート構成に完全再構成して」
 
-AI エージェントは `.cursor/skills/traceweave-adopt/SKILL.md` を自律的に読み込み、
+AI エージェントは `.cursor/skills/traceweave-adopt/SKILL.md` を読み込み、次を決定論的な手順で実行します。
+
 1. **probe**: プロジェクト情報の収集・言語・テスト環境の診断
 2. **checkpoint**: 事前バックアップの作成と整合性確認
-3. **adopt**: 指定モードの安全な適用
+3. **adopt**: 指定モードの適用
 4. **verify**: `./bin/traceweave check` によるスキーマ・リンク検査の合格確認
-
-を決定論的な手順で実行します。
 
 ---
 
 ## 7. Cursor スキルのインストール (`traceweave-install-skills`)
 
-TraceWeave 付属の Cursor スキル（文書監査、V字モデル起票、導入、テストレビュー等）は `.cursor/skills/` に同梱されています。本リポジトリ内では追加作業は不要です。
+TraceWeave 付属の Cursor スキル（文書監査、V 字モデル起票、導入、テストレビューなど）は `.cursor/skills/` に同梱されています。本リポジトリ内では追加作業は不要です。
 
 別マシンや外部プロジェクトへコピーする場合:
 
@@ -233,23 +236,23 @@ npm --prefix src run install-skills -- --dry-run
 
 ### ドキュメント監査スキル (`traceweave-docs-audit`)
 
-文書管理がルールに沿っているかを監査するスキルです。エージェントに次のように指示できます:
+文書管理がルールに沿っているかを監査するスキルです。エージェントに次のように指示できます。
 
 > 「ドキュメント管理を audit して」「V字モデル文書がルールに沿っているかチェックして」
 
-監査は **sweep**（`npm --prefix src run lint` + `./bin/traceweave check`）と **fence-deep**（抽象度・境界の意味論チェック）の2段階で実行されます。
+監査は **sweep**（`npm --prefix src run lint` + `./bin/traceweave check`）と **fence-deep**（抽象度・境界の意味論チェック）の 2 段階で実行されます。
 
 ---
 
 ## 8. トラブルシューティング (Troubleshooting)
 
 ### Q. `./bin/traceweave check` で "Docs directory not found" と表示される
-- 引数でドキュメントの場所を明示してください：
+- 引数でドキュメントの場所を明示してください。
   `./bin/traceweave check -d ./docs`
 
 ### Q. 初回実行時に依存関係のインストールで失敗する
 - Node.js v20 以上と npm が PATH 上にあることを確認してください。
 - 手動で再試行する場合: `npm --prefix src install`
 
-### Q. 完全再構成モードを実行しようとしたら "Git working directory has uncommitted changes" と怒られた
-- 破壊的変更から作業中の差分を保護するための安全装置です。作業ツリーの変更をコミットまたは `git stash` してから再実行してください。検証目的などで強制実行したい場合は `--force` オプションを指定できます。
+### Q. 完全再構成モードを実行しようとしたら "Git working directory has uncommitted changes" と表示される
+- 破壊的変更から作業中の差分を保護するための安全装置です。作業ツリーの変更をコミットまたは `git stash` してから再実行してください。検証目的などで強制実行したい場合は `--force` を指定できます。
