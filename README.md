@@ -64,7 +64,7 @@ TraceWeave は、追いにくくなりがちな「要求からテストまでの
   - `traceweave build` の静的 HTML を GitHub Pages や社内サーバーに置けば、エンジニア・QA・PM がブラウザで閲覧できます。
 4. **オプショナルな MCP 拡張**:
   - Cursor などの AI エージェント連携は `traceweave mcp` に分離しており、個人環境に密結合しません。
-5. **クリーンなリポジトリ構造（lucid-memories 指針）**:
+5. **クリーンなリポジトリ構造**:
   - ルート直下にはガバナンス文書、構成マップ、実行ラッパー（`bin/`）だけを置きます。
   - `node_modules`、`dist`、ビルド設定・依存関係（`package.json`, `tsconfig.json`）はすべて `src/` 配下に収めます。
 
