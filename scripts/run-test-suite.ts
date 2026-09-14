@@ -3,7 +3,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseTestCaseFilter } from '../src/core/testing/formatTestRunCommand.js';
+import {
+  parseTestCaseFilter,
+  resolveTestFilesForCase,
+  testNamePatternForCase,
+} from '../src/core/testing/formatTestRunCommand.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -150,8 +154,21 @@ async function runTests(): Promise<void> {
   await ensureWebDistBuilt();
 
   const tsxCli = path.join(ROOT, 'src', 'node_modules', 'tsx', 'dist', 'cli.mjs');
-  const testsPattern = path.join(ROOT, 'tests', '**', '*.test.ts');
+  const testsDir = path.join(ROOT, 'tests');
+  const testsPattern = path.join(testsDir, '**', '*.test.ts');
   const tapFile = path.join(os.tmpdir(), `traceweave-tap-${process.pid}.tap`);
+  let testTargets: string[] = [testsPattern];
+
+  if (testCaseFilter) {
+    testTargets = resolveTestFilesForCase(testsDir, testCaseFilter);
+    if (testTargets.length === 0) {
+      console.error(
+        `\x1b[31m✘ No automated test file declares ${testCaseFilter}. Add test('${testCaseFilter}: ...') in tests/.\x1b[0m`
+      );
+      process.exit(1);
+    }
+    console.log(`  ↳ ${testTargets.length} test file(s): ${testTargets.map(p => path.relative(ROOT, p)).join(', ')}`);
+  }
 
   if (!fs.existsSync(REPORTS_DIR)) {
     fs.mkdirSync(REPORTS_DIR, { recursive: true });
@@ -173,9 +190,9 @@ async function runTests(): Promise<void> {
     `--test-reporter-destination=${tapFile}`,
   ];
   if (testCaseFilter) {
-    nodeArgs.push(`--test-name-pattern=${testCaseFilter}`);
+    nodeArgs.push(`--test-name-pattern=${testNamePatternForCase(testCaseFilter)}`);
   }
-  nodeArgs.push(testsPattern);
+  nodeArgs.push(...testTargets);
 
   const child = spawn(
     process.execPath,

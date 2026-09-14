@@ -1,10 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   assertTestCaseId,
   formatTestRunCommand,
   parseTestCaseFilter,
+  resolveTestFilesForCase,
+  testFileDeclaresCase,
+  testNamePatternForCase,
 } from '../../src/core/testing/formatTestRunCommand.js';
+import { repositoryPath } from '../helpers/repo-path.js';
+
+const testsDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 /**
  * 【テスト概要】
@@ -31,4 +39,28 @@ test('parseTestCaseFilter - --tc および --test-case フラグから TC ID を
   assert.throws(() => parseTestCaseFilter(['--tc']), /requires a test case id/);
   assert.throws(() => parseTestCaseFilter(['--tc', 'TC-1']), /Invalid test case id/);
   assert.throws(() => assertTestCaseId('REQ-0001'), /Invalid test case id/);
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: resolveTestFilesForCase / testNamePatternForCase (TC 単体実行のファイル絞り込み)
+ * - 条件: TC-0033 を宣言する port-manager テストと、文字列参照のみの format-test-run-command テスト
+ * - 期待結果: test() 宣言を含むファイルのみ解決され、名前パターンは TC ID 先頭一致になること
+ */
+test('resolveTestFilesForCase - test() 宣言を含むファイルのみ TC 単体実行対象として解決されること', () => {
+  assert.equal(testNamePatternForCase('TC-0033'), '^TC-0033:');
+  assert.equal(
+    testFileDeclaresCase("test('TC-0033: PortManager - ...', () => {})", 'TC-0033'),
+    true
+  );
+  assert.equal(
+    testFileDeclaresCase("assert.equal(formatTestRunCommand('TC-0033'), '...')", 'TC-0033'),
+    false
+  );
+
+  const matches = resolveTestFilesForCase(testsDir, 'TC-0033');
+  assert.deepEqual(
+    matches.map(p => path.relative(repositoryPath('.'), p).replaceAll('\\', '/')),
+    ['tests/infrastructure/port-manager.test.ts']
+  );
 });
