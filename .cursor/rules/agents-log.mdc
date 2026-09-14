@@ -1,0 +1,78 @@
+---
+description: 作業単位で commit し agents-log/ に証跡を残す（閲覧・検索はしない）
+globs: **/*
+alwaysApply: true
+---
+
+# Agent Log & Work-Unit Commit
+
+実装・改善・調査・文書起票など、**ファイル変更を伴う作業単位**を完了したら、**1 作業単位 = 1 ログ = 1 コミット**とする。`agents-log/` は `.cursorignore` 対象のため **読み取り・検索・参照はしない**（ユーザーが明示的に閲覧を求めた場合のみ例外）。
+
+## 作業単位の定義
+
+- ユーザー 1 指示のスコープ、または自然な完了境界（1 機能・1 バグ修正・1 文書セット等）を 1 単位とする。
+- 無関係な変更を 1 コミットに混ぜない。大きい指示はサブタスクに分割し、単位ごとにログ + コミットする。
+- 変更ファイルがない調査・質問のみの応答はコミット不要。
+
+## 完了フロー（順序固定）
+
+1. **検証** — `npm --prefix src run lint` および必要な `npm --prefix src test` を実行し、結果を記録する。
+2. **ログ起票** — `agents-log/AL-YYYYMMDD-NNN.md` を新規作成する。
+3. **コミット** — 作業変更とログを **同一コミット** に含める（`git add` → `git commit`）。
+
+## コミットメッセージ
+
+```
+AL-YYYYMMDD-NNN: <title>
+
+Log: agents-log/AL-YYYYMMDD-NNN.md
+
+<why を 1〜2 文。任意>
+```
+
+- 件名は必ずログ ID で始める（`git log --grep AL-` で追跡可能）。
+- push はユーザー明示指示時のみ。
+
+## ファイル命名
+
+`agents-log/AL-YYYYMMDD-NNN.md`（`NNN` は当日連番 `001` 起算）。既存 `IL-*` はレガシー。
+
+## 必須フロントマター
+
+```yaml
+---
+schema_version: 1
+id: AL-20260914-001
+kind: agent_log
+title: 短いタスク名
+task_type: implementation | improvement | chore | docs | review | investigation
+status: done
+entrypoint: path-a | path-b | path-c | path-d | n/a
+trigger: ユーザー指示または関連文書 ID の要約
+related: []
+created: "YYYY-MM-DD"
+updated: "YYYY-MM-DD"
+---
+```
+
+## 必須本文（`## Content` 直下）
+
+1. **`### Objective`** — 何のために行ったか。
+2. **`### Completion Criteria`** — 完了条件チェックリスト（`[x]` / `[ ]`）。
+3. **`### Changes`** — Path / Action / Summary（相対パスのみ）。
+4. **`### Improvements`** — 改善時のみ（Before / After / How Measured）。該当なしは `N/A`。
+5. **`### Verification`** — 実行コマンドと結果。
+6. **`### Notes`** — 判断理由、SubAgent ID、フォローアップ。
+
+## 追跡の双方向リンク
+
+| 方向 | 方法 |
+|------|------|
+| ログ → コミット | `git log --grep AL-YYYYMMDD-NNN -1` |
+| コミット → ログ | 件名の `AL-YYYYMMDD-NNN` または本文 `Log: agents-log/...` |
+
+## 禁止
+
+- `agents-log/` をコンテキスト取得のために読むこと。
+- 検証未実行の成功記載、計測根拠のない改善主張。
+- 作業単位をまたぐ単一コミット、またはログなしコミット（ファイル変更がある場合）。
