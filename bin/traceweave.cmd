@@ -18,6 +18,12 @@ if not exist "%ROOT%\src\node_modules\tsx\dist\cli.mjs" (
   )
 )
 
+if "%~1"=="serve" if exist "%ROOT%\src\dist\cli\index.js" (
+  echo.
+  echo ⚙ Building CLI before serve...
+  call npm run build:cli --prefix "%ROOT%\src"
+)
+
 if exist "%ROOT%\src\dist\cli\index.js" (
   node "%ROOT%\src\dist\cli\index.js" %*
 ) else (

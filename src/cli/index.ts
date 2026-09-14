@@ -15,7 +15,7 @@ import { PortManager } from '../infrastructure/system/PortManager.js';
 import { adoptProject, rollbackAdoption, type AdoptionMode } from '../application/adopt-project.js';
 import {
   buildWebDashboard,
-  ensureWebDashboardBuilt,
+  prepareServeDashboard,
 } from '../application/build-web-dashboard.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -381,7 +381,7 @@ program
 
     let distWeb: string;
     try {
-      distWeb = ensureWebDashboardBuilt(docsDir);
+      distWeb = prepareServeDashboard(docsDir);
     } catch (err) {
       exitOnError(err);
     }

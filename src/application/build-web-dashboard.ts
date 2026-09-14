@@ -101,3 +101,14 @@ export function buildWebDashboard(options: BuildWebDashboardOptions): string {
 export function ensureWebDashboardBuilt(docsDir: string): string {
   return buildWebDashboard({ docsDir, skipViteIfPresent: true });
 }
+
+/**
+ * Full rebuild for `traceweave serve`: Vite bundle + data.json.
+ * CLI compile is handled by `bin/traceweave` before the Node process starts.
+ */
+export function prepareServeDashboard(
+  docsDir: string,
+  options: { quiet?: boolean } = {}
+): string {
+  return buildWebDashboard({ docsDir, skipViteIfPresent: false, quiet: options.quiet });
+}

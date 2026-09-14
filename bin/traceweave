@@ -24,6 +24,13 @@ install_dependencies() {
 
 install_dependencies
 
+# serve must load freshly compiled dist (API uses in-process build-report).
+if [[ "${1:-}" == "serve" ]] && [[ -f "$ROOT/src/dist/cli/index.js" ]]; then
+  echo ""
+  echo "⚙ Building CLI before serve..."
+  npm run build:cli --prefix "$ROOT/src"
+fi
+
 # Prefer compiled CLI if exists, else run via tsx
 if [[ -f "$ROOT/src/dist/cli/index.js" ]]; then
   exec node "$ROOT/src/dist/cli/index.js" "$@"
