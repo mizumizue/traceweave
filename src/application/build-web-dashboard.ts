@@ -1,11 +1,8 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { buildTraceWeaveReport } from './build-report.js';
 import { ensureDependenciesInstalled, resolvePackageRoot as resolveDepsPackageRoot } from './ensure-dependencies.js';
-
-const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 
 export interface BuildWebDashboardOptions {
   docsDir: string;
@@ -59,16 +56,7 @@ function writeDataJson(docsDir: string, targetDir: string, subjectOverride?: str
 }
 
 function copyBuiltAssets(sourceDir: string, targetDir: string): void {
-  fs.mkdirSync(targetDir, { recursive: true });
-  for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
-    const sourcePath = path.join(sourceDir, entry.name);
-    const targetPath = path.join(targetDir, entry.name);
-    if (entry.isDirectory()) {
-      fs.cpSync(sourcePath, targetPath, { recursive: true });
-    } else {
-      fs.copyFileSync(sourcePath, targetPath);
-    }
-  }
+  fs.cpSync(sourceDir, targetDir, { recursive: true });
 }
 
 /**
@@ -101,22 +89,3 @@ export function buildWebDashboard(options: BuildWebDashboardOptions): string {
   return outDir;
 }
 
-export function ensureWebDashboardBuilt(docsDir: string): string {
-  return buildWebDashboard({ docsDir, skipViteIfPresent: true });
-}
-
-/**
- * Full rebuild for `traceweave serve`: Vite bundle + data.json.
- * CLI compile is handled by `bin/traceweave` before the Node process starts.
- */
-export function prepareServeDashboard(
-  docsDir: string,
-  options: { quiet?: boolean; subjectOverride?: string } = {}
-): string {
-  return buildWebDashboard({
-    docsDir,
-    skipViteIfPresent: false,
-    quiet: options.quiet,
-    subjectOverride: options.subjectOverride,
-  });
-}

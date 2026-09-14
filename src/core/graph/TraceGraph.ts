@@ -58,10 +58,6 @@ export class TraceGraph {
     return this.getAllNodes().filter(n => n.kind === kind);
   }
 
-  public getNeeds(): DocNode[] {
-    return this.getNodesByKind('need');
-  }
-
   public getRequirements(): DocNode[] {
     return this.getNodesByKind('requirement');
   }

@@ -73,7 +73,7 @@ export function createDashboardServer(options: ServeDashboardOptions): http.Serv
               return;
             }
 
-            if (!tcNode.ui_executable || !TestRunnerRegistry.isExecutable(testCaseId)) {
+            if (!tcNode.ui_executable || !TestRunnerRegistry.has(testCaseId)) {
               res.writeHead(400, { 'Content-Type': 'application/json' });
               res.end(
                 JSON.stringify({

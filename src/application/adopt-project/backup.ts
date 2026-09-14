@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { AdoptionMode, BackupManifest } from './types.js';
-import { copyRecursiveSync } from './fs-utils.js';
 
 // -----------------------------------------------------------------------------
 // 2. Backup & Rollback: バックアップとロールバック
@@ -28,7 +27,7 @@ export function createBackup(
   for (const entry of entriesToBackup) {
     const srcPath = path.join(resolvedTarget, entry);
     const destPath = path.join(backupDir, entry);
-    copyRecursiveSync(srcPath, destPath);
+    fs.cpSync(srcPath, destPath, { recursive: true });
     backedUpFiles.push(entry);
   }
 
@@ -85,7 +84,7 @@ export function rollbackAdoption(backupPath: string, silent = false): void {
       if (fs.existsSync(restoreDest)) {
         fs.rmSync(restoreDest, { recursive: true, force: true });
       }
-      copyRecursiveSync(backupSrc, restoreDest);
+      fs.cpSync(backupSrc, restoreDest, { recursive: true });
     }
   }
 

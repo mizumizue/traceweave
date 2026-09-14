@@ -13,10 +13,7 @@ import { MarkdownReporter } from '../infrastructure/reporters/MarkdownReporter.j
 import { HtmlReporter } from '../infrastructure/reporters/HtmlReporter.js';
 import { PortManager } from '../infrastructure/system/PortManager.js';
 import { adoptProject, rollbackAdoption, type AdoptionMode } from '../application/adopt-project.js';
-import {
-  buildWebDashboard,
-  prepareServeDashboard,
-} from '../application/build-web-dashboard.js';
+import { buildWebDashboard } from '../application/build-web-dashboard.js';
 
 function exitOnError(err: unknown): never {
   const message = err instanceof Error ? err.message : String(err);
@@ -306,10 +303,9 @@ program
 // Command: serve
 program
   .command('serve')
-  .description('Serve interactive web dashboard locally (auto-terminates conflicting previous processes on the port)')
+  .description('Serve interactive web dashboard locally')
   .option('-p, --port <port>', 'Server port', '3000')
   .option('-d, --docs <dir>', 'Docs directory path')
-  .option('-r, --restart', 'Force restart and kill any previous process occupying the port')
   .action(async (options) => {
     let docsDir: string;
     try {
@@ -323,21 +319,19 @@ program
 
     let distWeb: string;
     try {
-      distWeb = prepareServeDashboard(docsDir, { subjectOverride: reportOptions.subjectOverride });
+      distWeb = buildWebDashboard({
+        docsDir,
+        skipViteIfPresent: false,
+        subjectOverride: reportOptions.subjectOverride,
+      });
     } catch (err) {
       exitOnError(err);
     }
 
-    // Free port if already occupied by a previous process
     const isAvailable = await PortManager.isPortAvailable(port);
-    if (!isAvailable || options.restart) {
-      console.log(`\n\x1b[33m⚡ Port ${port} is in use or restart requested. Terminating previous process...\x1b[0m`);
-      const result = await PortManager.ensurePortFree(port);
-      if (result.killedPids.length > 0) {
-        console.log(`\x1b[32m✔ Terminated previous process (PID: ${result.killedPids.join(', ')}). Port ${port} is now free.\x1b[0m`);
-      } else if (!result.freed) {
-        console.error(`\x1b[31m✖ Failed to free port ${port}: ${result.error}\x1b[0m`);
-      }
+    if (!isAvailable) {
+      console.error(`\n\x1b[31m✖ Port ${port} is already in use. Stop the other process or choose --port.\x1b[0m\n`);
+      process.exit(1);
     }
 
     const server = createDashboardServer({
@@ -346,20 +340,8 @@ program
       subjectOverride: reportOptions.subjectOverride,
     });
 
-    let retried = false;
-    server.on('error', async (err: NodeJS.ErrnoException) => {
-      if (err.code === 'EADDRINUSE' && !retried) {
-        retried = true;
-        console.log(`\n\x1b[33m⚡ Port ${port} is still occupied. Retrying after force release...\x1b[0m`);
-        const result = await PortManager.ensurePortFree(port);
-        if (result.freed) {
-          server.listen(port);
-          return;
-        }
-        console.error(`\n\x1b[31m✖ Error: Failed to free port ${port}: ${result.error}\x1b[0m\n`);
-      } else {
-        console.error(`\n\x1b[31m✖ Server error: ${err.message}\x1b[0m\n`);
-      }
+    server.on('error', (err: NodeJS.ErrnoException) => {
+      console.error(`\n\x1b[31m✖ Server error: ${err.message}\x1b[0m\n`);
       process.exit(1);
     });
 

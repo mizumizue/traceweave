@@ -44,7 +44,7 @@
 ┌─────────────────────────────────┴──────────────────────────────────────┐
 │                       Infrastructure (外部接続層)                      │
 │  - DocParser (gray-matter による Markdown 解析)                        │
-│  - SQLiteCache (better-sqlite3 による mtime 差分インデックス)          │
+│  - DocMtimeCache (mtime 差分インデックス、JSON 永続化)                 │
 │  - ConsoleReporter / MarkdownReporter (各種フォーマット出力)           │
 └────────────────────────────────────────────────────────────────────────┘
 ```
@@ -57,7 +57,7 @@
 |---|---|---|---|
 | **Core** | `src/core/` | `TraceGraph`, `SufficiencyScorer`, `BalanceAnalyzer`, `MatrixBuilder` | ビジネスルール、グラフ構造、スコアリング、地層診断。外部依存ゼロ。 |
 | **Application** | `src/application/` | `checkDocs`, `buildTraceWeaveReport` | 業務ユースケースの実行・オーケストレーション。 |
-| **Infrastructure** | `src/infrastructure/`| `DocParser`, `SQLiteCache`, `ConsoleReporter`, `MarkdownReporter` | ファイルI/O、Markdownパース、SQLiteキャッシュ管理、フォーマット整形。 |
+| **Infrastructure** | `src/infrastructure/`| `DocParser`, `DocMtimeCache`, `ConsoleReporter`, `MarkdownReporter` | ファイルI/O、Markdownパース、mtime キャッシュ管理、フォーマット整形。 |
 | **CLI** | `src/cli/` | `index.ts` | Commander.js によるコマンドライン受付（check, matrix, report, build, serve）。 |
 | **Web** | `src/web/` | `index.html`, `vite.config.ts`, `App.tsx` | React 19 + Vite によるインタラクティブなダッシュボードUI（開発資材を完全カプセル化）。 |
 | **MCP** | `src/mcp/` | `server.ts` | Model Context Protocol による Cursor / AI エージェント連携。 |

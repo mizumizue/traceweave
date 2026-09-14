@@ -96,51 +96,26 @@ export class TestRunnerRegistry {
   }
 
   /**
-   * Determines whether the specified testCaseId can be executed on the UI (pure I/O function).
-   */
-  public static isExecutable(testCaseId: string): boolean {
-    return this.handlers.has(testCaseId);
-  }
-
-  /**
-   * Returns list of test case IDs executable on the UI.
-   */
-  public static getExecutableTestCaseIds(): string[] {
-    return Array.from(this.handlers.keys());
-  }
-
-  /**
    * Executes a registered test case logic with custom inputs and optional expected comparison.
    * If the test case is not registered (i.e. cannot be run with simple I/O), returns an error result.
    */
   public static async runTestAsync(request: TestRunRequest): Promise<TestRunResult> {
-    return new Promise<TestRunResult>(resolve => {
-      let settled = false;
-      const finish = (result: TestRunResult) => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        resolve(result);
-      };
+    const timeoutResult: TestRunResult = {
+      testCaseId: request.testCaseId,
+      status: 'error',
+      actual: null,
+      expected: request.expected,
+      isMatch: false,
+      durationMs: EXECUTION_TIMEOUT_MS,
+      logs: [`[ERR_EXECUTION_TIMEOUT] 実行が ${EXECUTION_TIMEOUT_MS}ms を超過しました`],
+      error: `ERR_EXECUTION_TIMEOUT: 実行が ${EXECUTION_TIMEOUT_MS}ms を超過しました`,
+      executedAt: new Date().toISOString(),
+    };
 
-      const timer = setTimeout(() => {
-        finish({
-          testCaseId: request.testCaseId,
-          status: 'error',
-          actual: null,
-          expected: request.expected,
-          isMatch: false,
-          durationMs: EXECUTION_TIMEOUT_MS,
-          logs: [`[ERR_EXECUTION_TIMEOUT] 実行が ${EXECUTION_TIMEOUT_MS}ms を超過しました`],
-          error: `ERR_EXECUTION_TIMEOUT: 実行が ${EXECUTION_TIMEOUT_MS}ms を超過しました`,
-          executedAt: new Date().toISOString(),
-        });
-      }, EXECUTION_TIMEOUT_MS);
-
-      setImmediate(() => {
-        finish(this.runTest(request));
-      });
-    });
+    return Promise.race([
+      Promise.resolve(this.runTest(request)),
+      new Promise<TestRunResult>(resolve => setTimeout(() => resolve(timeoutResult), EXECUTION_TIMEOUT_MS)),
+    ]);
   }
 
   public static runTest(request: TestRunRequest): TestRunResult {
@@ -257,8 +232,4 @@ export class TestRunnerRegistry {
     };
   }
 
-  /** @deprecated Use deepEqual from deepEquality.ts */
-  public static checkEquality(actual: unknown, expected: unknown, path = '', diffs: string[] = []): boolean {
-    return deepEqual(actual, expected, path, diffs);
-  }
 }

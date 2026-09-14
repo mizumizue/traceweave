@@ -2,7 +2,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { DocParser } from '../infrastructure/parser/DocParser.js';
 import { resolveProjectLayout } from '../infrastructure/system/resolveRepoRoot.js';
-import { SQLiteCache } from '../infrastructure/storage/SQLiteCache.js';
+import { DocMtimeCache } from '../infrastructure/storage/DocMtimeCache.js';
 import { TestReportLoader } from '../infrastructure/testing/TestReportLoader.js';
 import { SufficiencyScorer } from '../core/sufficiency/SufficiencyScorer.js';
 import { BalanceAnalyzer } from '../core/analyzer/BalanceAnalyzer.js';
@@ -38,12 +38,12 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
   }
   const cachePath =
     options.useCache !== false
-      ? options.cacheDbPath || path.join(projectRoot, 'src/.cache/traceweave.sqlite')
+      ? options.cacheDbPath || path.join(projectRoot, 'src/.cache/traceweave-cache.json')
       : undefined;
 
-  let cache: SQLiteCache | undefined;
+  let cache: DocMtimeCache | undefined;
   if (cachePath) {
-    cache = new SQLiteCache(cachePath);
+    cache = new DocMtimeCache(cachePath);
   }
 
   const parser = new DocParser(cache);

@@ -177,7 +177,7 @@ test('TC-0040: TestCaseInputAnalyzer と TestRunnerRegistry - 外部依存TCがU
     assert.equal(node.ui_executable, false);
     assert.equal(analysis.isModifiable, false);
     assert.equal(analysis.reasonCode, 'external_environment_dependency');
-    assert.equal(TestRunnerRegistry.isExecutable(node.id), false);
+    assert.equal(TestRunnerRegistry.has(node.id), false);
   }
 });
 

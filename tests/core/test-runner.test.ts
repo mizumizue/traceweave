@@ -101,17 +101,17 @@ test('TC-0010: TestRunnerRegistry - 手動入力パラメータによるテス�
  */
 test('TC-0010: TestRunnerRegistry - 外部環境依存テスト（非単純I/O）のUI実行除外および不一致検知が正しく行われること', () => {
   // 1. Pure calculation tests are executable
-  assert.equal(TestRunnerRegistry.isExecutable('TC-0010'), false, 'TC-0010 has external parameter_file and is excluded from UI');
-  assert.equal(TestRunnerRegistry.isExecutable('TC-0011'), true);
-  assert.equal(TestRunnerRegistry.isExecutable('TC-0002'), true);
-  assert.equal(TestRunnerRegistry.isExecutable('TC-0003'), true);
+  assert.equal(TestRunnerRegistry.has('TC-0010'), false, 'TC-0010 has external parameter_file and is excluded from UI');
+  assert.equal(TestRunnerRegistry.has('TC-0011'), true);
+  assert.equal(TestRunnerRegistry.has('TC-0002'), true);
+  assert.equal(TestRunnerRegistry.has('TC-0003'), true);
 
   // 2. Integration / E2E / CLI tests requiring external env are excluded from UI execution
-  assert.equal(TestRunnerRegistry.isExecutable('TC-0004'), false, 'Storage test must be excluded from UI execution');
-  assert.equal(TestRunnerRegistry.isExecutable('TC-0005'), false, 'CLI test must be excluded from UI execution');
-  assert.equal(TestRunnerRegistry.isExecutable('TC-0006'), false, 'Build test must be excluded from UI execution');
-  assert.equal(TestRunnerRegistry.isExecutable('TC-0007'), false, 'Dogfooding test must be excluded from UI execution');
-  assert.equal(TestRunnerRegistry.isExecutable('UNKNOWN-TC'), false);
+  assert.equal(TestRunnerRegistry.has('TC-0004'), false, 'Storage test must be excluded from UI execution');
+  assert.equal(TestRunnerRegistry.has('TC-0005'), false, 'CLI test must be excluded from UI execution');
+  assert.equal(TestRunnerRegistry.has('TC-0006'), false, 'Build test must be excluded from UI execution');
+  assert.equal(TestRunnerRegistry.has('TC-0007'), false, 'Dogfooding test must be excluded from UI execution');
+  assert.equal(TestRunnerRegistry.has('UNKNOWN-TC'), false);
 
   // 3. Attempting to run excluded test returns status: 'error' with clear exclusion reason
   const excludedRun = TestRunnerRegistry.runTest({

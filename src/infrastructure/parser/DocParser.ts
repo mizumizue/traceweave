@@ -2,13 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import matter from 'gray-matter';
 import { DocNode } from '../../core/models/types.js';
-import { SQLiteCache } from '../storage/SQLiteCache.js';
+import { DocMtimeCache } from '../storage/DocMtimeCache.js';
 
 export class DocParser {
-  private cache: SQLiteCache | null = null;
+  private cache: DocMtimeCache | null = null;
   private lastWarnings: string[] = [];
 
-  constructor(cache?: SQLiteCache) {
+  constructor(cache?: DocMtimeCache) {
     this.cache = cache || null;
   }
 
@@ -43,7 +43,7 @@ export class DocParser {
   }
 
   /**
-   * Scans the docs directory and parses all Markdown files, using SQLite cache if available.
+   * Scans the docs directory and parses all Markdown files, using mtime cache if available.
    */
   public parseDirectory(docsDir: string): DocNode[] {
     this.lastWarnings = [];

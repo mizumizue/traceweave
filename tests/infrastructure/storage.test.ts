@@ -3,19 +3,19 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { SQLiteCache } from '../../src/infrastructure/storage/SQLiteCache.js';
+import { DocMtimeCache } from '../../src/infrastructure/storage/DocMtimeCache.js';
 import { DocParser } from '../../src/infrastructure/parser/DocParser.js';
 import { repositoryPath } from '../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
- * - 対象: SQLiteCache (ファイル更新日時によるSQLiteインメモリキャッシュ)
+ * - 対象: DocMtimeCache (ファイル更新日時による mtime キャッシュ)
  * - 条件: パース済みDocNodeを同一mtime(1000)で保存し、同一mtimeおよび異なるmtime(2000)で取得
  * - 期待結果: 同一mtimeではキャッシュヒットしてノードが正しく復元され、異なるmtimeではキャッシュミス(null)となること
  * - 関連文書: TC-0004, REQ-0004, SPEC-0004
  */
-test('TC-0004: SQLiteCache - ファイル更新日時（mtime）に基づくパース済みノードの保存・取得およびキャッシュミス検知ができること', () => {
-  const cache = new SQLiteCache(':memory:');
+test('TC-0004: DocMtimeCache - ファイル更新日時（mtime）に基づくパース済みノードの保存・取得およびキャッシュミス検知ができること', () => {
+  const cache = new DocMtimeCache(':memory:');
 
   const filePath = 'C:/dummy/REQ-0001.md';
   const node = {
@@ -55,12 +55,12 @@ test('TC-0004: SQLiteCache - ファイル更新日時（mtime）に基づくパ�
 
 /**
  * 【テスト概要】
- * - 対象: DocParser & SQLiteCache 連携
+ * - 対象: DocParser & DocMtimeCache 連携
  * - 条件: フィクスチャから取得したMarkdownドキュメントを一時ディレクトリに展開し、同一パーサーで2回パースを実行
  * - 期待結果: 1回目のパースでファイルが読み込まれてキャッシュ登録され、2回目のパースではキャッシュから取得されること
  * - 関連文書: TC-0004, REQ-0004, SPEC-0004
  */
-test('TC-0004: DocParser - ディレクトリ全体のパースにおいてSQLiteキャッシュが機能し高速化されること', () => {
+test('TC-0004: DocParser - ディレクトリ全体のパースにおいて mtime キャッシュが機能し高速化されること', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'traceweave-test-'));
   const needsDir = path.join(tmpDir, 'needs');
   fs.mkdirSync(needsDir);
@@ -72,7 +72,7 @@ test('TC-0004: DocParser - ディレクトリ全体のパースにおいてSQLit
   const cacheMtime = new Date('2020-01-01T00:00:00.000Z');
   fs.utimesSync(sampleFile, cacheMtime, cacheMtime);
 
-  const cache = new SQLiteCache(':memory:');
+  const cache = new DocMtimeCache(':memory:');
   const parser = new DocParser(cache);
 
   // First parse (cache miss)
