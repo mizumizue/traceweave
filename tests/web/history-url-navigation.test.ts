@@ -23,7 +23,8 @@ import { repositoryPath } from '../helpers/repo-path.js';
 test('TC-0019: urlState - クエリ文字列からの状態パースと不正値フォールバックが正確に行われること', () => {
   // 1. 空・未指定時はデフォルト状態が返ること
   const defaultParsed = parseUrlState('');
-  assert.equal(defaultParsed.tab, 'matrix');
+  assert.equal(defaultParsed.tab, 'traceability');
+  assert.equal(defaultParsed.traceabilityView, 'matrix');
   assert.equal(defaultParsed.nodeId, null);
   assert.equal(defaultParsed.searchQuery, '');
   assert.equal(defaultParsed.phaseFilter, 'all');
@@ -39,7 +40,8 @@ test('TC-0019: urlState - クエリ文字列からの状態パースと不正値
   const fullQuery =
     '?tab=graph&node=REQ-0001&q=traceability&phase=unit&criticality=high&reqclass=non_functional&score=satisfied&kind=requirement&tag=core&status=accepted&highlight=upstream';
   const fullParsed = parseUrlState(fullQuery);
-  assert.equal(fullParsed.tab, 'graph');
+  assert.equal(fullParsed.tab, 'traceability');
+  assert.equal(fullParsed.traceabilityView, 'graph');
   assert.equal(fullParsed.nodeId, 'REQ-0001');
   assert.equal(fullParsed.searchQuery, 'traceability');
   assert.equal(fullParsed.phaseFilter, 'unit');
@@ -55,7 +57,8 @@ test('TC-0019: urlState - クエリ文字列からの状態パースと不正値
   const invalidQuery =
     '?tab=unknown_tab&node=%20%20&q=%20&phase=invalid_phase&criticality=super_high&reqclass=quality&score=perfect&kind=unknown_kind&status=flying&highlight=random_highlight';
   const invalidParsed = parseUrlState(invalidQuery);
-  assert.equal(invalidParsed.tab, 'matrix', 'Invalid tab must fallback to matrix');
+  assert.equal(invalidParsed.tab, 'traceability', 'Invalid tab must fallback to traceability');
+  assert.equal(invalidParsed.traceabilityView, 'matrix', 'Invalid tab must fallback to matrix view');
   assert.equal(invalidParsed.nodeId, null, 'Whitespace-only nodeId must fallback to null');
   assert.equal(invalidParsed.phaseFilter, 'all', 'Invalid phase must fallback to all');
   assert.equal(invalidParsed.criticalityFilter, 'all', 'Invalid criticality must fallback to all');
@@ -70,6 +73,15 @@ test('TC-0019: urlState - クエリ文字列からの状態パースと不正値
   const urlParsed = parseUrlState(fullUrl);
   assert.equal(urlParsed.tab, 'decisions');
   assert.equal(urlParsed.catalogKind, 'decision');
+
+  // 5. レガシー tab=matrix と新形式 view=graph の互換
+  const legacyMatrix = parseUrlState('?tab=matrix');
+  assert.equal(legacyMatrix.tab, 'traceability');
+  assert.equal(legacyMatrix.traceabilityView, 'matrix');
+
+  const directGraphView = parseUrlState('?view=graph');
+  assert.equal(directGraphView.tab, 'traceability');
+  assert.equal(directGraphView.traceabilityView, 'graph');
 });
 
 /**
@@ -86,12 +98,14 @@ test('TC-0019: urlState - 状態オブジェクトからクリーンなクエリ
 
   // 2. 指定された非デフォルト値のみがクエリに含まれること
   const partialQuery = serializeUrlState({
-    tab: 'graph',
+    tab: 'traceability',
+    traceabilityView: 'graph',
     nodeId: 'REQ-0020',
     graphHighlight: 'downstream',
   });
   assert.ok(partialQuery.startsWith('?'));
-  assert.ok(partialQuery.includes('tab=graph'));
+  assert.ok(partialQuery.includes('view=graph'));
+  assert.ok(!partialQuery.includes('tab=traceability'), 'Default traceability tab should be omitted');
   assert.ok(partialQuery.includes('node=REQ-0020'));
   assert.ok(partialQuery.includes('highlight=downstream'));
   assert.ok(!partialQuery.includes('phase='), 'Default phase should not be serialized');

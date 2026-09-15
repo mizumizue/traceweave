@@ -86,7 +86,7 @@ export function QualityMetricsGrid({
         </div>
 
         <div
-          onClick={() => onNavigateTab('matrix', 'マトリクスタブに切り替えました')}
+          onClick={() => onNavigateTab('traceability', 'トレーサビリティ（マトリクス）に切り替えました')}
           className="bg-slate-900/50 border border-slate-800/80 p-3.5 rounded-2xl hover:border-slate-700 hover:bg-slate-900/80 transition-all shadow-sm cursor-pointer group flex flex-col justify-between"
           title={`High重要度: ${highCriticalityCount}件`}
         >

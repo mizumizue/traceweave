@@ -31,7 +31,8 @@ test('TC-0020: Header - ロゴリンク契約がルート先・修飾キー判�
  */
 test('TC-0020: ホーム状態契約 - ヘッダーロゴ遷移先の初期状態が返ること', () => {
   assert.deepEqual(getHomeUrlState(), {
-    tab: 'matrix',
+    tab: 'traceability',
+    traceabilityView: 'matrix',
     nodeId: null,
     searchQuery: '',
     phaseFilter: 'all',

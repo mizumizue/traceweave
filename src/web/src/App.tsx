@@ -11,6 +11,7 @@ import {
   buildFullUrl,
   isUrlStateEqual,
   AppTab,
+  TraceabilityView,
   GraphHighlightMode,
   AppUrlState,
   getHomeUrlState,
@@ -22,6 +23,7 @@ import { PYRAMID_LAYERS } from './components/VisualTestPyramid.js';
 import { Header, formatSubjectDocumentTitle } from './components/Header.js';
 import { QualityMetricsGrid } from './components/QualityMetricsGrid.js';
 import { TabNav } from './components/TabNav.js';
+import { TraceabilityViewToggle } from './components/TraceabilityViewToggle.js';
 import { MatrixView } from './components/MatrixView.js';
 import { StratumView } from './components/StratumView.js';
 import { UnitCoverageView } from './components/UnitCoverageView.js';
@@ -67,6 +69,7 @@ export default function App() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<AppTab>(initialUrlState.tab);
+  const [traceabilityView, setTraceabilityView] = useState<TraceabilityView>(initialUrlState.traceabilityView);
   const [searchQuery, setSearchQuery] = useState(initialUrlState.searchQuery);
   const [phaseFilter, setPhaseFilter] = useState<string>(initialUrlState.phaseFilter);
   const [criticalityFilter, setCriticalityFilter] = useState<string>(initialUrlState.criticalityFilter);
@@ -132,6 +135,7 @@ export default function App() {
       const parsed = parseUrlState();
 
       setActiveTab(parsed.tab);
+      setTraceabilityView(parsed.traceabilityView);
       setSelectedNodeId(parsed.nodeId);
       setSearchQuery(parsed.searchQuery);
       setPhaseFilter(parsed.phaseFilter);
@@ -194,6 +198,7 @@ export default function App() {
   const currentState: AppUrlState = useMemo(
     () => ({
       tab: activeTab,
+      traceabilityView,
       nodeId: selectedNodeId,
       searchQuery,
       phaseFilter,
@@ -207,6 +212,7 @@ export default function App() {
     }),
     [
       activeTab,
+      traceabilityView,
       selectedNodeId,
       searchQuery,
       phaseFilter,
@@ -263,6 +269,7 @@ export default function App() {
   const handleNavigateHome = () => {
     const home = getHomeUrlState();
     setActiveTab(home.tab);
+    setTraceabilityView(home.traceabilityView);
     setSelectedNodeId(home.nodeId);
     setSearchQuery(home.searchQuery);
     setPhaseFilter(home.phaseFilter);
@@ -375,7 +382,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-teal-500 selection:text-slate-950">
-      <div className={`mx-auto py-6 w-full space-y-6 transition-all ${activeTab === 'graph' ? 'max-w-[1920px] px-4 sm:px-8' : 'max-w-7xl px-4 sm:px-6'}`}>
+      <div className={`mx-auto py-6 w-full space-y-6 transition-all ${activeTab === 'traceability' && traceabilityView === 'graph' ? 'max-w-[1920px] px-4 sm:px-8' : 'max-w-7xl px-4 sm:px-6'}`}>
         {/* Header with Quick Action Toolbar (更新, 要約コピー, URL共有, CSV, JSON) */}
         <Header
           isRefreshing={isRefreshing}
@@ -394,12 +401,16 @@ export default function App() {
           highCriticalityCount={report.matrix.filter(r => r.criticality === 'high').length}
           onNavigateTab={(tab, msg) => {
             setActiveTab(tab);
+            if (tab === 'traceability') {
+              setTraceabilityView('matrix');
+            }
             if (msg) toast.info(msg);
           }}
           onSelectRequirementClass={cls => {
             const next = requirementClassFilter === cls ? 'all' : cls;
             setRequirementClassFilter(next);
-            setActiveTab('matrix');
+            setActiveTab('traceability');
+            setTraceabilityView('matrix');
             if (next !== 'all') {
               toast.info(next === 'functional' ? '機能要件 (FR) で絞り込みました' : '非機能要件 (NFR) で絞り込みました');
             }
@@ -411,14 +422,21 @@ export default function App() {
           activeTab={activeTab}
           onSelectTab={setActiveTab}
           matrixCount={filteredMatrix.length}
-          graphNodeCount={report?.nodes?.length ?? 0}
           unitCoveragePercent={Math.round((report.unitCoverage?.functionCoverage ?? 0) * 100)}
           decisionsCount={catalogData.totalCount}
           totalGapsCount={totalGapsCount}
         />
 
-        {/* Tab 1: Matrix */}
-        {activeTab === 'matrix' && (
+        {activeTab === 'traceability' && (
+          <TraceabilityViewToggle
+            activeView={traceabilityView}
+            onSelectView={setTraceabilityView}
+            matrixCount={filteredMatrix.length}
+            graphNodeCount={report?.nodes?.length ?? 0}
+          />
+        )}
+
+        {activeTab === 'traceability' && traceabilityView === 'matrix' && (
           <MatrixView
             rows={filteredMatrix}
             totalMatrixCount={report.matrix.length}
@@ -439,8 +457,7 @@ export default function App() {
           />
         )}
 
-        {/* Tab: Traceability Graph */}
-        {activeTab === 'graph' && (
+        {activeTab === 'traceability' && traceabilityView === 'graph' && (
           <div className="space-y-4 animate-fadeIn">
             <TraceabilityGraphView
               nodes={report.nodes || []}
@@ -460,7 +477,8 @@ export default function App() {
             onFilterPhase={phase => {
               const next = phaseFilter === phase ? 'all' : phase;
               setPhaseFilter(next);
-              setActiveTab('matrix');
+              setActiveTab('traceability');
+              setTraceabilityView('matrix');
               if (next !== 'all') {
                 const layer = PYRAMID_LAYERS.find(item => item.level === phase);
                 if (layer) toast.info(`マトリクスを "${layer.name}" で絞り込みました`);
@@ -499,7 +517,8 @@ export default function App() {
             onSelectNode={setSelectedNodeId}
             onFilterInMatrix={reqId => {
               setSearchQuery(reqId);
-              setActiveTab('matrix');
+              setActiveTab('traceability');
+              setTraceabilityView('matrix');
               toast.info(`マトリクスで "${reqId}" を表示しました`);
             }}
           />

@@ -1,15 +1,19 @@
 /**
  * TraceWeave Web Dashboard URL State Management & History API Sync Utility
- * 
+ *
  * SPEC-0019 / DSN-0010 に基づき、URL クエリパラメータと SPA 内部状態の
  * 双方向同期およびブラウザ履歴スタック制御を提供する。
  */
 
-export type AppTab = 'matrix' | 'graph' | 'stratum' | 'unit' | 'decisions' | 'gaps';
-export type GraphHighlightMode = 'all' | 'upstream' | 'downstream';
+export type TraceabilityView = 'matrix' | 'graph';
+export type AppTab = 'traceability' | 'stratum' | 'unit' | 'decisions' | 'gaps';
+
+/** @deprecated Legacy tab values accepted in URLs for backward compatibility */
+const LEGACY_TRACEABILITY_TABS = ['matrix', 'graph'] as const;
 
 export interface AppUrlState {
   tab: AppTab;
+  traceabilityView: TraceabilityView;
   nodeId: string | null;
   searchQuery: string;
   phaseFilter: string;
@@ -22,7 +26,10 @@ export interface AppUrlState {
   graphHighlight: GraphHighlightMode;
 }
 
-export const VALID_TABS: readonly AppTab[] = ['matrix', 'graph', 'stratum', 'unit', 'decisions', 'gaps'] as const;
+export type GraphHighlightMode = 'all' | 'upstream' | 'downstream';
+
+export const VALID_TABS: readonly AppTab[] = ['traceability', 'stratum', 'unit', 'decisions', 'gaps'] as const;
+export const VALID_TRACEABILITY_VIEWS: readonly TraceabilityView[] = ['matrix', 'graph'] as const;
 export const VALID_GRAPH_HIGHLIGHTS: readonly GraphHighlightMode[] = ['all', 'upstream', 'downstream'] as const;
 export const VALID_CRITICALITIES = ['all', 'high', 'medium', 'low'] as const;
 export const VALID_REQUIREMENT_CLASSES = ['all', 'functional', 'non_functional'] as const;
@@ -51,7 +58,8 @@ export const VALID_KINDS = [
 export const VALID_STATUSES = ['all', 'draft', 'accepted', 'deprecated', 'superseded'] as const;
 
 export const DEFAULT_URL_STATE: AppUrlState = {
-  tab: 'matrix',
+  tab: 'traceability',
+  traceabilityView: 'matrix',
   nodeId: null,
   searchQuery: '',
   phaseFilter: 'all',
@@ -68,9 +76,30 @@ export function getHomeUrlState(): AppUrlState {
   return { ...DEFAULT_URL_STATE };
 }
 
+function parseTraceabilityView(rawView: string | null, legacyTab?: string | null): TraceabilityView {
+  if (rawView && (VALID_TRACEABILITY_VIEWS as readonly string[]).includes(rawView)) {
+    return rawView as TraceabilityView;
+  }
+  if (legacyTab === 'graph') {
+    return 'graph';
+  }
+  return 'matrix';
+}
+
+function parseTab(rawTab: string | null): AppTab {
+  if (rawTab && (VALID_TABS as readonly string[]).includes(rawTab)) {
+    return rawTab as AppTab;
+  }
+  if (rawTab && (LEGACY_TRACEABILITY_TABS as readonly string[]).includes(rawTab as 'matrix' | 'graph')) {
+    return 'traceability';
+  }
+  return 'traceability';
+}
+
 /**
  * クエリ文字列または URL から AppUrlState をパースする。
  * 不正値は安全にデフォルト値へフォールバックする。
+ * `tab=matrix` / `tab=graph` は後方互換のため traceability + view に解釈する。
  */
 export function parseUrlState(queryOrUrl?: string): AppUrlState {
   let searchStr = '';
@@ -84,22 +113,18 @@ export function parseUrlState(queryOrUrl?: string): AppUrlState {
 
   const params = new URLSearchParams(searchStr);
 
-  // tab
-  const rawTab = params.get('tab') as AppTab | null;
-  const tab: AppTab = rawTab && VALID_TABS.includes(rawTab) ? rawTab : 'matrix';
+  const rawTab = params.get('tab');
+  const tab = parseTab(rawTab);
+  const traceabilityView = parseTraceabilityView(params.get('view'), rawTab);
 
-  // node
   const rawNode = params.get('node');
   const nodeId = rawNode && rawNode.trim() ? rawNode.trim() : null;
 
-  // q (searchQuery)
   const searchQuery = params.get('q') || '';
 
-  // phase
   const rawPhase = params.get('phase');
   const phaseFilter = rawPhase && (VALID_PHASES as readonly string[]).includes(rawPhase) ? rawPhase : 'all';
 
-  // criticality
   const rawCriticality = params.get('criticality');
   const criticalityFilter =
     rawCriticality && (VALID_CRITICALITIES as readonly string[]).includes(rawCriticality)
@@ -112,30 +137,26 @@ export function parseUrlState(queryOrUrl?: string): AppUrlState {
       ? rawReqClass
       : 'all';
 
-  // score
   const rawScore = params.get('score');
   const scoreFilter = rawScore && (VALID_SCORES as readonly string[]).includes(rawScore) ? rawScore : 'all';
 
-  // catalogKind (kind)
   const rawKind = params.get('kind');
   const catalogKind = rawKind && (VALID_KINDS as readonly string[]).includes(rawKind) ? rawKind : 'all';
 
-  // catalogTag (tag)
   const rawTag = params.get('tag');
   const catalogTag = rawTag && rawTag.trim() ? rawTag.trim() : null;
 
-  // catalogStatus (status)
   const rawStatus = params.get('status');
   const catalogStatus =
     rawStatus && (VALID_STATUSES as readonly string[]).includes(rawStatus) ? rawStatus : 'all';
 
-  // graphHighlight (highlight)
   const rawHighlight = params.get('highlight') as GraphHighlightMode | null;
   const graphHighlight: GraphHighlightMode =
     rawHighlight && VALID_GRAPH_HIGHLIGHTS.includes(rawHighlight) ? rawHighlight : 'all';
 
   return {
     tab,
+    traceabilityView,
     nodeId,
     searchQuery,
     phaseFilter,
@@ -150,34 +171,37 @@ export function parseUrlState(queryOrUrl?: string): AppUrlState {
 }
 
 /**
- * AppUrlState からクリーンなクエリ文字列（例: "?tab=graph&node=REQ-0001"）を生成する。
+ * AppUrlState からクリーンなクエリ文字列（例: "?view=graph&node=REQ-0001"）を生成する。
  * デフォルト値は URL を読みやすく保つため除外する。
  */
 export function serializeUrlState(state: Partial<AppUrlState>): string {
   const merged: AppUrlState = { ...DEFAULT_URL_STATE, ...state };
   const params = new URLSearchParams();
 
-  // tab (matrix はデフォルトなので省略可)
-  if (merged.tab && merged.tab !== 'matrix') {
+  if (merged.tab && merged.tab !== 'traceability') {
     params.set('tab', merged.tab);
   }
 
-  // node
+  if (
+    merged.tab === 'traceability' &&
+    merged.traceabilityView &&
+    merged.traceabilityView !== 'matrix'
+  ) {
+    params.set('view', merged.traceabilityView);
+  }
+
   if (merged.nodeId) {
     params.set('node', merged.nodeId);
   }
 
-  // q
   if (merged.searchQuery && merged.searchQuery.trim()) {
     params.set('q', merged.searchQuery.trim());
   }
 
-  // phase
   if (merged.phaseFilter && merged.phaseFilter !== 'all') {
     params.set('phase', merged.phaseFilter);
   }
 
-  // criticality
   if (merged.criticalityFilter && merged.criticalityFilter !== 'all') {
     params.set('criticality', merged.criticalityFilter);
   }
@@ -186,27 +210,22 @@ export function serializeUrlState(state: Partial<AppUrlState>): string {
     params.set('reqclass', merged.requirementClassFilter);
   }
 
-  // score
   if (merged.scoreFilter && merged.scoreFilter !== 'all') {
     params.set('score', merged.scoreFilter);
   }
 
-  // kind
   if (merged.catalogKind && merged.catalogKind !== 'all') {
     params.set('kind', merged.catalogKind);
   }
 
-  // tag
   if (merged.catalogTag && merged.catalogTag.trim()) {
     params.set('tag', merged.catalogTag.trim());
   }
 
-  // status
   if (merged.catalogStatus && merged.catalogStatus !== 'all') {
     params.set('status', merged.catalogStatus);
   }
 
-  // highlight
   if (merged.graphHighlight && merged.graphHighlight !== 'all') {
     params.set('highlight', merged.graphHighlight);
   }
@@ -239,6 +258,7 @@ export function buildFullUrl(state: Partial<AppUrlState>, baseUrl?: string): str
 export function isUrlStateEqual(a: AppUrlState, b: AppUrlState): boolean {
   return (
     a.tab === b.tab &&
+    a.traceabilityView === b.traceabilityView &&
     a.nodeId === b.nodeId &&
     a.searchQuery.trim() === b.searchQuery.trim() &&
     a.phaseFilter === b.phaseFilter &&
@@ -256,6 +276,7 @@ export function isOnlySearchQueryChanged(previous: AppUrlState, current: AppUrlS
   return (
     previous.searchQuery !== current.searchQuery &&
     previous.tab === current.tab &&
+    previous.traceabilityView === current.traceabilityView &&
     previous.nodeId === current.nodeId &&
     previous.phaseFilter === current.phaseFilter &&
     previous.criticalityFilter === current.criticalityFilter &&
@@ -282,7 +303,6 @@ export function syncBrowserHistory(
   const newQuery = serializeUrlState(state);
   const currentQuery = window.location.search || '';
 
-  // 現在のクエリ文字列と同一かつ force でない場合は何もしない
   if (newQuery === currentQuery && !options.force) {
     return;
   }

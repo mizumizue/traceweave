@@ -227,7 +227,8 @@ test('TC-0051: TraceabilityGraphBuilder - 実ドキュメントのレイアウ�
  */
 test('TC-0052: urlState - 区分・タブ・ノードのクエリが単体で往復シリアライズされること', () => {
   const state = parseUrlState('?tab=graph&node=REQ-0024&reqclass=functional&highlight=upstream');
-  assert.equal(state.tab, 'graph');
+  assert.equal(state.tab, 'traceability');
+  assert.equal(state.traceabilityView, 'graph');
   assert.equal(state.nodeId, 'REQ-0024');
   assert.equal(state.requirementClassFilter, 'functional');
   const roundTrip = parseUrlState(serializeUrlState(state));
@@ -248,7 +249,8 @@ test('TC-0053: urlState - 実レポート要件 ID が URL 状態と内部結合
   const req = report.nodes.find(n => n.id === 'REQ-0024');
   assert.ok(req);
   const query = serializeUrlState({
-    tab: 'matrix',
+    tab: 'traceability',
+    traceabilityView: 'matrix',
     nodeId: 'REQ-0024',
     searchQuery: '',
     phaseFilter: 'all',
