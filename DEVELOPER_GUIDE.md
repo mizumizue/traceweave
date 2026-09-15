@@ -26,6 +26,7 @@ traceweave/
 │   ├── decisions/          # 意思決定ログ / ADR (ADR-*)
 │   ├── actors/             # アクター定義 (ACT-*)
 │   ├── usecases/           # ユースケース (UC-*)
+│   ├── glossary/           # ドメイン用語 (GLO-*)
 │   ├── quality/            # 品質基準・検証方針 (QA-*)
 │   └── test-cases/         # 個別テストケース (TC-*)
 │

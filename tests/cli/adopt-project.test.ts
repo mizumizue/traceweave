@@ -86,6 +86,14 @@ test.describe('TraceWeave Adoption Engine (adopt-project)', () => {
     assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs', 'quality', 'QA-0001.md')));
     assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs', 'SYSTEM_OVERVIEW.md')));
 
+    const glossaryFiles = fs
+      .readdirSync(path.join(tempBaseDir, 'docs', 'glossary'))
+      .filter(f => f.startsWith('GLO-') && f.endsWith('.md'));
+    assert.equal(glossaryFiles.length, 14, 'adopt should ship all TraceWeave platform glossary terms');
+    assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs', 'glossary', 'GLO-0001.md')));
+    const glo1 = fs.readFileSync(path.join(tempBaseDir, 'docs', 'glossary', 'GLO-0001.md'), 'utf-8');
+    assert.ok(glo1.includes('title: トレーサビリティ'), 'GLO-0001 should be the platform term, not project name');
+
     // 3. bin/ ラッパーが生成されていること
     assert.ok(fs.existsSync(path.join(tempBaseDir, 'bin', 'traceweave')));
     assert.ok(fs.existsSync(path.join(tempBaseDir, 'bin', 'traceweave.cmd')));

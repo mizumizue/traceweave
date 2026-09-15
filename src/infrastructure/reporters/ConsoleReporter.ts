@@ -123,7 +123,7 @@ export class ConsoleReporter {
     console.log('\x1b[1m[決め事ドキュメント統計サマリー]\x1b[0m');
     console.log(`  - 総登録数: ${totalCount} 件 (表示中: ${targetItems.length} 件)`);
     console.log(
-      `  - 内訳: ACT:${kindCounts.actor} | UC:${kindCounts.use_case} | REQ:${kindCounts.requirement} | SPEC:${kindCounts.specification} | DSN:${kindCounts.design} | ADR:${kindCounts.decision} | QA:${kindCounts.quality_assurance} | NEED:${kindCounts.need} | TC:${kindCounts.test_case}`
+      `  - 内訳: ACT:${kindCounts.actor} | UC:${kindCounts.use_case} | GLO:${kindCounts.glossary} | REQ:${kindCounts.requirement} | SPEC:${kindCounts.specification} | DSN:${kindCounts.design} | ADR:${kindCounts.decision} | QA:${kindCounts.quality_assurance} | NEED:${kindCounts.need} | TC:${kindCounts.test_case}`
     );
     console.log(
       `  - 要件区分: FR:${catalog.requirementClassCounts.functional} | NFR:${catalog.requirementClassCounts.non_functional} | 未分類:${catalog.requirementClassCounts.unclassified}\n`

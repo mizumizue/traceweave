@@ -429,13 +429,14 @@ Web ダッシュボードは、`./bin/traceweave serve`（ローカル起動）�
 
 TraceWeave は、`docs/` 配下の Markdown ファイル（YAML フロントマター付き）を正本として解析します。
 
-### 6.1 ディレクトリ構成と 9 つの文書種別
+### 6.1 ディレクトリ構成と 10 つの文書種別
 
 | ディレクトリ | 種別 (`kind`) | ID 接頭辞 | 役割 | 上流依存 (`depends_on`) |
 |---|---|---|---|---|
 | `docs/needs/` | `need` | `NEED-` | なぜやるのか（Why / 背景・課題・期待成果） | `[]` |
 | `docs/actors/` | `actor` | `ACT-` | システムに関わる人・外部システム | `[]` |
 | `docs/usecases/` | `use_case` | `UC-` | アクターとシステムの対話シナリオ | `[]` |
+| `docs/glossary/` | `glossary` | `GLO-` | ドメイン用語・概念の定義（ユビキタス言語） | `[]` |
 | `docs/requirements/` | `requirement` | `REQ-` | システムが何を満たすべきか（What / 受入条件） | `[NEED-xxxx]` または `[]` |
 | `docs/specifications/` | `specification` | `SPEC-` | 入出力・型・プロトコル等の契約（Contract / ICD） | `[REQ-xxxx]` |
 | `docs/design/` | `design` | `DSN-` | 内部構造・データフロー・選定理由（How） | `[SPEC-xxxx]` |

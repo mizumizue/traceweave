@@ -62,7 +62,7 @@ export function listMcpTools() {
           kind: {
             type: 'string',
             description:
-              'Document kind filter (actor, use_case, requirement, specification, design, decision, quality_assurance, need, test_case, all)',
+              'Document kind filter (actor, use_case, glossary, requirement, specification, design, decision, quality_assurance, need, test_case, all)',
           },
           reqclass: {
             type: 'string',

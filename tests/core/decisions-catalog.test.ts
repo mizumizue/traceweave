@@ -221,6 +221,7 @@ test('TC-0017: DecisionsCatalogBuilder - 実際のdocsディレクトリを読�
   assert.ok(catalog.kindCounts.specification > 0);
   assert.ok(catalog.kindCounts.design > 0);
   assert.ok(catalog.kindCounts.decision > 0);
+  assert.ok(catalog.kindCounts.glossary > 0);
 
   // ACT-0001 should have related use cases
   const act1 = catalog.items.find(i => i.id === 'ACT-0001');

@@ -28,6 +28,7 @@ import {
   HelpCircle,
   FlaskConical,
   RotateCcw,
+  BookOpen,
   LayoutGrid,
   List,
   Sparkles,
@@ -75,6 +76,14 @@ export const KIND_META: Record<
     badgeBg: 'bg-indigo-950/80 text-indigo-300 border-indigo-700/60',
     border: 'border-indigo-800/40 hover:border-indigo-500/80',
     icon: <Target className="w-3.5 h-3.5 text-indigo-400" />,
+  },
+  glossary: {
+    label: '用語 (Glossary)',
+    short: 'GLO',
+    color: 'text-orange-400',
+    badgeBg: 'bg-orange-950/80 text-orange-300 border-orange-700/60',
+    border: 'border-orange-800/40 hover:border-orange-500/80',
+    icon: <BookOpen className="w-3.5 h-3.5 text-orange-400" />,
   },
   need: {
     label: '要求 (Need)',
@@ -338,11 +347,23 @@ export function DecisionsBrowser({
               </h2>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              要件・仕様・ユースケース・アクター・アーキテクチャ設計・意思決定（ADR）・品質方針など、システムのあらゆる決め事を横断的に探索・相互参照できます。
+              要件・仕様・ユースケース・アクター・用語・設計・意思決定（ADR）・品質方針など、システムの決め事を横断的に探索・相互参照できます。
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
+          <div className="flex flex-wrap items-center gap-2 self-start md:self-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => handleKindSelect(selectedKind === 'glossary' ? 'all' : 'glossary')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition flex items-center gap-1.5 ${
+                selectedKind === 'glossary'
+                  ? 'bg-orange-950/80 text-orange-200 border-orange-600/60 ring-2 ring-orange-400/40'
+                  : 'bg-slate-950/60 text-slate-300 border-slate-700 hover:border-orange-700/60 hover:text-orange-200'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              用語集 ({catalog.kindCounts.glossary || 0})
+            </button>
             <span className="text-xs text-slate-400 font-medium">登録ドキュメント総数:</span>
             <span className="px-3 py-1 bg-indigo-950 border border-indigo-700 text-indigo-300 font-bold font-mono text-sm rounded-xl shadow-inner">
               {catalog.totalCount} 件
@@ -351,7 +372,7 @@ export function DecisionsBrowser({
         </div>
 
         {/* Kind breakdown counts */}
-        <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2 mt-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2 mt-4">
           {(Object.keys(KIND_META) as DocKind[]).map(kind => {
             const meta = KIND_META[kind];
             const count = catalog.kindCounts[kind] || 0;
@@ -827,11 +848,13 @@ export function DecisionsBrowser({
               (item.relatedSpecs && item.relatedSpecs.length > 0) ||
               (item.relatedDesigns && item.relatedDesigns.length > 0) ||
               (item.relatedDecisions && item.relatedDecisions.length > 0) ||
-              (item.relatedTestCases && item.relatedTestCases.length > 0);
+              (item.relatedTestCases && item.relatedTestCases.length > 0) ||
+              (item.relatedGlossary && item.relatedGlossary.length > 0);
 
             // Preview excerpt from main section
             const excerpt =
               item.sections?.['Role'] ||
+              item.sections?.['Definition'] ||
               item.sections?.['Statement'] ||
               item.sections?.['Decision'] ||
               item.sections?.['Goal'] ||
@@ -968,6 +991,7 @@ export function DecisionsBrowser({
                         {item.relatedSpecs?.slice(0, 2).map(ref => renderRefBadge(ref, '📐'))}
                         {/* Test Cases */}
                         {item.relatedTestCases?.slice(0, 2).map(ref => renderRefBadge(ref, '🧪'))}
+                        {item.relatedGlossary?.slice(0, 3).map(ref => renderRefBadge(ref, '📖'))}
                       </div>
                     </div>
                   ) : (
@@ -1038,6 +1062,11 @@ export function DecisionsBrowser({
                             役割: {item.sections['Role']}
                           </div>
                         )}
+                        {item.sections?.['Definition'] && (
+                          <div className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
+                            定義: {item.sections['Definition']}
+                          </div>
+                        )}
                         {item.sections?.['Decision'] && (
                           <div className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
                             決定: {item.sections['Decision']}
@@ -1053,6 +1082,7 @@ export function DecisionsBrowser({
                           {item.relatedDesigns?.map(ref => renderRefBadge(ref, '🏗️'))}
                           {item.relatedReqs?.slice(0, 2).map(ref => renderRefBadge(ref, '📋'))}
                           {item.relatedSpecs?.slice(0, 2).map(ref => renderRefBadge(ref, '📐'))}
+                          {item.relatedGlossary?.slice(0, 2).map(ref => renderRefBadge(ref, '📖'))}
                         </div>
                       </td>
 

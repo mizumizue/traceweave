@@ -203,7 +203,7 @@ program
   .command('catalog')
   .description('Display or export cross-cutting decisions & architecture documents catalog')
   .option('-d, --docs <dir>', 'Docs directory path')
-  .option('-k, --kind <kind>', 'Filter by document kind (actor, use_case, requirement, specification, design, decision, quality_assurance, need, test_case, all)', 'all')
+  .option('-k, --kind <kind>', 'Filter by document kind (actor, use_case, glossary, requirement, specification, design, decision, quality_assurance, need, test_case, all)', 'all')
   .option('--reqclass <class>', 'Filter requirements by class (functional, non_functional, all)', 'all')
   .option('-t, --tag <tag>', 'Filter by tag')
   .option('--status <status>', 'Filter by document status (draft, proposed, accepted, rejected, superseded, deprecated, all)', 'all')

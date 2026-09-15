@@ -40,6 +40,7 @@ export const VALID_KINDS = [
   'need',
   'actor',
   'use_case',
+  'glossary',
   'requirement',
   'specification',
   'design',

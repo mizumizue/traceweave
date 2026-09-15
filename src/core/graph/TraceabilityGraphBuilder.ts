@@ -25,9 +25,9 @@ export const GRAPH_RANKS: RankDefinition[] = [
   },
   {
     rank: 1,
-    name: 'アクター & UC',
-    description: '外部アクターと利用シナリオ',
-    kinds: ['actor', 'use_case'],
+    name: 'アクター・UC・用語',
+    description: '外部アクター、利用シナリオ、ドメイン用語',
+    kinds: ['actor', 'use_case', 'glossary'],
   },
   {
     rank: 2,

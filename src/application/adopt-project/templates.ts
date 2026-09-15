@@ -3,6 +3,27 @@ import path from 'node:path';
 import { resolveRepoRoot } from '../../infrastructure/system/resolveRepoRoot.js';
 import { resolveTestCommand } from './quality-kit.js';
 
+/** TraceWeave 本体 docs/glossary/ の全 GLO を adopt 先へ配備（日付のみ当日に更新） */
+export function loadAdoptGlossaryDocs(today: string): Record<string, string> {
+  const glossaryDir = path.join(resolveRepoRoot(import.meta.url), 'docs', 'glossary');
+  const out: Record<string, string> = {};
+
+  if (!fs.existsSync(glossaryDir)) {
+    return out;
+  }
+
+  for (const file of fs.readdirSync(glossaryDir).sort()) {
+    if (!file.endsWith('.md') || !file.startsWith('GLO-')) continue;
+    const raw = fs.readFileSync(path.join(glossaryDir, file), 'utf-8');
+    const stamped = raw
+      .replace(/^created: ".*"$/m, `created: "${today}"`)
+      .replace(/^updated: ".*"$/m, `updated: "${today}"`);
+    out[`docs/glossary/${file}`] = stamped;
+  }
+
+  return out;
+}
+
 // -----------------------------------------------------------------------------
 // 3. Document Templates (docs-document-schema.mdc 100% 準拠)
 // -----------------------------------------------------------------------------
@@ -10,7 +31,7 @@ export function generateStarterDocs(projectName: string, testFramework?: string)
   const today = new Date().toISOString().slice(0, 10);
   const testCmd = resolveTestCommand(testFramework);
 
-  return {
+  const coreDocs: Record<string, string> = {
     'docs/needs/NEED-0001.md': `---
 schema_version: 3
 id: NEED-0001
@@ -22,7 +43,7 @@ updated: "${today}"
 scope: local
 depends_on: []
 tags: [traceability, quality, v-model]
-links: []
+links: [GLO-0001, GLO-0002, GLO-0004, GLO-0005]
 ---
 ## Content
 
@@ -327,9 +348,11 @@ ${projectName} は、主要ユースケース（UC-0001）を実現し、安定�
 - **Out-of-Scope**: リポジトリ構成、依存関係管理、開発プロセスツール。
 
 ## 3. ドキュメント体系
-TraceWeave V字モデル（NEED -> REQ -> SPEC -> DSN, ACT, UC, QA, TC, ADR）に準拠して管理する。
+TraceWeave V字モデル（NEED -> REQ -> SPEC -> DSN, ACT, UC, GLO, QA, TC, ADR）に準拠して管理する。
 `,
   };
+
+  return { ...coreDocs, ...loadAdoptGlossaryDocs(today) };
 }
 
 export function generateBinWrappers(): Record<string, string> {

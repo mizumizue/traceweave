@@ -15,6 +15,7 @@ alwaysApply: false
 | `docs/needs/` | `need` | `NEED-` | 背景・課題・期待成果（Why） |
 | `docs/actors/` | `actor` | `ACT-` | アクター・外部システムの役割と責務 |
 | `docs/usecases/` | `use_case` | `UC-` | ユースケース・業務シナリオ |
+| `docs/glossary/` | `glossary` | `GLO-` | ドメイン用語・概念の定義（ユビキタス言語） |
 | `docs/requirements/` | `requirement` | `REQ-` | 観測可能な振る舞い・成果（What。実装手段・内部名は含めない）。必須区分 `requirement_class`（functional / non_functional） |
 | `docs/specifications/` | `specification` | `SPEC-` | 外部・モジュール境界の契約（Contract / ICD。入出力・型・プロトコル） |
 | `docs/design/` | `design` | `DSN-` | 内部モジュール構造・データフロー・選定理由・トレードオフ（How & Why） |
@@ -73,6 +74,7 @@ links: [] # 非依存の横断参照
 - `need`: `### Background`, `### Problem`, `### Desired Outcome`
 - `actor`: `### Role`, `### Responsibilities`, `### Interactions`
 - `use_case`: `### Goal`, `### Trigger`, `### Preconditions`, `### Main Flow`, `### Alternative Flows`, `### Postconditions`
+- `glossary`: `### Definition`, `### Context`, `### Synonyms`, `### Related Terms`
 - `requirement`: `### Statement`, `### Acceptance Criteria`（各 AC は `- AC-xxx: Given ... When ... Then ...` 形式）
 - `specification`: `### Contract`, `### Inputs`, `### Outputs`, `### Errors`, `### Constraints`（外部IF時は `tags: [interface, external, <対象名>]`）
 - `design`: `### Decision`, `### Structure`, `### Data Flow`, `### Trade-offs`
@@ -83,7 +85,7 @@ links: [] # 非依存の横断参照
 ## 4. Traceability & Direction
 
 - 依存方向（`depends_on`）: `need` <- `requirement` <- `specification` <- `design`
-- `need`, `actor`, `use_case`, `decision`: `depends_on: []`（最上流または独立意思決定）
+- `need`, `actor`, `use_case`, `glossary`, `decision`: `depends_on: []`（最上流または独立意思決定）
 - `requirement`: `[NEED-xxxx]`（1:N）または `[]`（要件起点）
 - `specification`: 1件以上の `REQ-xxxx` または `[]`（仕様起点・スタンドアロン仕様）
 - `design`: 1件以上の `SPEC-xxxx`（全体設計は `scope: cross_cutting` で `depends_on: []` 許可）

@@ -41,6 +41,7 @@ const EMPTY_CATALOG: DecisionsCatalog = {
     need: 0,
     actor: 0,
     use_case: 0,
+    glossary: 0,
     requirement: 0,
     specification: 0,
     design: 0,

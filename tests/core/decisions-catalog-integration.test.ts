@@ -26,6 +26,7 @@ test('TC-0031: DecisionsCatalogBuilder - 主要種別集約・相互参照（ACT
   assert.ok(catalog.kindCounts.specification > 0, 'Should aggregate specifications');
   assert.ok(catalog.kindCounts.decision > 0, 'Should aggregate decisions (ADR)');
   assert.ok(catalog.kindCounts.design > 0, 'Should aggregate designs (DSN)');
+  assert.ok(catalog.kindCounts.glossary > 0, 'Should aggregate glossary terms (GLO)');
 
   // 2. Validate bidirectional cross references
   // Actor <-> UseCase

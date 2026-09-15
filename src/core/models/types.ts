@@ -4,6 +4,7 @@ export type DocKind =
   | 'need'
   | 'actor'
   | 'use_case'
+  | 'glossary'
   | 'requirement'
   | 'specification'
   | 'design'
@@ -291,12 +292,14 @@ export interface DecisionsCatalogItem {
   relatedDecisions?: DecisionsReferenceItem[];
   relatedQAs?: DecisionsReferenceItem[];
   relatedTestCases?: DecisionsReferenceItem[];
+  relatedGlossary?: DecisionsReferenceItem[];
 }
 
 export interface DecisionsKindCounts {
   need: number;
   actor: number;
   use_case: number;
+  glossary: number;
   requirement: number;
   specification: number;
   design: number;

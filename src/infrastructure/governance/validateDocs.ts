@@ -9,6 +9,7 @@ const KINDS: Record<string, { kind: string; prefix: string }> = {
   needs: { kind: 'need', prefix: 'NEED' },
   actors: { kind: 'actor', prefix: 'ACT' },
   usecases: { kind: 'use_case', prefix: 'UC' },
+  glossary: { kind: 'glossary', prefix: 'GLO' },
   requirements: { kind: 'requirement', prefix: 'REQ' },
   specifications: { kind: 'specification', prefix: 'SPEC' },
   design: { kind: 'design', prefix: 'DSN' },
@@ -32,6 +33,7 @@ const HEADINGS: Record<string, string[]> = {
     '### Alternative Flows',
     '### Postconditions',
   ],
+  glossary: ['### Definition', '### Context', '### Synonyms', '### Related Terms'],
   requirement: ['### Statement', '### Acceptance Criteria'],
   specification: [
     '### Contract',
@@ -83,7 +85,7 @@ export interface DocItem {
   body: string;
 }
 
-const DOC_ID_BACKTICK = /`(NEED|REQ|SPEC|DSN|ADR|QA|TC|ACT|UC)-\d{4,}`/;
+const DOC_ID_BACKTICK = /`(NEED|REQ|SPEC|DSN|ADR|QA|TC|ACT|UC|GLO)-\d{4,}`/;
 
 const NEED_ALLOWED_SCHEMA_TOKENS = new Set([
   'depends_on',
@@ -330,7 +332,7 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): {
       }
     }
 
-    if (['need', 'actor', 'use_case', 'decision'].includes(kind)) {
+    if (['need', 'actor', 'use_case', 'glossary', 'decision'].includes(kind)) {
       if (deps.length > 0) {
         errors.push(`${filePath}: ${kind} must have depends_on: []`);
       }

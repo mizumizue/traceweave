@@ -40,6 +40,7 @@ export function formatCatalogMarkdown(catalog: DecisionsCatalog, filtered: Decis
     if (item.relatedDesigns?.length) refs.push(`DSN:${item.relatedDesigns.map(d => d.id).join(',')}`);
     if (item.relatedReqs?.length) refs.push(`REQ:${item.relatedReqs.map(r => r.id).join(',')}`);
     if (item.relatedSpecs?.length) refs.push(`SPEC:${item.relatedSpecs.map(s => s.id).join(',')}`);
+    if (item.relatedGlossary?.length) refs.push(`GLO:${item.relatedGlossary.map(g => g.id).join(',')}`);
     const refsStr = refs.join('; ') || '-';
     const tagsStr = item.tags.length > 0 ? item.tags.map(t => `\`${t}\``).join(' ') : '-';
     const classStr =

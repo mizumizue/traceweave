@@ -9,6 +9,7 @@ import { buildFullUrl } from '../utils/urlState.js';
 import { CircularGauge } from './CircularGauge.js';
 import { InteractiveTestRunner } from './InteractiveTestRunner.js';
 import { RequirementClassBadge } from './RequirementClassBadge.js';
+import { KIND_META } from './DecisionsBrowser.js';
 import {
   appendModalHistory,
   getNodeCopyText,
@@ -145,6 +146,7 @@ export function NodeDetailModal({
     test_case: 'bg-purple-950 text-purple-300 border-purple-700/60',
     actor: 'bg-blue-950 text-blue-300 border-blue-700/60',
     use_case: 'bg-violet-950 text-violet-300 border-violet-700/60',
+    glossary: 'bg-orange-950 text-orange-300 border-orange-700/60',
   };
 
   const statusBadge =
@@ -202,11 +204,12 @@ export function NodeDetailModal({
               </div>
 
               <span
-                className={`text-[11px] font-mono font-bold uppercase px-2.5 py-0.5 rounded border ${
+                className={`text-[11px] font-mono font-bold uppercase px-2.5 py-0.5 rounded border flex items-center gap-1 ${
                   kindBadgeColors[node.kind] || 'bg-slate-800 text-slate-300'
                 }`}
               >
-                {node.kind}
+                {KIND_META[node.kind]?.icon}
+                {KIND_META[node.kind]?.short ?? node.kind}
               </span>
               {node.kind === 'requirement' && (
                 <RequirementClassBadge value={node.requirement_class} showLabel size="md" />
@@ -391,6 +394,36 @@ export function NodeDetailModal({
                   ))}
                 </div>
               )}
+              {catalogItem?.relatedGlossary && catalogItem.relatedGlossary.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-lg border border-orange-900/60">
+                  <span className="text-orange-400">📖 用語 (GLO):</span>
+                  {catalogItem.relatedGlossary.map(ref => (
+                    <button
+                      key={ref.id}
+                      onClick={() => handleNavigate(ref.id)}
+                      className="text-orange-300 hover:underline font-mono font-bold hover:text-orange-200 transition"
+                      title={`${ref.title} (${ref.id})`}
+                    >
+                      {ref.id}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {catalogItem?.relatedNeeds && catalogItem.relatedNeeds.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-lg border border-pink-900/60">
+                  <span className="text-pink-400">💡 要求 (NEED):</span>
+                  {catalogItem.relatedNeeds.map(ref => (
+                    <button
+                      key={ref.id}
+                      onClick={() => handleNavigate(ref.id)}
+                      className="text-pink-300 hover:underline font-mono font-bold hover:text-pink-200 transition"
+                      title={`${ref.title} (${ref.id})`}
+                    >
+                      {ref.id}
+                    </button>
+                  ))}
+                </div>
+              )}
               {/* Related Designs */}
               {catalogItem?.relatedDesigns && catalogItem.relatedDesigns.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-lg border border-blue-900/60">
@@ -546,6 +579,23 @@ export function NodeDetailModal({
                     {node.evidence_log}
                   </pre>
                 </div>
+              )}
+            </div>
+          ) : node.kind === 'glossary' ? (
+            <div className="space-y-4">
+              <div className="text-xs font-bold text-orange-300 uppercase tracking-wider flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-orange-400" />
+                用語定義 (Glossary Entry)
+              </div>
+              {node.sections && Object.keys(node.sections).length > 0 ? (
+                Object.entries(node.sections).map(([title, content]) => (
+                  <div key={title} className="bg-slate-950/80 border border-orange-900/30 rounded-xl p-4">
+                    <h3 className="text-xs font-bold text-orange-300 uppercase tracking-wider mb-2">{title}</h3>
+                    <div className="text-sm text-slate-200 leading-relaxed whitespace-pre-wrap">{content}</div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-slate-400 italic">セクション定義がありません。</div>
               )}
             </div>
           ) : (

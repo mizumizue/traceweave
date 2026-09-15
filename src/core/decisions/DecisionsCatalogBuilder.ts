@@ -39,6 +39,7 @@ export class DecisionsCatalogBuilder {
       need: 0,
       actor: 0,
       use_case: 0,
+      glossary: 0,
       requirement: 0,
       specification: 0,
       design: 0,
@@ -127,6 +128,7 @@ export class DecisionsCatalogBuilder {
       const relatedDecisionsMap = new Map<string, DecisionsReferenceItem>();
       const relatedQAsMap = new Map<string, DecisionsReferenceItem>();
       const relatedTestCasesMap = new Map<string, DecisionsReferenceItem>();
+      const relatedGlossaryMap = new Map<string, DecisionsReferenceItem>();
 
       // 1. Direct depends_on (upstream)
       for (const depId of node.depends_on || []) {
@@ -200,6 +202,8 @@ export class DecisionsCatalogBuilder {
         else if (linkNode.kind === 'design') relatedDesignsMap.set(ref.id, ref);
         else if (linkNode.kind === 'specification') relatedSpecsMap.set(ref.id, ref);
         else if (linkNode.kind === 'requirement') relatedReqsMap.set(ref.id, ref);
+        else if (linkNode.kind === 'glossary') relatedGlossaryMap.set(ref.id, ref);
+        else if (linkNode.kind === 'need') relatedNeedsMap.set(ref.id, ref);
       }
 
       return {
@@ -232,6 +236,7 @@ export class DecisionsCatalogBuilder {
         relatedDecisions: Array.from(relatedDecisionsMap.values()),
         relatedQAs: Array.from(relatedQAsMap.values()),
         relatedTestCases: Array.from(relatedTestCasesMap.values()),
+        relatedGlossary: Array.from(relatedGlossaryMap.values()),
       };
     });
 

@@ -28,7 +28,7 @@ V 字モデルの工程順に並べ、ドキュメント間の依存・検証関
 
 ### 決め事カタログ
 
-アクター、ユースケース、要件、仕様、設計、ADR など、種別を問わず決め事を横断検索します。
+アクター、ユースケース、用語、要件、仕様、設計、ADR など、種別を問わず決め事を横断検索します。
 
 ![決め事カタログ](./docs/assets/screenshots/decisions.png)
 
@@ -174,6 +174,9 @@ npm --prefix src test
 | ディレクトリ                 | 種別 (`kind`)         | ID 接頭辞      | 説明                                       |
 | ---------------------- | ------------------- | ----------- | ---------------------------------------- |
 | `docs/needs/`          | `need`              | `NEED-xxxx` | 背景・課題・期待する成果（Why）                        |
+| `docs/actors/`         | `actor`             | `ACT-xxxx`  | アクター・外部システムの役割と責務                          |
+| `docs/usecases/`       | `use_case`          | `UC-xxxx`   | ユースケース・業務シナリオ                               |
+| `docs/glossary/`       | `glossary`          | `GLO-xxxx`  | ドメイン用語・概念の定義（ユビキタス言語）                    |
 | `docs/requirements/`   | `requirement`       | `REQ-xxxx`  | 観測可能な成果・受入条件（What / AC）、区分（`requirement_class`: functional / non_functional）、重要度（criticality） |
 | `docs/specifications/` | `specification`     | `SPEC-xxxx` | 入出力契約・インターフェース・異常系制約                     |
 | `docs/design/`         | `design`            | `DSN-xxxx`  | モジュール構造・データフロー・トレードオフ                    |
