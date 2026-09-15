@@ -80,6 +80,7 @@ export default function App() {
   const [catalogStatus, setCatalogStatus] = useState<string>(initialUrlState.catalogStatus);
   const [graphHighlight, setGraphHighlight] = useState<GraphHighlightMode>(initialUrlState.graphHighlight);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialUrlState.nodeId);
+  const [unitCoverageFile, setUnitCoverageFile] = useState<string | null>(initialUrlState.unitCoverageFile);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const isNavigatingFromPopstateRef = useRef(false);
@@ -146,6 +147,7 @@ export default function App() {
       setCatalogTag(parsed.catalogTag);
       setCatalogStatus(parsed.catalogStatus);
       setGraphHighlight(parsed.graphHighlight);
+      setUnitCoverageFile(parsed.unitCoverageFile);
 
       lastSyncedStateRef.current = parsed;
 
@@ -200,6 +202,7 @@ export default function App() {
       tab: activeTab,
       traceabilityView,
       nodeId: selectedNodeId,
+      unitCoverageFile,
       searchQuery,
       phaseFilter,
       criticalityFilter,
@@ -214,6 +217,7 @@ export default function App() {
       activeTab,
       traceabilityView,
       selectedNodeId,
+      unitCoverageFile,
       searchQuery,
       phaseFilter,
       criticalityFilter,
@@ -488,7 +492,11 @@ export default function App() {
         )}
 
         {activeTab === 'unit' && report.unitCoverage && (
-          <UnitCoverageView unitCoverage={report.unitCoverage} />
+          <UnitCoverageView
+            unitCoverage={report.unitCoverage}
+            selectedFilePath={unitCoverageFile}
+            onSelectFilePath={setUnitCoverageFile}
+          />
         )}
 
         {/* Tab: Decisions Catalog (Architecture & Decisions) */}

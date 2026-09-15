@@ -1,18 +1,26 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { URL } from 'node:url';
 import { buildTraceWeaveReport } from './build-report.js';
 import { TestRunnerRegistry } from '../core/testing/TestRunnerRegistry.js';
 import { isPathInsideRoot } from '../infrastructure/system/resolveRepoRoot.js';
+import { resolveProjectLayout } from '../infrastructure/system/resolveRepoRoot.js';
+import {
+  loadCoverageFileDetail,
+} from '../core/coverage/CoverageDetailBuilder.js';
 
 export interface ServeDashboardOptions {
   docsDir: string;
   distWeb: string;
   subjectOverride?: string;
+  projectRoot?: string;
 }
 
 export function createDashboardServer(options: ServeDashboardOptions): http.Server {
   const { docsDir, distWeb, subjectOverride } = options;
+  const projectRoot =
+    options.projectRoot ?? resolveProjectLayout({ docsDir }).projectRoot;
 
   return http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -40,6 +48,53 @@ export function createDashboardServer(options: ServeDashboardOptions): http.Serv
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: message }));
       }
+      return;
+    }
+
+    if (url === '/api/coverage/file') {
+      try {
+        const query = new URL(req.url ?? '', 'http://localhost').searchParams;
+        const filePath = query.get('path')?.trim();
+        if (!filePath || filePath.includes('..')) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'ERR_INVALID_REQUEST: path is required' }));
+          return;
+        }
+
+        const detail = loadCoverageFileDetail(projectRoot, filePath);
+        if (!detail) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'ERR_COVERAGE_FILE_NOT_FOUND', filePath }));
+          return;
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(detail));
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : String(e);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: message }));
+      }
+      return;
+    }
+
+    if (url.startsWith('/coverage-files/') && req.method === 'GET') {
+      const key = url.slice('/coverage-files/'.length);
+      if (!key.endsWith('.json') || key.includes('..')) {
+        res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('Bad request');
+        return;
+      }
+
+      const artifact = path.join(projectRoot, 'reports', 'coverage-files', key);
+      if (!fs.existsSync(artifact) || !isPathInsideRoot(path.join(projectRoot, 'reports', 'coverage-files'), artifact)) {
+        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('Not found');
+        return;
+      }
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      fs.createReadStream(artifact).pipe(res);
       return;
     }
 

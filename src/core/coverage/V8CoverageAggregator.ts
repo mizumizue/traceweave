@@ -2,19 +2,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { CoverageSummary, FileCoverageMetrics } from './CoverageReportLoader.js';
 
-interface V8Range {
+export interface V8Range {
   startOffset: number;
   endOffset: number;
   count: number;
 }
 
-interface V8Function {
+export interface V8Function {
   functionName: string;
   ranges: V8Range[];
   isBlockCoverage: boolean;
 }
 
-interface V8ScriptResult {
+export interface V8ScriptResult {
   url: string;
   functions: V8Function[];
 }
@@ -35,6 +35,17 @@ function urlToRelativePath(url: string): string {
   const normalized = url.replace(/\\/g, '/');
   const idx = normalized.indexOf('/src/');
   return idx >= 0 ? normalized.slice(idx + 1) : normalized;
+}
+
+export function loadMergedV8Scripts(coverageDir: string): Map<string, V8ScriptResult> {
+  if (!fs.existsSync(coverageDir)) return new Map();
+
+  const files = fs
+    .readdirSync(coverageDir)
+    .filter(name => name.startsWith('coverage-') && name.endsWith('.json'))
+    .map(name => path.join(coverageDir, name));
+
+  return mergeV8Results(files);
 }
 
 function mergeV8Results(files: string[]): Map<string, V8ScriptResult> {
@@ -95,16 +106,7 @@ function metricsForScript(entry: V8ScriptResult): FileCoverageMetrics {
 }
 
 export function aggregateV8CoverageDirectory(coverageDir: string): CoverageSummary | null {
-  if (!fs.existsSync(coverageDir)) return null;
-
-  const files = fs
-    .readdirSync(coverageDir)
-    .filter(name => name.startsWith('coverage-') && name.endsWith('.json'))
-    .map(name => path.join(coverageDir, name));
-
-  if (files.length === 0) return null;
-
-  const merged = mergeV8Results(files);
+  const merged = loadMergedV8Scripts(coverageDir);
   const fileMetrics = [...merged.values()].map(metricsForScript);
   if (fileMetrics.length === 0) return null;
 

@@ -10,6 +10,11 @@ import {
 } from '../src/core/testing/formatTestRunCommand.js';
 import { parseCoverageTable } from '../src/core/coverage/CoverageReportLoader.js';
 import { aggregateV8CoverageDirectory } from '../src/core/coverage/V8CoverageAggregator.js';
+import {
+  buildAllCoverageFileDetails,
+  resolveCoverageFilesDir,
+  writeCoverageFileArtifacts,
+} from '../src/core/coverage/CoverageDetailBuilder.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -278,6 +283,15 @@ async function runTests(): Promise<void> {
       console.log(
         `\x1b[32m✔ Coverage summary generated at: ${COVERAGE_FILE} (funcs ${Math.round(coverageSummary.summary.functionCoverage * 100)}%, branches ${Math.round(coverageSummary.summary.branchCoverage * 100)}%)\x1b[0m`
       );
+
+      if (!testCaseFilter && fs.existsSync(V8_COVERAGE_DIR)) {
+        const sourceRoot = path.join(ROOT, 'src');
+        const fileDetails = buildAllCoverageFileDetails(V8_COVERAGE_DIR, sourceRoot);
+        writeCoverageFileArtifacts(ROOT, fileDetails);
+        console.log(
+          `\x1b[32m✔ Coverage file details generated: ${fileDetails.length} file(s) in reports/coverage-files/\x1b[0m`
+        );
+      }
     } else if (!testCaseFilter) {
       console.warn('\x1b[33m⚠ Coverage table not found in test output; unit coverage report will be pending.\x1b[0m');
     }
@@ -294,6 +308,16 @@ async function runTests(): Promise<void> {
         });
         fs.writeFileSync(distWebJson, JSON.stringify(report), 'utf-8');
         console.log(`\x1b[32m✔ Synchronized latest test outcomes to Web Dashboard data: ${distWebJson}\x1b[0m\n`);
+
+        const coverageSourceDir = resolveCoverageFilesDir(ROOT);
+        const coverageDistDir = path.join(ROOT, 'src', 'web', 'dist', 'coverage-files');
+        if (fs.existsSync(coverageSourceDir)) {
+          fs.mkdirSync(coverageDistDir, { recursive: true });
+          for (const entry of fs.readdirSync(coverageSourceDir)) {
+            if (!entry.endsWith('.json')) continue;
+            fs.copyFileSync(path.join(coverageSourceDir, entry), path.join(coverageDistDir, entry));
+          }
+        }
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
         console.warn(`\x1b[33m⚠ Failed to auto-sync data.json: ${message}\x1b[0m\n`);

@@ -15,6 +15,7 @@ export interface AppUrlState {
   tab: AppTab;
   traceabilityView: TraceabilityView;
   nodeId: string | null;
+  unitCoverageFile: string | null;
   searchQuery: string;
   phaseFilter: string;
   criticalityFilter: string;
@@ -61,6 +62,7 @@ export const DEFAULT_URL_STATE: AppUrlState = {
   tab: 'traceability',
   traceabilityView: 'matrix',
   nodeId: null,
+  unitCoverageFile: null,
   searchQuery: '',
   phaseFilter: 'all',
   criticalityFilter: 'all',
@@ -154,10 +156,14 @@ export function parseUrlState(queryOrUrl?: string): AppUrlState {
   const graphHighlight: GraphHighlightMode =
     rawHighlight && VALID_GRAPH_HIGHLIGHTS.includes(rawHighlight) ? rawHighlight : 'all';
 
+  const rawUnitFile = params.get('ucfile');
+  const unitCoverageFile = rawUnitFile && rawUnitFile.trim() ? rawUnitFile.trim() : null;
+
   return {
     tab,
     traceabilityView,
     nodeId,
+    unitCoverageFile,
     searchQuery,
     phaseFilter,
     criticalityFilter,
@@ -230,6 +236,10 @@ export function serializeUrlState(state: Partial<AppUrlState>): string {
     params.set('highlight', merged.graphHighlight);
   }
 
+  if (merged.tab === 'unit' && merged.unitCoverageFile) {
+    params.set('ucfile', merged.unitCoverageFile);
+  }
+
   const query = params.toString();
   return query ? `?${query}` : '';
 }
@@ -260,6 +270,7 @@ export function isUrlStateEqual(a: AppUrlState, b: AppUrlState): boolean {
     a.tab === b.tab &&
     a.traceabilityView === b.traceabilityView &&
     a.nodeId === b.nodeId &&
+    a.unitCoverageFile === b.unitCoverageFile &&
     a.searchQuery.trim() === b.searchQuery.trim() &&
     a.phaseFilter === b.phaseFilter &&
     a.criticalityFilter === b.criticalityFilter &&
@@ -278,6 +289,7 @@ export function isOnlySearchQueryChanged(previous: AppUrlState, current: AppUrlS
     previous.tab === current.tab &&
     previous.traceabilityView === current.traceabilityView &&
     previous.nodeId === current.nodeId &&
+    previous.unitCoverageFile === current.unitCoverageFile &&
     previous.phaseFilter === current.phaseFilter &&
     previous.criticalityFilter === current.criticalityFilter &&
     previous.requirementClassFilter === current.requirementClassFilter &&

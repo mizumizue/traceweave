@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { resolveProjectLayout } from '../infrastructure/system/resolveRepoRoot.js';
 import { buildTraceWeaveReport } from './build-report.js';
 import { ensureDependenciesInstalled, resolvePackageRoot as resolveDepsPackageRoot } from './ensure-dependencies.js';
 
@@ -47,6 +48,18 @@ function runViteBuild(packageRoot: string, quiet = false): void {
   });
 }
 
+function copyCoverageFileArtifacts(projectRoot: string, targetDir: string): void {
+  const sourceDir = path.join(projectRoot, 'reports', 'coverage-files');
+  if (!fs.existsSync(sourceDir)) return;
+
+  const target = path.join(targetDir, 'coverage-files');
+  fs.mkdirSync(target, { recursive: true });
+  for (const entry of fs.readdirSync(sourceDir)) {
+    if (!entry.endsWith('.json')) continue;
+    fs.copyFileSync(path.join(sourceDir, entry), path.join(target, entry));
+  }
+}
+
 function writeDataJson(docsDir: string, targetDir: string, subjectOverride?: string): void {
   const { report } = buildTraceWeaveReport(
     subjectOverride ? { docsDir, subjectOverride } : { docsDir }
@@ -81,11 +94,15 @@ export function buildWebDashboard(options: BuildWebDashboardOptions): string {
 
   if (outDir === webDistDir) {
     writeDataJson(options.docsDir, webDistDir, options.subjectOverride);
+    const { projectRoot } = resolveProjectLayout({ docsDir: options.docsDir });
+    copyCoverageFileArtifacts(projectRoot, webDistDir);
     return webDistDir;
   }
 
   copyBuiltAssets(webDistDir, outDir);
   writeDataJson(options.docsDir, outDir, options.subjectOverride);
+  const { projectRoot } = resolveProjectLayout({ docsDir: options.docsDir });
+  copyCoverageFileArtifacts(projectRoot, outDir);
   return outDir;
 }
 

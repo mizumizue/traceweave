@@ -34,6 +34,7 @@ test('TC-0020: ホーム状態契約 - ヘッダーロゴ遷移先の初期状�
     tab: 'traceability',
     traceabilityView: 'matrix',
     nodeId: null,
+    unitCoverageFile: null,
     searchQuery: '',
     phaseFilter: 'all',
     criticalityFilter: 'all',
