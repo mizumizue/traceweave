@@ -5,6 +5,7 @@ import path from 'node:path';
 import { checkDocs } from '../application/check-docs.js';
 import { buildTraceWeaveReport } from '../application/build-report.js';
 import { resolveDocsDir } from '../application/resolve-docs-dir.js';
+import { ensureUnitCoverageReport } from '../application/ensure-unit-coverage.js';
 import { createDashboardServer } from '../application/serve-dashboard.js';
 import { filterCatalog, formatCatalogJson, formatCatalogMarkdown } from '../application/format-catalog.js';
 import { formatTestInputsOutput } from '../application/format-test-inputs.js';
@@ -317,6 +318,12 @@ program
 
     const reportOptions = getReportBuildOptions(docsDir);
 
+    try {
+      ensureUnitCoverageReport({ docsDir });
+    } catch (err) {
+      exitOnError(err);
+    }
+
     let distWeb: string;
     try {
       distWeb = buildWebDashboard({
@@ -328,10 +335,17 @@ program
       exitOnError(err);
     }
 
-    const isAvailable = await PortManager.isPortAvailable(port);
-    if (!isAvailable) {
-      console.error(`\n\x1b[31m✖ Port ${port} is already in use. Stop the other process or choose --port.\x1b[0m\n`);
+    const { reclaimed, killedPids } = await PortManager.reclaimPort(port);
+    if (!reclaimed) {
+      console.error(
+        `\n\x1b[31m✖ Port ${port} is still in use after stopping prior listener(s) (${killedPids.join(', ') || 'none detected'}). Choose --port or stop the process manually.\x1b[0m\n`
+      );
       process.exit(1);
+    }
+    if (killedPids.length > 0) {
+      console.log(
+        `\x1b[33m↻ Stopped prior listener on port ${port} (PID ${killedPids.join(', ')}).\x1b[0m\n`
+      );
     }
 
     const server = createDashboardServer({
