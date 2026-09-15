@@ -95,7 +95,7 @@ export function StratumView({
                         ? '#fbbf24'
                         : '#fb7185'
                     }
-                    label={`${s.label} 要件カバー率`}
+                    label={`${s.label} ${s.metricSource === 'code_coverage' ? '関数' : '要件'}カバー率`}
                   />
                 </div>
               </div>

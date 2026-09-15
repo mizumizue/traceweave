@@ -153,24 +153,23 @@ export function UnitCoverageFileModal({
                 }
                 headerExtra={
                   testFiles.length > 1 ? (
-                    <div className="flex max-w-[220px] flex-wrap justify-end gap-1.5">
-                      {testFiles.map((testFile, index) => (
-                        <button
-                          key={testFile.filePath}
-                          type="button"
-                          onClick={() => setActiveTestIndex(index)}
-                          className={`rounded-md px-2 py-0.5 text-[10px] font-mono ${
-                            index === activeTestIndex
-                              ? 'bg-sky-700 text-white'
-                              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                          }`}
-                        >
-                          {testFile.filePath.split('/').pop()}
-                        </button>
-                      ))}
-                    </div>
+                    <label className="flex w-full flex-col gap-1">
+                      <span className="text-[10px] text-slate-400">関連テストファイル</span>
+                      <select
+                        value={activeTestIndex}
+                        onChange={e => setActiveTestIndex(Number(e.target.value))}
+                        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono text-[11px] text-sky-200 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                        aria-label="関連テストファイルを選択"
+                      >
+                        {testFiles.map((testFile, index) => (
+                          <option key={testFile.filePath} value={index} className="bg-slate-900">
+                            {testFile.filePath}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   ) : activeTest ? (
-                    <span className="max-w-[220px] truncate font-mono text-[10px] text-sky-300">{activeTest.filePath}</span>
+                    <span className="truncate font-mono text-[10px] text-sky-300">{activeTest.filePath}</span>
                   ) : null
                 }
               >
@@ -206,7 +205,7 @@ function CodePanel({
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
       <div className="shrink-0 border-b border-slate-800 bg-slate-900/60 px-4 py-2">
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-col gap-2">
           <div className="min-w-0">
             <h4 className="text-xs font-bold text-slate-100">{title}</h4>
             <p className="text-[10px] text-slate-400">{subtitle}</p>

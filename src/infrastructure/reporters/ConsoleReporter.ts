@@ -30,7 +30,7 @@ export class ConsoleReporter {
     // Strata density table
     console.log('\x1b[1m[2. 工程地層密度分析 (Stratum Density)]\x1b[0m');
     console.log('  -------------------------------------------------------------');
-    console.log('  工程                          テスト数   要件カバー率   密度判定');
+    console.log('  工程                          件数/関数      カバー率   密度判定');
     console.log('  -------------------------------------------------------------');
     for (const stratum of strata) {
       let densityColor = '\x1b[32m'; // green

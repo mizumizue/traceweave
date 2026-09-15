@@ -177,10 +177,10 @@ export function VisualTestPyramid({ strata, pyramid, onFilterPhase }: VisualTest
           <div>
             <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-teal-400" />
-              <span>テストピラミッド層別ボリューム & 要件充足度</span>
+              <span>テストピラミッド層別ボリューム & 品質指標</span>
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              各層をクリックすると、マトリクスの該当工程テストを瞬時に絞り込み表示できます。
+              単体は関数カバー率、内結〜受入は要件カバー率を表示します。各層をクリックするとマトリクスを絞り込みます。
             </p>
           </div>
           <span className="text-xs font-mono text-slate-500 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
@@ -197,7 +197,11 @@ export function VisualTestPyramid({ strata, pyramid, onFilterPhase }: VisualTest
               count: 0,
               coverageRatio: 0,
               density: 'missing' as const,
+              metricSource: layer.level === 'unit' ? 'code_coverage' : 'traceability',
             };
+            const isCodeCoverage = data.metricSource === 'code_coverage';
+            const countUnit = isCodeCoverage ? '関数' : '件';
+            const coverageLabel = isCodeCoverage ? '関数カバー率' : '要件カバー率';
             const style = densityStyles[data.density] || densityStyles.adequate;
             const ratioPercent = Math.round(data.coverageRatio * 100);
             const testPercent = totalTests > 0 ? Math.round((data.count / totalTests) * 100) : 0;
@@ -208,7 +212,7 @@ export function VisualTestPyramid({ strata, pyramid, onFilterPhase }: VisualTest
                 style={{ width: `${layer.widthPercent}%` }}
                 onClick={() => handleLayerClick(layer.level, data.label)}
                 className={`group cursor-pointer transition-all duration-300 hover:scale-[1.01] hover:brightness-110 active:scale-[0.99] min-w-[280px] bg-gradient-to-r ${style.bg} border rounded-xl p-3 shadow-md flex items-center justify-between gap-3`}
-                title={`${data.label}: ${data.count}件 (${testPercent}%) - クリックで絞り込み`}
+                title={`${data.label}: ${data.count}${countUnit} (${testPercent}%) - クリックで絞り込み`}
               >
                 {/* Left: Level label */}
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -222,7 +226,7 @@ export function VisualTestPyramid({ strata, pyramid, onFilterPhase }: VisualTest
                     </div>
                     <div className="text-[11px] text-slate-300 flex items-center gap-2 mt-0.5">
                       <span className="font-mono font-bold text-white text-xs">{data.count}</span>
-                      <span className="opacity-75">件 ({testPercent}%)</span>
+                      <span className="opacity-75">{countUnit} ({testPercent}%)</span>
                       <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded border ${style.tag}`}>
                         {style.tagLabel}
                       </span>
@@ -230,17 +234,16 @@ export function VisualTestPyramid({ strata, pyramid, onFilterPhase }: VisualTest
                   </div>
                 </div>
 
-                {/* Right: Circular gauge for requirement coverage */}
                 <div className="flex items-center gap-2 shrink-0">
                   <div className="text-right hidden sm:block">
-                    <div className="text-[10px] text-slate-300 opacity-80 uppercase">要件カバー率</div>
+                    <div className="text-[10px] text-slate-300 opacity-80 uppercase">{coverageLabel}</div>
                     <div className="text-xs font-mono font-bold text-white">{ratioPercent}%</div>
                   </div>
                   <CircularGauge
                     value={ratioPercent}
                     size={38}
                     strokeWidth={4}
-                    label={`${data.label} カバー率`}
+                    label={`${data.label} ${coverageLabel}`}
                   />
                 </div>
               </div>
