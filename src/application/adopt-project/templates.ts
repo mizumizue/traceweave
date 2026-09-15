@@ -280,7 +280,7 @@ tags: [test, core, smoke, happy-path]
 links: []
 test_level: unit
 test_method: unit_contract
-verifies: [REQ-0001, SPEC-0001]
+verifies: []
 ---
 ## Content
 
@@ -314,7 +314,7 @@ tags: [test, core, error-path]
 links: []
 test_level: unit
 test_method: unit_contract
-verifies: [REQ-0001, SPEC-0001]
+verifies: []
 ---
 ## Content
 

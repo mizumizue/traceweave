@@ -23,11 +23,13 @@ test('TC-0029: Web UIコンポーネント間連携（モーダル履歴・ピ�
   let selectedPhase = '';
   createPyramidLayerClickHandler(phase => {
     selectedPhase = phase;
-  })('unit');
-  assert.equal(selectedPhase, 'unit');
-  const filtered = filterMatrixRows(report.matrix, { phase: 'unit' });
+  })('integration_internal');
+  assert.equal(selectedPhase, 'integration_internal');
+  const filtered = filterMatrixRows(report.matrix, { phase: 'integration_internal' });
   assert.ok(filtered.length > 0);
-  assert.ok(filtered.every(row => row.allTestCases.some(testCase => testCase.level === 'unit')));
+  assert.ok(
+    filtered.every(row => row.allTestCases.some(testCase => testCase.level === 'integration_internal'))
+  );
   assert.ok(serializeMatrixCsv(filtered).includes('Need ID'));
   assert.ok(serializeMatrixJson(filtered).length > 2);
   const tc0029 = graph.getNode('TC-0029');

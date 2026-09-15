@@ -8,11 +8,15 @@ import {
   resolveTestFilesForCase,
   testNamePatternForCase,
 } from '../src/core/testing/formatTestRunCommand.js';
+import { parseCoverageTable } from '../src/core/coverage/CoverageReportLoader.js';
+import { aggregateV8CoverageDirectory } from '../src/core/coverage/V8CoverageAggregator.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const REPORTS_DIR = path.join(ROOT, 'reports');
 const REPORT_FILE = path.join(REPORTS_DIR, 'test-results.json');
+const COVERAGE_FILE = path.join(REPORTS_DIR, 'coverage-summary.json');
+const V8_COVERAGE_DIR = path.join(REPORTS_DIR, '.v8-coverage');
 
 interface TestCaseExecution {
   testCaseId: string;
@@ -173,6 +177,13 @@ async function runTests(): Promise<void> {
   if (!fs.existsSync(REPORTS_DIR)) {
     fs.mkdirSync(REPORTS_DIR, { recursive: true });
   }
+  if (fs.existsSync(V8_COVERAGE_DIR)) {
+    for (const entry of fs.readdirSync(V8_COVERAGE_DIR)) {
+      fs.unlinkSync(path.join(V8_COVERAGE_DIR, entry));
+    }
+  } else {
+    fs.mkdirSync(V8_COVERAGE_DIR, { recursive: true });
+  }
 
   const executedAt = new Date().toISOString();
   if (testCaseFilter) {
@@ -182,6 +193,7 @@ async function runTests(): Promise<void> {
   }
 
   const nodeArgs = [
+    '--experimental-test-coverage',
     tsxCli,
     '--test',
     '--test-reporter=spec',
@@ -194,6 +206,7 @@ async function runTests(): Promise<void> {
   }
   nodeArgs.push(...testTargets);
 
+  const coverageChunks: Buffer[] = [];
   const child = spawn(
     process.execPath,
     nodeArgs,
@@ -202,11 +215,17 @@ async function runTests(): Promise<void> {
       env: {
         ...process.env,
         NODE_PATH: path.join(ROOT, 'src', 'node_modules'),
+        NODE_V8_COVERAGE: V8_COVERAGE_DIR,
       },
       shell: false,
-      stdio: ['ignore', 'inherit', 'inherit'],
+      stdio: ['ignore', 'pipe', 'inherit'],
     }
   );
+
+  child.stdout?.on('data', (chunk: Buffer) => {
+    coverageChunks.push(chunk);
+    process.stdout.write(chunk);
+  });
 
   child.on('close', async code => {
     let passedCount = 0;
@@ -250,6 +269,18 @@ async function runTests(): Promise<void> {
 
     fs.writeFileSync(REPORT_FILE, JSON.stringify(summary, null, 2), 'utf-8');
     console.log(`\n\x1b[32m✔ Test execution report successfully generated at: ${REPORT_FILE}\x1b[0m`);
+
+    const coverageOutput = Buffer.concat(coverageChunks).toString('utf-8');
+    const coverageSummary =
+      parseCoverageTable(coverageOutput) ?? aggregateV8CoverageDirectory(V8_COVERAGE_DIR);
+    if (coverageSummary) {
+      fs.writeFileSync(COVERAGE_FILE, JSON.stringify(coverageSummary, null, 2), 'utf-8');
+      console.log(
+        `\x1b[32m✔ Coverage summary generated at: ${COVERAGE_FILE} (funcs ${Math.round(coverageSummary.summary.functionCoverage * 100)}%, branches ${Math.round(coverageSummary.summary.branchCoverage * 100)}%)\x1b[0m`
+      );
+    } else if (!testCaseFilter) {
+      console.warn('\x1b[33m⚠ Coverage table not found in test output; unit coverage report will be pending.\x1b[0m');
+    }
     console.log(`  - Total: ${summary.totalTests} | Passed: ${passedCount} | Failed: ${failedCount} | Skipped: ${skippedCount}\n`);
 
     const distWebJson = path.join(ROOT, 'src', 'web', 'dist', 'data.json');

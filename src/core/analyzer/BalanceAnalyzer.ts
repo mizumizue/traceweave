@@ -8,6 +8,7 @@ import {
   StratumReport,
   TestLevel,
   PhaseCount,
+  UnitCoverageReport,
 } from '../models/types.js';
 
 const PHASE_LABELS: Record<TestLevel, string> = {
@@ -71,7 +72,8 @@ export class BalanceAnalyzer {
   public analyzeStrata(
     requirements: RequirementSufficiency[],
     totalRequirements: number,
-    graph?: TraceGraph
+    graph?: TraceGraph,
+    unitCoverage?: UnitCoverageReport
   ): StratumReport[] {
     const levels: TestLevel[] = [
       'unit',
@@ -92,6 +94,18 @@ export class BalanceAnalyzer {
     }
 
     return levels.map(level => {
+      if (level === 'unit' && unitCoverage) {
+        return {
+          level,
+          label: PHASE_LABELS[level],
+          count: unitCoverage.testedFunctions,
+          coverageRatio: unitCoverage.functionCoverage,
+          branchCoverage: unitCoverage.branchCoverage,
+          density: unitCoverage.density,
+          metricSource: 'code_coverage',
+        };
+      }
+
       let coveredCount = 0;
       let totalTests = 0;
 
@@ -123,6 +137,7 @@ export class BalanceAnalyzer {
         count: totalTests,
         coverageRatio,
         density,
+        metricSource: 'traceability',
       };
     });
   }

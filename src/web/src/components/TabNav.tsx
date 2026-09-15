@@ -3,6 +3,7 @@ import {
   TableProperties,
   Network,
   Layers,
+  Code2,
   Compass,
   AlertTriangle,
 } from 'lucide-react';
@@ -13,6 +14,7 @@ interface TabNavProps {
   onSelectTab: (tab: AppTab) => void;
   matrixCount: number;
   graphNodeCount: number;
+  unitCoveragePercent: number;
   decisionsCount: number;
   totalGapsCount: number;
 }
@@ -22,6 +24,7 @@ export function TabNav({
   onSelectTab,
   matrixCount,
   graphNodeCount,
+  unitCoveragePercent,
   decisionsCount,
   totalGapsCount,
 }: TabNavProps) {
@@ -78,6 +81,22 @@ export function TabNav({
         </span>
         <span className="ml-1 text-[11px] font-mono px-2 py-0.5 bg-slate-800/80 border border-slate-700/60 rounded-full text-slate-300 shrink-0 leading-none">
           5層
+        </span>
+      </button>
+
+      <button
+        onClick={() => onSelectTab('unit')}
+        title="単体テスト実装カバレッジ (関数・分岐)"
+        className={`px-3.5 py-2.5 text-xs sm:text-sm font-semibold flex items-center gap-2 border-b-2 transition-all rounded-t-lg whitespace-nowrap shrink-0 ${
+          activeTab === 'unit'
+            ? 'border-cyan-400 text-cyan-400 bg-slate-900/60 shadow-sm'
+            : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/30'
+        }`}
+      >
+        <Code2 className="w-4 h-4 shrink-0" />
+        <span>単体カバレッジ</span>
+        <span className="ml-1 text-[11px] font-mono px-2 py-0.5 bg-cyan-950/80 border border-cyan-800/60 rounded-full text-cyan-300 shrink-0 leading-none">
+          {unitCoveragePercent}%
         </span>
       </button>
 

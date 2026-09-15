@@ -105,10 +105,10 @@ test('TC-0046: TestRunnerRegistry - データ駆動テストハンドラが単�
       criticality: 'high',
       phaseCounts: { unit: 1, integration_internal: 1, integration_external: 1, system: 0, acceptance: 0 },
     },
-    expected: { score: 80, isFullySatisfied: true },
+    expected: { score: 70, isFullySatisfied: false },
   });
   assert.equal(result.status, 'passed');
-  assert.equal(result.actual.score, 80);
+  assert.equal(result.actual.score, 70);
 });
 
 /**

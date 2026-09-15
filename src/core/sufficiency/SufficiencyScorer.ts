@@ -8,6 +8,18 @@ import {
   TestLevel,
 } from '../models/types.js';
 
+/** Unit tests verify implementation, not REQ/SPEC contracts. Exclude from traceability sufficiency. */
+export const TRACEABILITY_TEST_LEVELS: TestLevel[] = [
+  'integration_internal',
+  'integration_external',
+  'system',
+  'acceptance',
+];
+
+export function isTraceabilityTestCase(tc: DocNode): boolean {
+  return Boolean(tc.test_level && TRACEABILITY_TEST_LEVELS.includes(tc.test_level));
+}
+
 function emptyPhaseCounts(): PhaseCount {
   return {
     unit: 0,
@@ -45,7 +57,9 @@ export class SufficiencyScorer {
     return this.toSufficiency(
       spec,
       spec.criticality || 'medium',
-      SufficiencyScorer.tallyTestCases(graph.getDirectTestCases(spec.id)),
+      SufficiencyScorer.tallyTestCases(
+        graph.getDirectTestCases(spec.id).filter(isTraceabilityTestCase)
+      ),
       [spec.id]
     );
   }
@@ -54,7 +68,9 @@ export class SufficiencyScorer {
     return this.toSufficiency(
       req,
       req.criticality || 'medium',
-      SufficiencyScorer.tallyTestCases(graph.getAllTestCasesForRequirement(req.id)),
+      SufficiencyScorer.tallyTestCases(
+        graph.getAllTestCasesForRequirement(req.id).filter(isTraceabilityTestCase)
+      ),
       graph.getSpecsForRequirement(req.id).map(s => s.id)
     );
   }
@@ -135,35 +151,32 @@ export class SufficiencyScorer {
   ): { score: number; missingPhases: TestLevel[]; isFullySatisfied: boolean } {
     const missingPhases: TestLevel[] = [];
     let score = 0;
-    const hasUnit = phaseCounts.unit > 0;
     const hasIntInternal = phaseCounts.integration_internal > 0;
     const hasIntExternal = phaseCounts.integration_external > 0;
     const hasSystem = phaseCounts.system > 0;
     const hasAcceptance = phaseCounts.acceptance > 0;
 
     if (criticality === 'high') {
-      if (hasUnit) score += 30;
-      else missingPhases.push('unit');
-      if (hasIntInternal) score += 25;
+      if (hasIntInternal) score += 35;
       else missingPhases.push('integration_internal');
       if (hasIntExternal || hasSystem) {
-        score += 25;
+        score += 35;
       } else {
         missingPhases.push('integration_external');
         missingPhases.push('system');
       }
-      if (hasAcceptance) score += 20;
+      if (hasAcceptance) score += 30;
       else missingPhases.push('acceptance');
       return { score, missingPhases, isFullySatisfied: score >= 80 };
     }
 
     if (criticality === 'medium') {
-      if (hasUnit) score += 50;
-      else missingPhases.push('unit');
-      if (hasIntInternal || hasIntExternal || hasSystem) {
+      if (hasIntInternal) score += 50;
+      else missingPhases.push('integration_internal');
+      if (hasIntExternal || hasSystem) {
         score += 50;
       } else {
-        missingPhases.push('integration_internal');
+        missingPhases.push('integration_external');
       }
       if (hasAcceptance) {
         score = Math.min(100, score + 10);
@@ -171,10 +184,10 @@ export class SufficiencyScorer {
       return { score, missingPhases, isFullySatisfied: score >= 80 };
     }
 
-    if (hasUnit || hasSystem || hasAcceptance || hasIntInternal || hasIntExternal) {
+    if (hasSystem || hasAcceptance || hasIntInternal || hasIntExternal) {
       score = 100;
     } else {
-      missingPhases.push('unit');
+      missingPhases.push('integration_internal');
       score = 0;
     }
     return { score, missingPhases, isFullySatisfied: score === 100 };

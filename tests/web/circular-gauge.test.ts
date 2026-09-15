@@ -125,11 +125,13 @@ test('TC-0013: CircularGauge - ダッシュボード全体の各指標（全体�
 
   const tc0012 = graph.getNode('TC-0012');
   assert.ok(tc0012, 'TC-0012 must exist in the graph');
-  assert.ok(tc0012?.verifies?.includes('REQ-0010'));
-  assert.ok(tc0012?.verifies?.includes('SPEC-0010'));
+  assert.deepEqual(tc0012?.verifies ?? [], []);
 
   const tc0013 = graph.getNode('TC-0013');
   assert.ok(tc0013, 'TC-0013 must exist in the graph');
   assert.ok(tc0013?.verifies?.includes('REQ-0010'));
   assert.ok(tc0013?.verifies?.includes('SPEC-0010'));
+
+  assert.ok(report.unitCoverage);
+  assert.ok(['available', 'pending'].includes(report.unitCoverage.status));
 });

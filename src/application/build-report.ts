@@ -6,6 +6,8 @@ import { DocMtimeCache } from '../infrastructure/storage/DocMtimeCache.js';
 import { TestReportLoader } from '../infrastructure/testing/TestReportLoader.js';
 import { SufficiencyScorer } from '../core/sufficiency/SufficiencyScorer.js';
 import { BalanceAnalyzer } from '../core/analyzer/BalanceAnalyzer.js';
+import { UnitCoverageAnalyzer } from '../core/coverage/UnitCoverageAnalyzer.js';
+import { resolveCoverageReportPath } from '../core/coverage/CoverageReportLoader.js';
 import { MatrixBuilder } from '../core/matrix/MatrixBuilder.js';
 import { TraceGraph } from '../core/graph/TraceGraph.js';
 import { TraceWeaveReport, DocNode } from '../core/models/types.js';
@@ -69,14 +71,20 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
   const scorer = new SufficiencyScorer();
   const sufficiencies = scorer.calculateAll(graph);
 
+  const unitCoverageAnalyzer = new UnitCoverageAnalyzer();
+  const unitCoverage = unitCoverageAnalyzer.analyze({
+    sourceRoot: UnitCoverageAnalyzer.resolveSourceRoot(projectRoot),
+    coverageReportPath: resolveCoverageReportPath(projectRoot),
+  });
+
   const analyzer = new BalanceAnalyzer();
   const totalItems = graph.getRequirements().length + graph.getStandaloneSpecifications().length;
-  const strata = analyzer.analyzeStrata(sufficiencies, totalItems);
+  const strata = analyzer.analyzeStrata(sufficiencies, totalItems, graph, unitCoverage);
   const pyramid = analyzer.diagnosePyramid(graph, strata, sufficiencies);
 
   const builder = new MatrixBuilder();
   const matrix = builder.buildMatrix(graph, sufficiencies);
-  const report = builder.buildReport(graph, sufficiencies, strata, pyramid, matrix);
+  const report = builder.buildReport(graph, sufficiencies, strata, pyramid, matrix, unitCoverage);
   report.subject = resolveSubjectContext({
     repoRoot: projectRoot,
     cliSubject: options.subjectOverride,

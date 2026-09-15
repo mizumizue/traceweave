@@ -35,7 +35,7 @@
         }
       },
       "expected": {
-        "score": 30,
+        "score": 0,
         "isFullySatisfied": false
       }
     },
@@ -53,13 +53,13 @@
         }
       },
       "expected": {
-        "score": 100,
-        "isFullySatisfied": true
+        "score": 50,
+        "isFullySatisfied": false
       }
     },
     {
       "id": "pattern-4",
-      "name": "重要度Low: 単体テスト1件のみで完全充足",
+      "name": "重要度Low: 単体テスト1件のみ（トレーサビリティ未充足）",
       "inputs": {
         "criticality": "low",
         "phaseCounts": {
@@ -71,8 +71,8 @@
         }
       },
       "expected": {
-        "score": 100,
-        "isFullySatisfied": true
+        "score": 0,
+        "isFullySatisfied": false
       }
     },
     {

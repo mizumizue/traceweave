@@ -83,13 +83,13 @@ test('TC-0010: TestRunnerRegistry - 手動入力パラメータによるテス�
       phaseCounts: { unit: 1, integration_internal: 0, integration_external: 0, system: 0, acceptance: 0 },
     },
     expected: {
-      score: 100, // actual will be 30
+      score: 100, // actual will be 0 (unit excluded from traceability scoring)
     },
   });
 
   assert.equal(mismatchRun.status, 'failed');
   assert.equal(mismatchRun.isMatch, false);
-  assert.equal(mismatchRun.actual.score, 30);
+  assert.equal(mismatchRun.actual.score, 0);
 });
 
 /**

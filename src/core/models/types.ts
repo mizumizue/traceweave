@@ -207,6 +207,39 @@ export interface StratumReport {
   count: number;
   coverageRatio: number; // ratio of requirements covered by this phase (0 to 1)
   density: StratumDensity;
+  /** Unit stratum only: branch coverage from code instrumentation (0 to 1). */
+  branchCoverage?: number;
+  /** Unit stratum only: measured from implementation coverage, not REQ linkage. */
+  metricSource?: 'traceability' | 'code_coverage';
+}
+
+export interface ModuleCoverageReport {
+  filePath: string;
+  functionCount: number;
+  testedFunctionCount: number;
+  functionCoverage: number;
+  branchCoverage: number;
+  lineCoverage: number;
+  untestedFunctions: string[];
+}
+
+export interface UnitCoverageReport {
+  status: 'available' | 'pending';
+  generatedAt?: string;
+  totalFunctions: number;
+  testedFunctions: number;
+  functionCoverage: number;
+  branchCoverage: number;
+  lineCoverage: number;
+  density: StratumDensity;
+  modules: ModuleCoverageReport[];
+  untestedFunctions: {
+    id: string;
+    name: string;
+    filePath: string;
+    line: number;
+    kind: 'function' | 'method';
+  }[];
 }
 
 export interface PyramidHealthReport {
@@ -355,6 +388,7 @@ export interface TraceWeaveReport {
     nonFunctionalRequirementCount: number;
   };
   strata: StratumReport[];
+  unitCoverage: UnitCoverageReport;
   pyramid: PyramidHealthReport;
   requirements: RequirementSufficiency[];
   matrix: MatrixRow[];

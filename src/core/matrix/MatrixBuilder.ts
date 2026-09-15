@@ -1,5 +1,6 @@
 import { TraceGraph } from '../graph/TraceGraph.js';
 import { isActiveRequirement } from '../models/docStatus.js';
+import { isTraceabilityTestCase } from '../sufficiency/SufficiencyScorer.js';
 import {
   DocNode,
   MatrixRow,
@@ -9,6 +10,7 @@ import {
   TraceWeaveReport,
   TestLevel,
   TestMethod,
+  UnitCoverageReport,
 } from '../models/types.js';
 import { TestCaseInputAnalyzer } from '../analyzer/TestCaseInputAnalyzer.js';
 import { DecisionsCatalogBuilder } from '../decisions/DecisionsCatalogBuilder.js';
@@ -38,11 +40,17 @@ export class MatrixBuilder {
       const specs = graph.getSpecsForRequirement(req.id).map(spec => ({
         id: spec.id,
         title: spec.title,
-        testCases: graph.getDirectTestCases(spec.id).map(mapTestCase),
+        testCases: graph.getDirectTestCases(spec.id).filter(isTraceabilityTestCase).map(mapTestCase),
       }));
 
-      const directTcs = graph.getDirectTestCases(req.id).map(mapTestCase);
-      const allTcs = graph.getAllTestCasesForRequirement(req.id).map(mapTestCase);
+      const directTcs = graph
+        .getDirectTestCases(req.id)
+        .filter(isTraceabilityTestCase)
+        .map(mapTestCase);
+      const allTcs = graph
+        .getAllTestCasesForRequirement(req.id)
+        .filter(isTraceabilityTestCase)
+        .map(mapTestCase);
 
       rows.push({
         needId: need?.id,
@@ -60,7 +68,7 @@ export class MatrixBuilder {
 
     for (const spec of graph.getStandaloneSpecifications()) {
       const suff = suffMap.get(spec.id);
-      const directTcs = graph.getDirectTestCases(spec.id).map(mapTestCase);
+      const directTcs = graph.getDirectTestCases(spec.id).filter(isTraceabilityTestCase).map(mapTestCase);
 
       rows.push({
         needId: undefined,
@@ -90,7 +98,8 @@ export class MatrixBuilder {
     sufficiencies: RequirementSufficiency[],
     strata: StratumReport[],
     pyramid: PyramidHealthReport,
-    matrix: MatrixRow[]
+    matrix: MatrixRow[],
+    unitCoverage: UnitCoverageReport
   ): TraceWeaveReport {
     const totalNeeds = graph.getNodesByKind('need').length;
     const totalRequirements = graph.getRequirements().length;
@@ -157,6 +166,7 @@ export class MatrixBuilder {
         nonFunctionalRequirementCount,
       },
       strata,
+      unitCoverage,
       pyramid,
       requirements: sufficiencies,
       matrix,

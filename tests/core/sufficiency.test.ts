@@ -105,8 +105,8 @@ test('TC-0002: SufficiencyScorer - テストが紐づかない未検証要件に
   const res = scorer.calculateRequirement(graph, req);
   assert.equal(res.score, 0);
   assert.equal(res.isFullySatisfied, false);
-  assert.ok(res.missingPhases.includes('unit'));
   assert.ok(res.missingPhases.includes('integration_internal'));
+  assert.ok(!res.missingPhases.includes('unit'));
 });
 
 /**
@@ -155,12 +155,12 @@ test('TC-0002: SufficiencyScorer - 高重要度（high）要件において各�
   };
   graph.addNode(tcUnit);
 
-  // With unit only: 30 pts
+  // Unit tests no longer contribute to REQ traceability sufficiency
   let res = scorer.calculateRequirement(graph, req);
-  assert.equal(res.score, 30);
+  assert.equal(res.score, 0);
   assert.equal(res.isFullySatisfied, false);
 
-  // Add integration_internal (+25), integration_external (+25), acceptance (+20)
+  // Add integration_internal (+35), integration_external (+35), acceptance (+30)
   const tcInt: DocNode = {
     id: 'TC-0002',
     kind: 'test_case',
@@ -269,9 +269,8 @@ test('TC-0002: SufficiencyScorer - 中重要度（medium）要件に対して重
   };
   graph.addNode(tcUnit);
 
-  // Medium with unit only is 50%
   const resMed = scorer.calculateRequirement(graph, reqMed);
-  assert.equal(resMed.score, 50);
+  assert.equal(resMed.score, 0);
 
 });
 
@@ -298,13 +297,13 @@ test('TC-0038: SufficiencyScorer - 全工程が未実行のときスコア0%か�
   const res = scorer.calculateRequirement(graph, req);
 
   assert.equal(res.score, 0);
-  assert.equal(res.documentedPhaseCounts.unit, 1);
+  assert.equal(res.documentedPhaseCounts.unit, 0);
   assert.equal(res.documentedPhaseCounts.integration_internal, 1);
   assert.equal(res.documentedPhaseCounts.integration_external, 1);
   assert.equal(res.documentedPhaseCounts.acceptance, 1);
   assertAllPhaseCountsZero(res.phaseCounts);
   assert.equal(res.executedTestCaseIds.length, 0);
-  assert.equal(res.pendingTestCaseIds.length, 4);
+  assert.equal(res.pendingTestCaseIds.length, 3);
   assert.equal(res.failedTestCaseIds.length, 0);
 });
 
@@ -312,10 +311,10 @@ test('TC-0038: SufficiencyScorer - 全工程が未実行のときスコア0%か�
  * 【テスト概要】
  * - 対象: SufficiencyScorer (実行ステータスと充足度加算)
  * - 条件: 重要度 High の要件に同一文書構成で単体のみ実行合格、残りは未実行または失敗
- * - 期待結果: 充足度スコアが 30% であること
- * - 関連文書: TC-0038 Step 2, REQ-0002 AC-004, SPEC-0003
+ * - 期待結果: 単体はトレーサビリティ充足に加算されずスコア 0% であること
+ * - 関連文書: TC-0038 Step 2, REQ-0031, SPEC-0026
  */
-test('TC-0038: SufficiencyScorer - 単体のみ実行合格のとき高重要度要件のスコアが30%となること', () => {
+test('TC-0038: SufficiencyScorer - 単体のみ実行合格のとき高重要度要件のトレーサビリティスコアは0%となること', () => {
   const graph = new TraceGraph();
   const scorer = new SufficiencyScorer();
   const req = createHighRequirement();
@@ -330,10 +329,9 @@ test('TC-0038: SufficiencyScorer - 単体のみ実行合格のとき高重要度
 
   const res = scorer.calculateRequirement(graph, req);
 
-  assert.equal(res.score, 30);
-  assert.equal(res.phaseCounts.unit, 1);
-  assert.equal(res.executedTestCaseIds.length, 1);
-  assert.equal(res.executedTestCaseIds[0], 'TC-0038-1');
+  assert.equal(res.score, 0);
+  assert.equal(res.phaseCounts.unit, 0);
+  assert.equal(res.executedTestCaseIds.length, 0);
   assert.equal(res.pendingTestCaseIds.length, 2);
   assert.equal(res.failedTestCaseIds.length, 1);
 });
@@ -355,11 +353,10 @@ test('TC-0038: SufficiencyScorer - 失敗ステータスの単体テストのみ
   const res = scorer.calculateRequirement(graph, req);
 
   assert.equal(res.score, 0);
-  assert.equal(res.documentedPhaseCounts.unit, 1);
+  assert.equal(res.documentedPhaseCounts.unit, 0);
   assertAllPhaseCountsZero(res.phaseCounts);
   assert.equal(res.executedTestCaseIds.length, 0);
-  assert.equal(res.failedTestCaseIds.length, 1);
-  assert.equal(res.failedTestCaseIds[0], 'TC-0038-FAILED');
+  assert.equal(res.failedTestCaseIds.length, 0);
 });
 
 /**
@@ -429,9 +426,9 @@ test('SufficiencyScorer - 上流要件を持たないスタンドアロン仕様
   const sufficiencies = scorer.calculateAll(graph);
   assert.equal(sufficiencies.length, 1);
   assert.equal(sufficiencies[0].requirementId, 'SPEC-0002');
-  assert.equal(sufficiencies[0].phaseCounts.unit, 1);
+  assert.equal(sufficiencies[0].phaseCounts.unit, 0);
   assert.equal(sufficiencies[0].phaseCounts.integration_internal, 1);
-  assert.ok(sufficiencies[0].score > 0);
+  assert.equal(sufficiencies[0].score, 50);
 });
 
 /**
@@ -488,7 +485,6 @@ test('MatrixBuilder - 上流要件を持たないスタンドアロン仕様が�
   assert.equal(matrix[0].requirementTitle, 'Standalone Spec');
   assert.equal(matrix[0].specs.length, 1);
   assert.equal(matrix[0].specs[0].id, 'SPEC-0002');
-  assert.equal(matrix[0].allTestCases.length, 1);
-  assert.equal(matrix[0].allTestCases[0].id, 'TC-0001');
+  assert.equal(matrix[0].allTestCases.length, 0);
 });
 

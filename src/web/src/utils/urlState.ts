@@ -5,7 +5,7 @@
  * 双方向同期およびブラウザ履歴スタック制御を提供する。
  */
 
-export type AppTab = 'matrix' | 'graph' | 'stratum' | 'decisions' | 'gaps';
+export type AppTab = 'matrix' | 'graph' | 'stratum' | 'unit' | 'decisions' | 'gaps';
 export type GraphHighlightMode = 'all' | 'upstream' | 'downstream';
 
 export interface AppUrlState {
@@ -22,7 +22,7 @@ export interface AppUrlState {
   graphHighlight: GraphHighlightMode;
 }
 
-export const VALID_TABS: readonly AppTab[] = ['matrix', 'graph', 'stratum', 'decisions', 'gaps'] as const;
+export const VALID_TABS: readonly AppTab[] = ['matrix', 'graph', 'stratum', 'unit', 'decisions', 'gaps'] as const;
 export const VALID_GRAPH_HIGHLIGHTS: readonly GraphHighlightMode[] = ['all', 'upstream', 'downstream'] as const;
 export const VALID_CRITICALITIES = ['all', 'high', 'medium', 'low'] as const;
 export const VALID_REQUIREMENT_CLASSES = ['all', 'functional', 'non_functional'] as const;

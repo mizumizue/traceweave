@@ -292,12 +292,20 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): {
       if (!VALID_TEST_METHODS.includes(meta.test_method)) {
         errors.push(`${filePath}: Invalid test_method "${meta.test_method}". Expected one of ${VALID_TEST_METHODS.join(', ')}`);
       }
-      if (!Array.isArray(meta.verifies) || meta.verifies.length === 0) {
+      const isUnitLevel = meta.test_level === 'unit';
+      if (!Array.isArray(meta.verifies)) {
+        errors.push(`${filePath}: test_case verifies must be an array of IDs`);
+      } else if (!isUnitLevel && meta.verifies.length === 0) {
         errors.push(`${filePath}: test_case verifies must be a non-empty array of IDs`);
       } else {
         for (const vid of meta.verifies) {
           if (!allIds.has(vid)) {
             errors.push(`${filePath}: verifies target "${vid}" not found`);
+          }
+          if (isUnitLevel && (String(vid).startsWith('REQ-') || String(vid).startsWith('SPEC-'))) {
+            errors.push(
+              `${filePath}: unit test_case must not verify REQ/SPEC (use DSN- or omit verifies; unit coverage is measured by code instrumentation)`
+            );
           }
         }
       }
@@ -458,7 +466,15 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): {
 
     if (kind === 'test_case' && Array.isArray(meta.verifies)) {
       for (const vid of meta.verifies) {
-        if (!String(vid).startsWith('REQ-') && !String(vid).startsWith('SPEC-') && !String(vid).startsWith('ADR-')) {
+        const target = String(vid);
+        const isUnit = meta.test_level === 'unit';
+        if (isUnit) {
+          if (!target.startsWith('DSN-') && !target.startsWith('ADR-')) {
+            errors.push(
+              `${filePath}: [fence-lite] unit test_case verifies target "${vid}" must be DSN- or ADR- (not REQ/SPEC)`
+            );
+          }
+        } else if (!target.startsWith('REQ-') && !target.startsWith('SPEC-') && !target.startsWith('ADR-')) {
           errors.push(`${filePath}: [fence-lite] verifies target "${vid}" must be REQ-, SPEC-, or ADR-`);
         }
       }

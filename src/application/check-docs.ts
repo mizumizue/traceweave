@@ -80,8 +80,18 @@ export function checkDocs(options: CheckOptions = {}): CheckResult {
         if (!node.test_method || !VALID_TEST_METHODS.includes(node.test_method)) {
           errors.push(`[${node.id}] test_method "${node.test_method}" is invalid`);
         }
-        if (!node.verifies || node.verifies.length === 0) {
+        const isUnit = node.test_level === 'unit';
+        if (!isUnit && (!node.verifies || node.verifies.length === 0)) {
           errors.push(`[${node.id}] test_case verifies must be non-empty`);
+        }
+        if (isUnit && node.verifies) {
+          for (const vid of node.verifies) {
+            if (vid.startsWith('REQ-') || vid.startsWith('SPEC-')) {
+              errors.push(
+                `[${node.id}] unit test_case must not verify REQ/SPEC (found ${vid}); unit quality is measured by code coverage`
+              );
+            }
+          }
         }
       }
     }

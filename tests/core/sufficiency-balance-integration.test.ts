@@ -58,29 +58,42 @@ test('TC-0025: SufficiencyScorer & BalanceAnalyzer - 有向グラフからの重
   assert.equal(h1.isFullySatisfied, true);
   assert.equal(h1.missingPhases.length, 0);
 
-  // REQ-H2: unit(30) only — ITa is pending and must not add score (REQ-0002 AC-004)
+  // REQ-H2: unit excluded from traceability; ITa pending => score 0
   const h2 = suffList.find(r => r.requirementId === 'REQ-H2')!;
-  assert.equal(h2.score, 30);
+  assert.equal(h2.score, 0);
   assert.equal(h2.isFullySatisfied, false);
   assert.ok(h2.pendingTestCaseIds.includes('TC-H2-IT'));
   assert.ok(h2.missingPhases.includes('integration_internal'));
   assert.ok(h2.missingPhases.includes('acceptance'));
 
-  // REQ-M1: unit(50) + system(50) = 100 (>= 80)
+  // REQ-M1: system(50) only — unit excluded; needs ITa for full medium score
   const m1 = suffList.find(r => r.requirementId === 'REQ-M1')!;
-  assert.equal(m1.score, 100);
-  assert.equal(m1.isFullySatisfied, true);
+  assert.equal(m1.score, 50);
+  assert.equal(m1.isFullySatisfied, false);
 
-  // REQ-L1: unit = 100
+  // REQ-L1: unit only => 0 under traceability scoring
   const l1 = suffList.find(r => r.requirementId === 'REQ-L1')!;
-  assert.equal(l1.score, 100);
-  assert.equal(l1.isFullySatisfied, true);
+  assert.equal(l1.score, 0);
+  assert.equal(l1.isFullySatisfied, false);
+
+  const unitCoverage = {
+    status: 'available' as const,
+    totalFunctions: 10,
+    testedFunctions: 8,
+    functionCoverage: 0.8,
+    branchCoverage: 0.75,
+    lineCoverage: 0.7,
+    density: 'heavy' as const,
+    modules: [],
+    untestedFunctions: [],
+  };
 
   // 3. Run BalanceAnalyzer strata and pyramid diagnosis
-  const strata = analyzer.analyzeStrata(suffList, suffList.length);
+  const strata = analyzer.analyzeStrata(suffList, suffList.length, graph, unitCoverage);
   const unitStratum = strata.find(s => s.level === 'unit')!;
-  assert.equal(unitStratum.count, 4);
-  assert.equal(unitStratum.coverageRatio, 1.0);
+  assert.equal(unitStratum.count, 8);
+  assert.equal(unitStratum.coverageRatio, 0.8);
+  assert.equal(unitStratum.metricSource, 'code_coverage');
   assert.equal(unitStratum.density, 'heavy');
 
   const itStratum = strata.find(s => s.level === 'integration_internal')!;
@@ -106,7 +119,7 @@ test('TC-0025: SufficiencyScorer & BalanceAnalyzer - 有向グラフからの重
   const emptyResult = scorer.calculateRequirement(graph, emptyRequirement);
   assert.equal(emptyResult.score, 0);
   assert.equal(emptyResult.isFullySatisfied, false);
-  assert.ok(emptyResult.missingPhases.includes('unit'));
+  assert.ok(emptyResult.missingPhases.includes('integration_internal'));
 
   const inverted = BalanceAnalyzer.diagnoseFromCounts({
     unit: 1,

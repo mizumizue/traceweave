@@ -24,6 +24,7 @@ import { QualityMetricsGrid } from './components/QualityMetricsGrid.js';
 import { TabNav } from './components/TabNav.js';
 import { MatrixView } from './components/MatrixView.js';
 import { StratumView } from './components/StratumView.js';
+import { UnitCoverageView } from './components/UnitCoverageView.js';
 import { GapsView } from './components/GapsView.js';
 import { Footer } from './components/Footer.js';
 import { NodeDetailModal } from './components/NodeDetailModal.js';
@@ -409,6 +410,7 @@ export default function App() {
           onSelectTab={setActiveTab}
           matrixCount={filteredMatrix.length}
           graphNodeCount={report?.nodes?.length ?? 0}
+          unitCoveragePercent={Math.round((report.unitCoverage?.functionCoverage ?? 0) * 100)}
           decisionsCount={catalogData.totalCount}
           totalGapsCount={totalGapsCount}
         />
@@ -463,6 +465,10 @@ export default function App() {
               }
             }}
           />
+        )}
+
+        {activeTab === 'unit' && report.unitCoverage && (
+          <UnitCoverageView unitCoverage={report.unitCoverage} />
         )}
 
         {/* Tab: Decisions Catalog (Architecture & Decisions) */}

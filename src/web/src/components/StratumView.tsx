@@ -31,7 +31,7 @@ export function StratumView({
           <span>各工程地層の詳細データ (Stratum Density Breakdown)</span>
         </h2>
         <p className="text-xs text-slate-400 mb-5">
-          各開発工程（単体・内結・外結・総合・受入）におけるテストケース数・要件カバー率・地層密度を個別に分析します。
+          内結〜受入は REQ/SPEC トレーサビリティ、単体は関数・分岐カバレッジで地層密度を分析します。
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3.5">
@@ -60,15 +60,24 @@ export function StratumView({
                 <div>
                   <div className="text-xs font-bold uppercase tracking-wider">{s.label}</div>
                   <div className="text-3xl font-black mt-2 font-mono">{s.count}</div>
-                  <div className="text-[11px] opacity-80 mt-0.5">件のテストケース</div>
+                  <div className="text-[11px] opacity-80 mt-0.5">
+                    {s.metricSource === 'code_coverage' ? 'テスト済み関数' : '件のテストケース'}
+                  </div>
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-current/20 flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-[11px] opacity-80">要件カバー率</div>
+                    <div className="text-[11px] opacity-80">
+                      {s.metricSource === 'code_coverage' ? '関数カバー率' : '要件カバー率'}
+                    </div>
                     <div className="text-sm font-black mt-0.5 font-mono">
                       {Math.round(s.coverageRatio * 100)}%
                     </div>
+                    {s.branchCoverage !== undefined && (
+                      <div className="text-[10px] opacity-70 mt-0.5">
+                        分岐 {Math.round(s.branchCoverage * 100)}%
+                      </div>
+                    )}
                     <div className="text-[10px] font-bold mt-1 uppercase px-1.5 py-0.5 bg-black/40 rounded inline-block">
                       {densityLabels[s.density]}
                     </div>
