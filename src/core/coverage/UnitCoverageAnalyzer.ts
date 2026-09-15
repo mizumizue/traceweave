@@ -1,6 +1,6 @@
 import path from 'node:path';
-import { SourceFunction, scanSourceFunctions } from './SourceFunctionScanner.js';
 import { CoverageSummary, FileCoverageMetrics, loadCoverageSummary } from './CoverageReportLoader.js';
+import { LcovFileRecord, loadLcovRecords, resolveLcovReportPath } from './LcovParser.js';
 import { StratumDensity } from '../models/types.js';
 
 export interface ModuleCoverageReport {
@@ -13,6 +13,14 @@ export interface ModuleCoverageReport {
   untestedFunctions: string[];
 }
 
+export interface UnitCoverageFunctionRef {
+  id: string;
+  name: string;
+  filePath: string;
+  line: number;
+  kind: 'function' | 'method';
+}
+
 export interface UnitCoverageReport {
   status: 'available' | 'pending';
   generatedAt?: string;
@@ -23,17 +31,7 @@ export interface UnitCoverageReport {
   lineCoverage: number;
   density: StratumDensity;
   modules: ModuleCoverageReport[];
-  untestedFunctions: SourceFunction[];
-}
-
-function normalizeFilePath(filePath: string): string {
-  return filePath.replace(/\\/g, '/').replace(/^(?:src\/)?/, '');
-}
-
-function pathsMatch(scannedPath: string, coveragePath: string): boolean {
-  const a = normalizeFilePath(scannedPath);
-  const b = normalizeFilePath(coveragePath);
-  return a === b || a.endsWith(`/${b}`) || b.endsWith(`/${a}`);
+  untestedFunctions: UnitCoverageFunctionRef[];
 }
 
 function resolveDensity(functionCoverage: number): StratumDensity {
@@ -43,75 +41,118 @@ function resolveDensity(functionCoverage: number): StratumDensity {
   return 'missing';
 }
 
-function findFileMetrics(
-  filePath: string,
-  coverage: CoverageSummary | null
-): FileCoverageMetrics | undefined {
-  if (!coverage) return undefined;
-  const normalized = normalizeFilePath(filePath);
-  return coverage.files.find(f => pathsMatch(filePath, f.filePath));
+function resolveFunctionKind(name: string): 'function' | 'method' {
+  return name.includes('.') ? 'method' : 'function';
+}
+
+function buildModulesFromLcov(
+  records: LcovFileRecord[],
+  coverage: CoverageSummary
+): { modules: ModuleCoverageReport[]; untestedFunctions: UnitCoverageFunctionRef[] } {
+  const metricsByPath = new Map(coverage.files.map(file => [file.filePath, file]));
+  const modules: ModuleCoverageReport[] = [];
+  const untestedFunctions: UnitCoverageFunctionRef[] = [];
+
+  for (const record of records) {
+    const metrics = metricsByPath.get(record.filePath);
+    const functionCount = record.functionFound > 0 ? record.functionFound : record.functions.length;
+    const testedFunctionCount =
+      record.functionHit > 0
+        ? record.functionHit
+        : record.functions.filter(fn => fn.hitCount > 0).length;
+    const moduleUntested = record.functions
+      .filter(fn => fn.hitCount === 0)
+      .map(fn => fn.name);
+
+    for (const fn of record.functions.filter(entry => entry.hitCount === 0)) {
+      untestedFunctions.push({
+        id: `${record.filePath}::${fn.name}`,
+        name: fn.name,
+        filePath: record.filePath,
+        line: fn.line,
+        kind: resolveFunctionKind(fn.name),
+      });
+    }
+
+    modules.push({
+      filePath: record.filePath,
+      functionCount,
+      testedFunctionCount,
+      functionCoverage: metrics?.functionCoverage ?? 0,
+      branchCoverage: metrics?.branchCoverage ?? 0,
+      lineCoverage: metrics?.lineCoverage ?? 0,
+      untestedFunctions: moduleUntested,
+    });
+  }
+
+  modules.sort((a, b) => a.functionCoverage - b.functionCoverage);
+  return { modules, untestedFunctions };
+}
+
+function buildModulesFromSummary(coverage: CoverageSummary): ModuleCoverageReport[] {
+  return coverage.files
+    .map(file => ({
+      filePath: file.filePath,
+      functionCount: 0,
+      testedFunctionCount: 0,
+      functionCoverage: file.functionCoverage,
+      branchCoverage: file.branchCoverage,
+      lineCoverage: file.lineCoverage,
+      untestedFunctions: [] as string[],
+    }))
+    .sort((a, b) => a.functionCoverage - b.functionCoverage);
 }
 
 export class UnitCoverageAnalyzer {
   public analyze(options: {
-    sourceRoot: string;
+    projectRoot?: string;
     coverageReportPath?: string;
+    lcovReportPath?: string;
   }): UnitCoverageReport {
-    const functions = scanSourceFunctions(options.sourceRoot);
     const coverage = loadCoverageSummary(options.coverageReportPath);
+    const lcovPath =
+      options.lcovReportPath ??
+      (options.projectRoot ? resolveLcovReportPath(options.projectRoot) : undefined);
+    const lcovRecords = loadLcovRecords(lcovPath);
 
     if (!coverage) {
       return {
         status: 'pending',
-        totalFunctions: functions.length,
+        totalFunctions: 0,
         testedFunctions: 0,
         functionCoverage: 0,
         branchCoverage: 0,
         lineCoverage: 0,
         density: 'missing',
         modules: [],
-        untestedFunctions: functions,
+        untestedFunctions: [],
       };
     }
 
-    const byFile = new Map<string, SourceFunction[]>();
-    for (const fn of functions) {
-      const list = byFile.get(fn.filePath) ?? [];
-      list.push(fn);
-      byFile.set(fn.filePath, list);
-    }
-
-    const modules: ModuleCoverageReport[] = [];
-    const untestedFunctions: SourceFunction[] = [];
+    let modules: ModuleCoverageReport[];
+    let untestedFunctions: UnitCoverageFunctionRef[] = [];
+    let totalFunctions = 0;
     let testedFunctions = 0;
 
-    for (const [filePath, fns] of byFile) {
-      const metrics = findFileMetrics(filePath, coverage);
-      const fileFuncCoverage = metrics?.functionCoverage ?? 0;
-      const testedCount = Math.round(fns.length * fileFuncCoverage);
-      testedFunctions += testedCount;
-
-      const moduleUntested: string[] = [];
-      if (fileFuncCoverage < 1) {
-        const untestedCount = fns.length - testedCount;
-        for (let i = 0; i < untestedCount && i < fns.length; i++) {
-          moduleUntested.push(fns[i].name);
-          untestedFunctions.push(fns[i]);
-        }
-      }
-
-      modules.push({
-        filePath,
-        functionCount: fns.length,
-        testedFunctionCount: testedCount,
-        functionCoverage: fileFuncCoverage,
-        branchCoverage: metrics?.branchCoverage ?? 0,
-        lineCoverage: metrics?.lineCoverage ?? 0,
-        untestedFunctions: moduleUntested,
-      });
+    if (lcovRecords) {
+      const built = buildModulesFromLcov(lcovRecords, coverage);
+      modules = built.modules;
+      untestedFunctions = built.untestedFunctions;
+      totalFunctions = lcovRecords.reduce(
+        (sum, record) => sum + (record.functionFound || record.functions.length),
+        0
+      );
+      testedFunctions = lcovRecords.reduce(
+        (sum, record) =>
+          sum +
+          (record.functionHit > 0
+            ? record.functionHit
+            : record.functions.filter(fn => fn.hitCount > 0).length),
+        0
+      );
+    } else {
+      modules = buildModulesFromSummary(coverage);
     }
-
-    modules.sort((a, b) => a.functionCoverage - b.functionCoverage);
 
     const functionCoverage = coverage.summary.functionCoverage;
     const branchCoverage = coverage.summary.branchCoverage;
@@ -120,7 +161,7 @@ export class UnitCoverageAnalyzer {
     return {
       status: 'available',
       generatedAt: coverage.generatedAt,
-      totalFunctions: functions.length,
+      totalFunctions,
       testedFunctions,
       functionCoverage,
       branchCoverage,

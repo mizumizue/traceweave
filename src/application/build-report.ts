@@ -73,7 +73,7 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
 
   const unitCoverageAnalyzer = new UnitCoverageAnalyzer();
   const unitCoverage = unitCoverageAnalyzer.analyze({
-    sourceRoot: UnitCoverageAnalyzer.resolveSourceRoot(projectRoot),
+    projectRoot,
     coverageReportPath: resolveCoverageReportPath(projectRoot),
   });
 

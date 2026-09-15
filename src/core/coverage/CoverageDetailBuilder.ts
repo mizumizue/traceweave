@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { loadMergedV8Scripts, V8ScriptResult } from './V8CoverageAggregator.js';
+import { LcovFileRecord } from './LcovParser.js';
 import { findRelatedTestFiles, readTestFileLines } from './SourceTestFileResolver.js';
 
 export type LineCoverageStatus = 'covered' | 'uncovered' | 'partial' | 'none';
@@ -46,31 +46,12 @@ export function resolveCoverageFilesDir(projectRoot: string): string {
   return path.join(projectRoot, 'reports', 'coverage-files');
 }
 
-export function buildLineStartOffsets(source: string): number[] {
-  const starts = [0];
-  let offset = 0;
-  for (const line of source.split('\n')) {
-    offset += Buffer.byteLength(line, 'utf-8') + 1;
-    starts.push(offset);
-  }
-  return starts;
-}
-
-export function lineNumberForOffset(lineStarts: number[], offset: number): number {
-  for (let i = lineStarts.length - 2; i >= 0; i--) {
-    if (offset >= lineStarts[i]) {
-      return i + 1;
-    }
-  }
-  return 1;
-}
-
 function normalizeRelativeFilePath(filePath: string): string {
   return filePath.replace(/\\/g, '/').replace(/^(?:src\/)?/, '');
 }
 
-function resolveStatus(hasCovered: boolean, hasUncovered: boolean): LineCoverageStatus {
-  if (hasCovered && hasUncovered) return 'partial';
+function resolveStatus(hasCovered: boolean, hasUncovered: boolean, hasPartial: boolean): LineCoverageStatus {
+  if (hasPartial || (hasCovered && hasUncovered)) return 'partial';
   if (hasCovered) return 'covered';
   if (hasUncovered) return 'uncovered';
   return 'none';
@@ -79,38 +60,57 @@ function resolveStatus(hasCovered: boolean, hasUncovered: boolean): LineCoverage
 export function buildCoverageFileDetail(
   relativeFilePath: string,
   source: string,
-  v8Entry: V8ScriptResult
+  record: LcovFileRecord
 ): CoverageFileDetail {
   const sourceLines = source.split('\n');
-  const lineStarts = buildLineStartOffsets(source);
-  const lineStates = sourceLines.map(() => ({ covered: false, uncovered: false }));
+  const lineStates = sourceLines.map(() => ({
+    covered: false,
+    uncovered: false,
+    partial: false,
+  }));
+
+  for (const [lineNumber, hits] of record.lines) {
+    if (lineNumber < 1 || lineNumber > sourceLines.length) continue;
+    const state = lineStates[lineNumber - 1];
+    if (hits > 0) state.covered = true;
+    else state.uncovered = true;
+  }
+
   const branches: CoverageBranchBlock[] = [];
+  const branchesByLine = new Map<number, LcovFileRecord['branches']>();
+  for (const branch of record.branches) {
+    const list = branchesByLine.get(branch.line) ?? [];
+    list.push(branch);
+    branchesByLine.set(branch.line, list);
+  }
 
-  for (const fn of v8Entry.functions) {
-    for (const range of fn.ranges) {
-      const startLine = lineNumberForOffset(lineStarts, range.startOffset);
-      const endLine = lineNumberForOffset(lineStarts, Math.max(range.startOffset, range.endOffset - 1));
-      const covered = range.count > 0;
+  for (const [lineNumber, lineBranches] of branchesByLine) {
+    if (lineNumber < 1 || lineNumber > sourceLines.length) continue;
+    const covered = lineBranches.some(entry => entry.taken > 0);
+    const uncovered = lineBranches.some(entry => entry.taken === 0);
+    const partial = covered && uncovered;
+    const state = lineStates[lineNumber - 1];
+    if (partial) state.partial = true;
+    else if (covered) state.covered = true;
+    else if (uncovered) state.uncovered = true;
 
-      branches.push({
-        startLine,
-        endLine,
-        count: range.count,
-        covered,
-      });
-
-      for (let line = startLine; line <= endLine && line <= sourceLines.length; line++) {
-        const state = lineStates[line - 1];
-        if (covered) state.covered = true;
-        else state.uncovered = true;
-      }
-    }
+    const taken = lineBranches.reduce((sum, entry) => sum + Math.max(entry.taken, 0), 0);
+    branches.push({
+      startLine: lineNumber,
+      endLine: lineNumber,
+      count: taken,
+      covered,
+    });
   }
 
   const lines: CoverageLineDetail[] = sourceLines.map((text, index) => ({
     lineNumber: index + 1,
     text,
-    status: resolveStatus(lineStates[index].covered, lineStates[index].uncovered),
+    status: resolveStatus(
+      lineStates[index].covered,
+      lineStates[index].uncovered,
+      lineStates[index].partial
+    ),
   }));
 
   return {
@@ -121,23 +121,17 @@ export function buildCoverageFileDetail(
 }
 
 export function buildAllCoverageFileDetails(
-  coverageDir: string,
+  records: LcovFileRecord[],
   sourceRoot: string
 ): CoverageFileDetail[] {
-  const merged = loadMergedV8Scripts(coverageDir);
   const details: CoverageFileDetail[] = [];
 
-  for (const [url, entry] of merged) {
-    const normalized = url.replace(/\\/g, '/');
-    const srcIdx = normalized.indexOf('/src/');
-    if (srcIdx < 0) continue;
-
-    const relFromSrc = normalized.slice(srcIdx + '/src/'.length);
-    const absPath = path.join(sourceRoot, relFromSrc);
+  for (const record of records) {
+    const absPath = path.join(sourceRoot, record.filePath);
     if (!fs.existsSync(absPath)) continue;
 
     const source = fs.readFileSync(absPath, 'utf-8');
-    details.push(buildCoverageFileDetail(relFromSrc, source, entry));
+    details.push(buildCoverageFileDetail(record.filePath, source, record));
   }
 
   details.sort((a, b) => a.filePath.localeCompare(b.filePath));

@@ -79,7 +79,7 @@ export function UnitCoverageView({
 
           {isPending ? (
             <div className="rounded-xl border border-amber-700/50 bg-amber-950/30 p-4 text-sm text-amber-200">
-              カバレッジレポート未生成です。`npm --prefix src test` を実行して `reports/coverage-summary.json` を生成してください。
+              カバレッジレポート未生成です。`npm --prefix src run test:coverage` を実行して `reports/coverage-summary.json` を生成してください。
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

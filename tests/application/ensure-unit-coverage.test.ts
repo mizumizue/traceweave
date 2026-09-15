@@ -8,7 +8,7 @@ import { repositoryPath } from '../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
- * - 対象: ensureUnitCoverageReport (serve 起動時の単体カバレッジ自動生成)
+ * - 対象: ensureUnitCoverageReport (serve 起動時の単体カバレッジ存在確認)
  * - 条件: reports/coverage-summary.json が既に存在するリポジトリ状態
  * - 期待結果: テストスイートを再実行せず present を返すこと
  */
@@ -16,7 +16,7 @@ test('ensureUnitCoverageReport - coverage-summary.json が存在する場合は 
   const projectRoot = repositoryPath('.');
   const coveragePath = resolveCoverageReportPath(projectRoot);
   if (!fs.existsSync(coveragePath)) {
-    test.skip('coverage-summary.json is missing; run npm --prefix src test first');
+    test.skip('coverage-summary.json is missing; run npm --prefix src run test:coverage first');
     return;
   }
 
@@ -27,15 +27,15 @@ test('ensureUnitCoverageReport - coverage-summary.json が存在する場合は 
 /**
  * 【テスト概要】
  * - 対象: ensureUnitCoverageReport
- * - 条件: 存在しない projectRoot を指定
- * - 期待結果: ランナー不在として unavailable を返し、例外を投げないこと
+ * - 条件: coverage-summary.json が存在しない projectRoot を指定
+ * - 期待結果: missing を返し、テストスイートを起動せず例外を投げないこと
  */
-test('ensureUnitCoverageReport - ランナー不在の projectRoot では unavailable を返すこと', () => {
+test('ensureUnitCoverageReport - カバレッジ未生成の projectRoot では missing を返すこと', () => {
   const tempRoot = path.join(repositoryPath('.'), 'reports', '.ensure-unit-coverage-test');
   fs.mkdirSync(tempRoot, { recursive: true });
   try {
     const result = ensureUnitCoverageReport({ projectRoot: tempRoot, quiet: true });
-    assert.equal(result, 'unavailable');
+    assert.equal(result, 'missing');
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true });
   }
