@@ -19,66 +19,54 @@ export function QualityMetricsGrid({
 }: QualityMetricsGridProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
-      {/* Global Sufficiency Score with Circular Gauges (5 cols on lg) */}
-      <div className="lg:col-span-5 bg-slate-900/70 border border-slate-800/90 px-5 py-3.5 rounded-2xl shadow-sm flex items-center justify-around gap-4 hover:border-slate-700/80 transition-all">
-        <div className="flex items-center gap-3.5">
+      {/* Two-axis quality scorecard (5 cols on lg) */}
+      <div className="lg:col-span-5 bg-slate-900/70 border border-slate-800/90 px-5 py-3.5 rounded-2xl shadow-sm flex items-center justify-around gap-3 hover:border-slate-700/80 transition-all">
+        <div className="flex items-center gap-3">
           <CircularGauge
-            value={summary.overallSufficiencyScore}
-            size={50}
-            strokeWidth={4.5}
-            label="全体品質充足度"
+            value={summary.qualityAxes.traceability.overallScore}
+            size={46}
+            strokeWidth={4}
+            label="契約充足度"
           />
           <div>
             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-              全体品質充足度（実行合格）
+              契約充足度（ITa〜UAT）
             </div>
-            <div className="text-xl font-black text-teal-400 leading-none mt-1">
-              {summary.overallSufficiencyScore}%
+            <div className="text-lg font-black text-teal-400 leading-none mt-1">
+              {summary.qualityAxes.traceability.overallScore}%
             </div>
-            <div className="mt-1">
-              <span
-                className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
-                  summary.overallSufficiencyScore >= 80
-                    ? 'bg-teal-950/80 text-teal-300 border-teal-800/60'
-                    : 'bg-rose-950/80 text-rose-300 border-rose-800/60'
-                }`}
-              >
-                {summary.overallSufficiencyScore >= 80 ? '高充足' : '要改善'}
-              </span>
+            <div className="text-[10px] text-slate-500 mt-0.5">
+              High {summary.qualityAxes.traceability.highCriticalityCoverage}%
             </div>
           </div>
         </div>
 
         <div className="h-10 w-px bg-slate-800" />
 
-        <div className="flex items-center gap-3.5">
+        <div className="flex items-center gap-3">
           <CircularGauge
-            value={summary.highCriticalityCoverage}
-            size={50}
-            strokeWidth={4.5}
-            label="High要件充足率"
+            value={
+              summary.qualityAxes.implementation.status === 'available'
+                ? summary.qualityAxes.implementation.functionCoveragePercent
+                : 0
+            }
+            size={46}
+            strokeWidth={4}
+            label="実装網羅率"
           />
           <div>
             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-              High要件充足率
+              実装網羅率（関数）
             </div>
-            <div
-              className={`text-xl font-black leading-none mt-1 ${
-                summary.highCriticalityCoverage >= 80 ? 'text-teal-400' : 'text-amber-400'
-              }`}
-            >
-              {summary.highCriticalityCoverage}%
+            <div className="text-lg font-black text-cyan-400 leading-none mt-1">
+              {summary.qualityAxes.implementation.status === 'available'
+                ? `${summary.qualityAxes.implementation.functionCoveragePercent}%`
+                : 'pending'}
             </div>
-            <div className="mt-1">
-              <span
-                className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
-                  summary.highCriticalityCoverage >= 80
-                    ? 'bg-teal-950/80 text-teal-300 border-teal-800/60'
-                    : 'bg-amber-950/80 text-amber-300 border-amber-800/60'
-                }`}
-              >
-                {summary.highCriticalityCoverage >= 80 ? '完全カバー' : '欠落あり'}
-              </span>
+            <div className="text-[10px] text-slate-500 mt-0.5">
+              {summary.qualityAxes.implementation.status === 'available'
+                ? `分岐 ${summary.qualityAxes.implementation.branchCoveragePercent}%`
+                : 'テスト実行後に算出'}
             </div>
           </div>
         </div>

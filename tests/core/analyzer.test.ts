@@ -16,6 +16,17 @@ import { repositoryPath } from '../helpers/repo-path.js';
  */
 test('TC-0003: BalanceAnalyzer - 各テスト層のカバレッジ率および密度判定（heavy/missing等）が正しく計算されること', () => {
   const analyzer = new BalanceAnalyzer();
+  const unitCoverage = {
+    status: 'available' as const,
+    totalFunctions: 10,
+    testedFunctions: 10,
+    functionCoverage: 1.0,
+    branchCoverage: 0.8,
+    lineCoverage: 0.9,
+    density: 'heavy' as const,
+    modules: [],
+    untestedFunctions: [],
+  };
 
   const mockReqs: RequirementSufficiency[] = [
     {
@@ -56,10 +67,11 @@ test('TC-0003: BalanceAnalyzer - 各テスト層のカバレッジ率および�
     },
   ];
 
-  const strata = analyzer.analyzeStrata(mockReqs, 2);
+  const strata = analyzer.analyzeStrata(mockReqs, 2, undefined, unitCoverage);
   const unitStratum = strata.find(s => s.level === 'unit')!;
   const intExtStratum = strata.find(s => s.level === 'integration_external')!;
 
+  assert.equal(unitStratum.metricSource, 'code_coverage');
   assert.equal(unitStratum.coverageRatio, 1.0);
   assert.equal(unitStratum.density, 'heavy');
 
@@ -154,9 +166,9 @@ test('TC-0003: BalanceAnalyzer - 実行合格 TC のみを工程集計し、文�
   graph.addNode({
     id: 'TC-PASS',
     kind: 'test_case',
-    title: 'Passed UT',
-    test_level: 'unit',
-    test_method: 'unit_mock',
+    title: 'Passed ITa',
+    test_level: 'integration_internal',
+    test_method: 'api_contract',
     verifies: ['SPEC-PASS'],
     depends_on: [],
     execution_status: 'passed',
@@ -164,9 +176,9 @@ test('TC-0003: BalanceAnalyzer - 実行合格 TC のみを工程集計し、文�
   graph.addNode({
     id: 'TC-PENDING',
     kind: 'test_case',
-    title: 'Pending UT',
-    test_level: 'unit',
-    test_method: 'unit_mock',
+    title: 'Pending ITa',
+    test_level: 'integration_internal',
+    test_method: 'api_contract',
     verifies: ['SPEC-DOC'],
     depends_on: [],
     execution_status: 'pending',
@@ -179,8 +191,8 @@ test('TC-0003: BalanceAnalyzer - 実行合格 TC のみを工程集計し、文�
       criticality: 'high',
       score: 30,
       isFullySatisfied: false,
-      phaseCounts: { unit: 1, integration_internal: 0, integration_external: 0, system: 0, acceptance: 0 },
-      documentedPhaseCounts: { unit: 2, integration_internal: 0, integration_external: 0, system: 0, acceptance: 0 },
+      phaseCounts: { unit: 0, integration_internal: 1, integration_external: 0, system: 0, acceptance: 0 },
+      documentedPhaseCounts: { unit: 0, integration_internal: 2, integration_external: 0, system: 0, acceptance: 0 },
       methodCounts: {},
       associatedSpecs: ['SPEC-PASS', 'SPEC-DOC', 'SPEC-EMPTY'],
       testCaseIds: ['TC-PASS', 'TC-PENDING'],
@@ -189,7 +201,10 @@ test('TC-0003: BalanceAnalyzer - 実行合格 TC のみを工程集計し、文�
   ];
 
   const strata = analyzer.analyzeStrata(requirements, 1, graph);
-  assert.equal(strata.find(s => s.level === 'unit')!.count, 1);
+  const unitStratum = strata.find(s => s.level === 'unit')!;
+  assert.equal(unitStratum.count, 0);
+  assert.equal(unitStratum.metricSource, 'code_coverage');
+  assert.equal(unitStratum.density, 'missing');
 
   const pyramid = analyzer.diagnosePyramid(graph, strata, requirements);
   assert.ok(pyramid.warnings.some(w => w.includes('テストケース文書が未紐付け') && w.includes('SPEC-EMPTY')));

@@ -18,8 +18,14 @@ export class ConsoleReporter {
     console.log(`  - 総詳細仕様数 (SPEC):      ${summary.totalSpecifications}`);
     console.log(`  - 総テストケース数 (TC):    ${summary.totalTestCases}`);
     console.log(`  - 実行合格 / 未実行 / 失敗:  ${summary.passedTestCaseCount} / ${summary.pendingTestCaseCount} / ${summary.failedTestCaseCount}`);
-    console.log(`  - 平均品質充足度スコア:     \x1b[1m\x1b[32m${summary.overallSufficiencyScore}%\x1b[0m （実行合格ベース）`);
-    console.log(`  - 重要要件 (High) 充足率:   \x1b[1m\x1b[32m${summary.highCriticalityCoverage}%\x1b[0m\n`);
+    console.log(`  - 契約充足度 (ITa〜UAT):     \x1b[1m\x1b[32m${summary.qualityAxes.traceability.overallScore}%\x1b[0m`);
+    console.log(`  - 重要要件 (High) 充足率:   \x1b[1m\x1b[32m${summary.qualityAxes.traceability.highCriticalityCoverage}%\x1b[0m`);
+    const impl = summary.qualityAxes.implementation;
+    if (impl.status === 'available') {
+      console.log(`  - 実装網羅率 (関数/分岐):   \x1b[1m\x1b[36m${impl.functionCoveragePercent}% / ${impl.branchCoveragePercent}%\x1b[0m\n`);
+    } else {
+      console.log(`  - 実装網羅率:               \x1b[33mpending\x1b[0m （テスト実行後に算出）\n`);
+    }
 
     // Strata density table
     console.log('\x1b[1m[2. 工程地層密度分析 (Stratum Density)]\x1b[0m');

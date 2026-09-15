@@ -371,6 +371,18 @@ export interface SubjectContext {
   source: SubjectSource;
 }
 
+export interface QualityAxesSummary {
+  traceability: {
+    overallScore: number;
+    highCriticalityCoverage: number;
+  };
+  implementation: {
+    status: 'available' | 'pending';
+    functionCoveragePercent: number;
+    branchCoveragePercent: number;
+  };
+}
+
 export interface TraceWeaveReport {
   generatedAt: string;
   subject: SubjectContext;
@@ -386,6 +398,7 @@ export interface TraceWeaveReport {
     highCriticalityCoverage: number;
     functionalRequirementCount: number;
     nonFunctionalRequirementCount: number;
+    qualityAxes: QualityAxesSummary;
   };
   strata: StratumReport[];
   unitCoverage: UnitCoverageReport;

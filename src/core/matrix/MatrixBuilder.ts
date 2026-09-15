@@ -164,6 +164,17 @@ export class MatrixBuilder {
         highCriticalityCoverage,
         functionalRequirementCount,
         nonFunctionalRequirementCount,
+        qualityAxes: {
+          traceability: {
+            overallScore: avgScore,
+            highCriticalityCoverage,
+          },
+          implementation: {
+            status: unitCoverage.status,
+            functionCoveragePercent: Math.round(unitCoverage.functionCoverage * 100),
+            branchCoveragePercent: Math.round(unitCoverage.branchCoverage * 100),
+          },
+        },
       },
       strata,
       unitCoverage,

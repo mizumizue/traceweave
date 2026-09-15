@@ -134,4 +134,11 @@ test('TC-0013: CircularGauge - ダッシュボード全体の各指標（全体�
 
   assert.ok(report.unitCoverage);
   assert.ok(['available', 'pending'].includes(report.unitCoverage.status));
+
+  assert.ok(report.summary.qualityAxes);
+  assert.equal(
+    report.summary.qualityAxes.traceability.overallScore,
+    report.summary.overallSufficiencyScore
+  );
+  assert.ok(report.summary.qualityAxes.implementation.functionCoveragePercent >= 0);
 });

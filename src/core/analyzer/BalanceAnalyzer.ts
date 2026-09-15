@@ -1,4 +1,5 @@
 import { TraceGraph } from '../graph/TraceGraph.js';
+import { isTraceabilityTestCase } from '../sufficiency/SufficiencyScorer.js';
 import {
   DocNode,
   PyramidHealth,
@@ -34,10 +35,11 @@ function isPassed(tc: DocNode): boolean {
 }
 
 export class BalanceAnalyzer {
-  private static tallyPassedPhases(testCases: DocNode[]): PhaseCount {
+  private static tallyTraceabilityPhases(testCases: DocNode[]): PhaseCount {
     const counts = emptyPhaseCounts();
     for (const tc of testCases) {
-      if (isPassed(tc) && tc.test_level && tc.test_level in counts) {
+      if (!isTraceabilityTestCase(tc) || !isPassed(tc) || !tc.test_level) continue;
+      if (tc.test_level in counts) {
         counts[tc.test_level]++;
       }
     }
@@ -62,7 +64,7 @@ export class BalanceAnalyzer {
         ? graph.getDirectTestCases(req.requirementId)
         : graph.getAllTestCasesForRequirement(req.requirementId);
 
-    return BalanceAnalyzer.tallyPassedPhases(testCases);
+    return BalanceAnalyzer.tallyTraceabilityPhases(testCases);
   }
 
   /**
@@ -94,14 +96,24 @@ export class BalanceAnalyzer {
     }
 
     return levels.map(level => {
-      if (level === 'unit' && unitCoverage) {
+      if (level === 'unit') {
+        if (unitCoverage?.status === 'available') {
+          return {
+            level,
+            label: PHASE_LABELS[level],
+            count: unitCoverage.testedFunctions,
+            coverageRatio: unitCoverage.functionCoverage,
+            branchCoverage: unitCoverage.branchCoverage,
+            density: unitCoverage.density,
+            metricSource: 'code_coverage',
+          };
+        }
         return {
           level,
           label: PHASE_LABELS[level],
-          count: unitCoverage.testedFunctions,
-          coverageRatio: unitCoverage.functionCoverage,
-          branchCoverage: unitCoverage.branchCoverage,
-          density: unitCoverage.density,
+          count: 0,
+          coverageRatio: 0,
+          density: 'missing',
           metricSource: 'code_coverage',
         };
       }
@@ -332,13 +344,9 @@ export class BalanceAnalyzer {
       acceptance: countByLevel.get('acceptance') || 0,
     };
 
-    const counts =
-      testCases.length > 0
-        ? BalanceAnalyzer.tallyPassedPhases(testCases)
-        : countsFromStrata;
-
-    const evaluated = BalanceAnalyzer.evaluateDistribution(counts, {
-      documentedTestCount: testCases.length,
+    const traceabilityTestCases = testCases.filter(isTraceabilityTestCase);
+    const evaluated = BalanceAnalyzer.evaluateDistribution(countsFromStrata, {
+      documentedTestCount: traceabilityTestCases.length,
     });
     let status: PyramidHealth = evaluated.status;
     const warnings: string[] = [...evaluated.warnings];
@@ -349,7 +357,7 @@ export class BalanceAnalyzer {
     const specsWithoutLinkedTc: string[] = [];
     const specsWithoutPassedTc: string[] = [];
     for (const spec of specs) {
-      const linkedTcs = graph.getDirectTestCases(spec.id);
+      const linkedTcs = graph.getDirectTestCases(spec.id).filter(isTraceabilityTestCase);
       const passedTcs = linkedTcs.filter(isPassed);
       if (passedTcs.length > 0) {
         continue;

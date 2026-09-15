@@ -324,8 +324,10 @@ export default function App() {
     if (!report) return;
     const md = [
       `# TraceWeave 品質トレーサビリティ サマリー`,
-      `- 全体品質充足度（実行合格）: **${report.summary.overallSufficiencyScore}%**`,
-      `- High要件充足率: **${report.summary.highCriticalityCoverage}%**`,
+      `- 契約充足度（ITa〜UAT）: **${report.summary.qualityAxes.traceability.overallScore}%**`,
+      `- High要件充足率: **${report.summary.qualityAxes.traceability.highCriticalityCoverage}%**`,
+      `- 実装網羅率（関数）: **${report.summary.qualityAxes.implementation.status === 'available' ? `${report.summary.qualityAxes.implementation.functionCoveragePercent}%` : 'pending'}**`,
+      `- 実装網羅率（分岐）: **${report.summary.qualityAxes.implementation.status === 'available' ? `${report.summary.qualityAxes.implementation.branchCoveragePercent}%` : 'pending'}**`,
       `- 総要求 (Needs): ${report.summary.totalNeeds}`,
       `- 総要件 (Requirements): ${report.summary.totalRequirements}（FR ${report.summary.functionalRequirementCount} / NFR ${report.summary.nonFunctionalRequirementCount}）`,
       `- 総仕様 (Specs): ${report.summary.totalSpecifications}`,
