@@ -10,12 +10,12 @@ import {
 
 /**
  * 【テスト概要】
- * - 対象: MatrixView（多軸フィルター：重要度、工程、充足度ステータス、検索キーワード判定ロジック）
+ * - 対象: filterMatrixRows（多軸フィルター：重要度、工程、充足度ステータス、検索キーワード判定ロジック）
  * - 条件: 複数要件のMatrixRow配列に対し、重要度('high')、工程('unit')、ステータス('unsatisfied')、検索語の複合絞り込みを実行
  * - 期待結果: 条件を満たす行のみが正確に抽出されること
- * - 関連文書: TC-0023, REQ-0015, SPEC-0015
+ * - 関連文書: TC-0023
  */
-test('TC-0023: MatrixView - 重要度・工程・充足度ステータス・キーワードの複合フィルター判定が正確に行われること', () => {
+test('TC-0023: filterMatrixRows - 重要度・工程・充足度ステータス・キーワードの複合フィルター判定が正確に行われること', () => {
   const sampleRows: MatrixRow[] = [
     {
       requirementId: 'REQ-0001',
@@ -93,12 +93,12 @@ test('TC-0023: MatrixView - 重要度・工程・充足度ステータス・キ�
 
 /**
  * 【テスト概要】
- * - 対象: MatrixView エクスポート機能（CSV, JSON, Markdown サマリー形式のシリアライズ）
+ * - 対象: serializeMatrixCsv / serializeMatrixJson / serializeMatrixMarkdown（CSV, JSON, Markdown シリアライズ）
  * - 条件: MatrixRow配列からCSVヘッダー/行、JSON文字列、Markdownテーブルを生成
  * - 期待結果: 各フォーマットの出力文字列がスキーマ仕様通りに整合していること
- * - 関連文書: TC-0023, REQ-0015, SPEC-0015
+ * - 関連文書: TC-0023
  */
-test('TC-0023: MatrixView - トレーサビリティデータのCSV・JSON・Markdownシリアライズが正確に行われること', () => {
+test('TC-0023: matrixData - トレーサビリティデータのCSV・JSON・Markdownシリアライズが正確に行われること', () => {
   const sampleRows: MatrixRow[] = [
     {
       requirementId: 'REQ-0015',
