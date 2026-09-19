@@ -42,26 +42,49 @@ Cursor エージェントに次を指示する。
 
 監査では oracle / feasibility / soundness / tautology / stratum-fit の 5 軸で REVISE 指摘がゼロになるまで修正する。
 
-## 3. テストコードに TC-xxxx 命名とレポート出力を整備する
+## 3. 実行証跡（traceweave-v1）と TC 結合を整備する
+
+TraceWeave は **二層**でテストを結合する。
+
+1. **静的（V字）**: \`docs/test-cases/TC-xxxx.md\` の \`verifies\` が REQ/SPEC への効き方を定義する（\`tags\` は分類用で実行結合には使わない）。
+2. **動的（実行）**: 集約レポート \`reports/test-results.json\` の \`results\` キーが TC 文書 ID（\`TC-xxxx\`）と一致すると、ダッシュボードに passed/failed が載る。
+
+### 3a. 単一ランナー（Node / Vitest / Jest 等）
 
 - 自動テストは \`.cursor/rules/test-writing-guidelines.mdc\` の**機械連携向け TC 宣言**に従う（\`test('TC-0001: ...')\` 形式。角括弧 \`[TC-0001]\` は不可）。
-- \`npm --prefix src test -- --tc TC-0001\` で単体実行できることを確認する。
-- テスト実行後に TraceWeave 形式のレポートを生成する。
+- 検出ランナー例: \`${testCmd}\`
+- ワークスペースに \`.traceweave/config.json\` を置き、\`capture: node-test-tap\` で TAP から TC ID を抽出するか、実行後に capture スクリプトで traceweave-v1 を書く。
 
 \`\`\`bash
+./bin/traceweave test
+# または従来の単体 capture:
 node scripts/traceweave-capture-test-report.mjs
 \`\`\`
 
-生成先: \`reports/test-results.json\`（ダッシュボードおよび QA 証跡と動的結合される）。
+### 3b. 複数エンジン・テストフレームワークなし
 
-検出ランナー: \`${testCmd}\`
+- 各 suite の \`run\` の末尾で **traceweave-v1** JSON（\`results\` のキー = TC ID）を \`reports/suites/<id>.json\` に書き、\`capture: fragment\` とする。
+- スキーマ例: TraceWeave 本体の \`fixtures/test-reports/traceweave-v1-minimal.json\`
+- 設定例: \`.traceweave/examples/config.multi-suite.fragment.json\`（参考。パスはプロジェクトに合わせて変更）
+
+\`\`\`json
+{
+  "testCaseId": "TC-0001",
+  "status": "passed",
+  "durationMs": 12,
+  "testTitle": "TC-0001: oracle label",
+  "executedAt": "2026-09-19T00:00:00.000Z"
+}
+\`\`\`
+
+詳細契約: TraceWeave リポジトリの \`docs/specifications/SPEC-0028.md\`
 
 ## 4. CI で traceweave check とテスト実行を回す
 
 \`.github/workflows/traceweave-governance.yml\` を有効化し、プルリクエストごとに次を実行する。
 
 1. \`./bin/traceweave check\`（ドキュメント整合性）
-2. \`node scripts/traceweave-capture-test-report.mjs\`（TC 実行レポート）
+2. \`./bin/traceweave test\` または \`node scripts/traceweave-capture-test-report.mjs\`（TC 実行レポート）
 3. \`./bin/traceweave check --strict\`（未テスト要件の検出、任意）
 
 TraceWeave CLI が PATH 上で解決できること（\`INSTALL_GUIDE.md\` 参照）を CI 実行前に確認する。

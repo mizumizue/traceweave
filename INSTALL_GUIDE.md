@@ -174,7 +174,8 @@ TraceWeave は **Model Context Protocol (MCP)** に対応しています。Curso
 |---|---|
 | `docs/test-cases/TC-0001.md` / `TC-0002.md` | REQ-0001 AC-001 / AC-002 に対応するスターター TC |
 | `docs/ADOPT_QUALITY_SETUP.md` | 導入後チェックリスト（TC 書き直し、レビュー、レポート、CI） |
-| `scripts/traceweave-capture-test-report.mjs` | テスト名の `TC-xxxx` から `reports/test-results.json` を生成 |
+| `scripts/traceweave-capture-test-report.mjs` | テスト名の `TC-xxxx` から traceweave-v1（`reports/test-results.json`）を生成 |
+| （任意）`.traceweave/config.json` | 複数 suite・`traceweave test` 集約（SPEC-0028。単一ランナーだけなら後から追加可） |
 | `.github/workflows/traceweave-governance.yml` | `traceweave check` + テスト + `--strict` |
 | `.cursor/skills/traceweave-test-case-review/` | TC 意味監査スキル |
 | `.cursor/rules/test-writing-guidelines.mdc` | テスト名 `TC-xxxx:` 命名規約 |

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "displayName": "Example Product",
+  "docsDir": "docs",
+  "evidenceDir": "reports",
+  "testResults": {
+    "aggregate": "reports/test-results.json",
+    "format": "traceweave-v1"
+  },
+  "merge": {
+    "onConflict": "fail-wins"
+  },
+  "suites": [
+    {
+      "id": "web",
+      "label": "Vitest (Web)",
+      "cwd": "apps/web",
+      "run": "npx vitest run && node scripts/export-traceweave-fragment.mjs reports/suites/web.json",
+      "capture": "fragment",
+      "fragment": "reports/suites/web.json"
+    },
+    {
+      "id": "offline",
+      "label": "Python smoke (no test framework)",
+      "cwd": "tools",
+      "run": "python scripts/run_smoke.py --report ../reports/suites/offline.json",
+      "capture": "fragment",
+      "fragment": "reports/suites/offline.json"
+    }
+  ]
+}

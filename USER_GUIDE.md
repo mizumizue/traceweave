@@ -58,7 +58,9 @@ npm --prefix src install
 # ビルド（Core + Web ダッシュボード）
 npm --prefix src run build
 
-# テストスイートの実行
+# テストスイートの実行（ワークスペース設定に従い suite を実行・集約）
+./bin/traceweave test
+# または npm スクリプト経由（本リポジトリは src 配下にテストがある）
 npm --prefix src test
 ```
 
@@ -145,7 +147,27 @@ TraceWeave は、CI 向け検査からダッシュボード起動まで CLI で�
 ./bin/traceweave decisions --format json
 ```
 
-### 3.6 `traceweave test-inputs` (テスト入力解析)
+### 3.6 `traceweave test` (ワークスペーステストと証跡集約)
+
+`.traceweave/config.json` で宣言した suite を順に実行し、各 suite の出力を **traceweave-v1** 形式（`reports/test-results.json` と同じスキーマ）に読み取ってマージします。ダッシュボードの実行状態はこの**集約ファイルのみ**と TC 文書 ID で結合します（TC 文書の `verifies` は REQ/SPEC への静的リンク）。
+
+```bash
+./bin/traceweave test
+./bin/traceweave test --suite node-test-tap
+./bin/traceweave test --merge-only
+./bin/traceweave test -w /path/to/workspace
+```
+
+| 結合の仕方 | 正本 | 備考 |
+|---|---|---|
+| 静的（何を検証するか） | `docs/test-cases/TC-xxxx.md` の `verifies` | `tags` は実行結合に使わない |
+| 動的（走ったか・結果） | 集約レポートの `results["TC-xxxx"]` | Node TAP はテスト**タイトル**の `TC-xxxx`、それ以外は **fragment JSON のキー** |
+
+- **Node 組み込み `test`**: `capture: node-test-tap` — タイトル先頭 `TC-0001:` 推奨。
+- **Vitest / pytest / 無フレームワーク**: `capture: fragment` — `run` の末尾で traceweave-v1 を書く（例: `fixtures/test-reports/traceweave-v1-minimal.json`、複数 suite 例: `.traceweave/examples/config.multi-suite.fragment.json`）。
+- 契約の全文: `docs/specifications/SPEC-0028.md`
+
+### 3.7 `traceweave test-inputs` (テスト入力解析)
 
 テストケースが外部パラメータファイルを持っており、Web 画面上で入力を変更・再実行できるかを判定します。
 
@@ -154,7 +176,7 @@ TraceWeave は、CI 向け検査からダッシュボード起動まで CLI で�
 ./bin/traceweave test-inputs --format markdown
 ```
 
-### 3.7 `traceweave build` (静的 Web ダッシュボードの生成)
+### 3.8 `traceweave build` (静的 Web ダッシュボードの生成)
 
 Vite + React による Web ダッシュボードに、解析済みのトレーサビリティデータを静的 JSON として埋め込み、配備用アセットをビルドします。
 
@@ -163,7 +185,7 @@ Vite + React による Web ダッシュボードに、解析済みのトレー�
 # 生成先: ./src/web/dist/ (index.html, assets, data.json)
 ```
 
-### 3.8 `traceweave serve` (ローカル Web サーバー起動)
+### 3.9 `traceweave serve` (ローカル Web サーバー起動)
 
 Web ダッシュボードをローカル HTTP サーバーで起動し、ブラウザで閲覧できるようにします。対話型テスト実行用 API（`/api/run-test`）も同時に提供します。
 
@@ -175,7 +197,7 @@ Web ダッシュボードをローカル HTTP サーバーで起動し、ブラ�
 ./bin/traceweave serve --port 3000 --restart
 ```
 
-### 3.9 `traceweave adopt` (異種プロジェクトへの適用・移行)
+### 3.10 `traceweave adopt` (異種プロジェクトへの適用・移行)
 
 既存の別プロジェクト（構造や言語が異なる任意のリポジトリ）に TraceWeave のトレーサビリティ基盤を導入します。
 **変更前にバックアップが自動作成されます。**
