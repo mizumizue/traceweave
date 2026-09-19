@@ -15,6 +15,7 @@ test('checkAdoptQuality - adopt 直後の品質キットが必須ファイルと
 
     const result = checkAdoptQuality(tempBaseDir);
     assert.equal(result.passed, true, result.errors.join('; '));
+    assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs/ADOPT_TEST_STRATA_GUIDE.md')));
     assert.ok(
       result.warnings.some((w) => w.includes('TC-UT-0001') || w.includes('test files')),
       `expected customization warnings, got: ${result.warnings.join('; ')}`

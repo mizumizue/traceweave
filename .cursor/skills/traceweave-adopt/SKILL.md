@@ -91,6 +91,7 @@ Prove that the adopted project satisfies all TraceWeave rules and the quality ad
    - `PASS: Traceability and documentation checks passed successfully!`
 3. Verify quality kit files exist:
    - `docs/test-cases/TC-UT-0001.md` and `TC-UT-0002.md` reference REQ-0001 AC-001 / AC-002
+   - `docs/ADOPT_TEST_STRATA_GUIDE.md` (stratum / harness reference for adopted projects)
    - `docs/ADOPT_QUALITY_SETUP.md` (post-adopt checklist)
    - `scripts/traceweave-capture-test-report.mjs` (TC-xxxx report capture)
    - `.github/workflows/traceweave-governance.yml` (CI: check + tests + strict)

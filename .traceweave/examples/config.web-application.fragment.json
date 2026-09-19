@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "displayName": "Example Web Application",
+  "docsDir": "docs",
+  "evidenceDir": "reports",
+  "testResults": {
+    "aggregate": "reports/test-results.json",
+    "format": "traceweave-v1"
+  },
+  "coverage": {
+    "lcov": "reports/lcov.info",
+    "summary": "reports/coverage-summary.json"
+  },
+  "merge": {
+    "onConflict": "fail-wins"
+  },
+  "suites": [
+    {
+      "id": "node",
+      "label": "Unit + internal integration (Vitest/Jest/node:test, formal)",
+      "cwd": ".",
+      "run": "npm test",
+      "capture": "node-test-tap",
+      "evidenceTier": "formal",
+      "fragment": "reports/suites/node.json"
+    },
+    {
+      "id": "support",
+      "label": "Supplementary (build smoke, static checks — not TC evidence)",
+      "cwd": ".",
+      "run": "",
+      "capture": "node-test-tap",
+      "evidenceTier": "supplementary",
+      "testsDir": "tests/support",
+      "fragment": "reports/suites/support.json"
+    },
+    {
+      "id": "newman-api",
+      "label": "External integration — REST API (Newman / Postman, formal)",
+      "cwd": ".",
+      "run": "node scripts/run-newman-api-suite.mjs",
+      "capture": "fragment",
+      "evidenceTier": "formal",
+      "fragment": "reports/suites/newman.json"
+    },
+    {
+      "id": "e2e",
+      "label": "System + acceptance browser flows (Playwright, formal)",
+      "cwd": ".",
+      "run": "node scripts/run-e2e-suite.mjs",
+      "capture": "fragment",
+      "evidenceTier": "formal",
+      "fragment": "reports/suites/e2e.json"
+    }
+  ]
+}

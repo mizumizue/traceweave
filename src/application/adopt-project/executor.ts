@@ -205,6 +205,7 @@ export function adoptProject(options: AdoptionOptions = {}): {
     console.log(`\n\x1b[32m✔ TraceWeave successfully applied in [${mode}] mode!\x1b[0m`);
     console.log(`  - Files created: ${createdFiles.length}`);
     console.log(`  - Quality setup guide: docs/ADOPT_QUALITY_SETUP.md`);
+    console.log(`  - Test strata guide: docs/ADOPT_TEST_STRATA_GUIDE.md`);
     console.log(`  - To verify docs schema:  ./bin/traceweave check (or npx traceweave check)`);
     console.log(`  - To verify quality kit:    ./bin/traceweave adopt-quality-check`);
     if (backupDir) {

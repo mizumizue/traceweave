@@ -173,9 +173,11 @@ TraceWeave は **Model Context Protocol (MCP)** に対応しています。Curso
 | 配備物 | 目的 |
 |---|---|
 | `docs/test-cases/TC-UT-0001.md` / `TC-UT-0002.md` | REQ-0001 AC-001 / AC-002 に対応するスターター TC |
+| `docs/ADOPT_TEST_STRATA_GUIDE.md` | Web システム例の工程別テスト構成（UT〜UAT、ハーネス、`.traceweave` スイート）。正本は TraceWeave 本体の `.traceweave/adoption/` |
 | `docs/ADOPT_QUALITY_SETUP.md` | 導入後チェックリスト（TC 書き直し、レビュー、レポート、CI） |
 | `scripts/traceweave-capture-test-report.mjs` | テスト名の `TC-xxxx` から traceweave-v1（`reports/test-results.json`）を生成 |
 | （任意）`.traceweave/config.json` | 複数 suite・`traceweave test` 集約（SPEC-0028。単一ランナーだけなら後から追加可） |
+| `.traceweave/examples/config.web-application.fragment.json` | SPA + API 向けスイート定義の参考（TraceWeave 本体リポジトリ） |
 | `.github/workflows/traceweave-governance.yml` | `traceweave check` + テスト + `--strict` |
 | `.cursor/skills/traceweave-test-case-review/` | TC 意味監査スキル |
 | `.cursor/rules/test-writing-guidelines.mdc` | テスト名 `TC-xxxx:` 命名規約 |
@@ -188,6 +190,17 @@ TraceWeave は **Model Context Protocol (MCP)** に対応しています。Curso
 ```
 
 ボイラープレート TC やテストコード未整備に関する warning は想定内です。`docs/ADOPT_QUALITY_SETUP.md` に従い、プロジェクト固有の REQ/SPEC・テスト・CI へ仕上げてください。
+
+### 工程別テスト構成（Web システム例）
+
+adopt 時に配備される **`docs/ADOPT_TEST_STRATA_GUIDE.md`** は、一般的な 3 層 Web（SPA + REST API + DB）を想定し、次を整理した参照です。
+
+- 5 大工程（UT / ITa / ITb / ST / UAT）ごとに **何を証明するか**
+- 典型ハーネス（Vitest / pytest、Newman は **ITb の HTTP 契約向けの一例**、Playwright 等）と TraceWeave の TC ID・スイート tier
+- テストピラミッドと充足度スコアとの関係
+- `.traceweave/config.json` の段階的導入（`.traceweave/examples/config.web-application.fragment.json` を参考）
+
+TraceWeave 本体リポジトリで内容を先読みする場合は **`.traceweave/adoption/ADOPT_TEST_STRATA_GUIDE.md`**（正本）を参照してください。adopt 実行後は同内容が **`docs/ADOPT_TEST_STRATA_GUIDE.md`** にコピーされます。
 
 ---
 

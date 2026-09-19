@@ -3,6 +3,9 @@ import path from 'node:path';
 import { resolveRepoRoot } from '../../infrastructure/system/resolveRepoRoot.js';
 import type { ProjectProbeResult } from './types.js';
 
+/** Repo-relative path to the adopt strata guide template (not under src/). */
+export const ADOPT_TEST_STRATA_GUIDE_REPO_REL = '.traceweave/adoption/ADOPT_TEST_STRATA_GUIDE.md';
+
 export function resolveTestCommand(testFramework?: string): string {
   switch (testFramework) {
     case 'jest':
@@ -26,6 +29,8 @@ export function generateAdoptQualitySetupDoc(projectName: string, testCmd: strin
   return `# ${projectName} TraceWeave 品質セットアップガイド
 
 TraceWeave adopt 後に、テストケース文書・自動テスト・CI を V字モデルに接続するためのチェックリストです。
+
+工程別に「何を」「どのハーネスで」検証するかの参照は \`docs/ADOPT_TEST_STRATA_GUIDE.md\`（Web システム例）を先に読んでください。
 
 ## 1. スターター TC をプロジェクト固有の REQ/SPEC に沿って書き直す
 
@@ -97,6 +102,12 @@ TraceWeave CLI が PATH 上で解決できること（\`INSTALL_GUIDE.md\` 参�
 
 品質キットの配備漏れと TC ボイラープレート残存を警告する。
 `;
+}
+
+export function loadAdoptTestStrataGuideTemplate(): string {
+  const repoRoot = resolveRepoRoot(import.meta.url);
+  const templatePath = path.join(repoRoot, ADOPT_TEST_STRATA_GUIDE_REPO_REL);
+  return fs.readFileSync(templatePath, 'utf-8');
 }
 
 export function generateTestCaptureScript(probe: ProjectProbeResult): string {
@@ -397,6 +408,7 @@ export function generateQualityKitFiles(
   const testCmd = resolveTestCommand(probe.testFramework);
   return {
     'docs/ADOPT_QUALITY_SETUP.md': generateAdoptQualitySetupDoc(probe.projectName, testCmd),
+    'docs/ADOPT_TEST_STRATA_GUIDE.md': loadAdoptTestStrataGuideTemplate(),
     'scripts/traceweave-capture-test-report.mjs': generateTestCaptureScript(probe),
     '.github/workflows/traceweave-governance.yml': generateCiWorkflow(),
   };
