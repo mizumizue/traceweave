@@ -130,7 +130,6 @@ export function MatrixView({
                 className="bg-transparent text-slate-200 focus:outline-none cursor-pointer text-xs"
               >
                 <option value="all" className="bg-slate-900">すべての工程</option>
-                <option value="unit" className="bg-slate-900">単体 (UT)</option>
                 <option value="integration_internal" className="bg-slate-900">内結 (ITa)</option>
                 <option value="integration_external" className="bg-slate-900">外結 (ITb)</option>
                 <option value="system" className="bg-slate-900">総合 (ST)</option>
@@ -227,20 +226,6 @@ export function MatrixView({
               未充足 (&lt;50%)
             </button>
 
-            <button
-              onClick={() => {
-                const next = phaseFilter === 'unit' ? 'all' : 'unit';
-                onPhaseFilterChange(next);
-                if (next !== 'all') toast.info('単体テスト (UT) で絞り込みました');
-              }}
-              className={`px-3 py-1 rounded-full text-xs border transition ${
-                phaseFilter === 'unit'
-                  ? 'bg-teal-950 text-teal-300 border-teal-700 font-bold'
-                  : 'bg-slate-950/80 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
-              }`}
-            >
-              単体テスト (UT)
-            </button>
           </div>
 
           <div className="text-xs text-slate-400 font-mono">

@@ -1,4 +1,5 @@
 import { MatrixRow, TraceWeaveReport } from '../../../core/models/types.js';
+import { normalizeMatrixPhaseFilter } from './urlState.js';
 
 export interface MatrixFilterOptions {
   searchQuery?: string;
@@ -10,6 +11,7 @@ export interface MatrixFilterOptions {
 
 export function filterMatrixRows(rows: MatrixRow[], filters: MatrixFilterOptions = {}): MatrixRow[] {
   const query = filters.searchQuery?.toLowerCase().trim() || '';
+  const phase = normalizeMatrixPhaseFilter(filters.phase);
   return rows.filter(row => {
     const matchesSearch =
       !query ||
@@ -25,9 +27,7 @@ export function filterMatrixRows(rows: MatrixRow[], filters: MatrixFilterOptions
       filters.requirementClass === 'all' ||
       row.requirementClass === filters.requirementClass;
     const matchesPhase =
-      !filters.phase ||
-      filters.phase === 'all' ||
-      row.allTestCases.some(testCase => testCase.level === filters.phase);
+      phase === 'all' || row.allTestCases.some(testCase => testCase.level === phase);
     const matchesScore =
       !filters.score ||
       filters.score === 'all' ||

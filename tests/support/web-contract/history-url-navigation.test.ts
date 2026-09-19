@@ -38,13 +38,13 @@ test('support: ITb-0015: urlState - クエリ文字列からの状態パース�
 
   // 2. 全パラメータが指定されたクエリ文字列の正常パース
   const fullQuery =
-    '?tab=graph&node=REQ-0001&q=traceability&phase=unit&criticality=high&reqclass=non_functional&score=satisfied&kind=requirement&tag=core&status=accepted&highlight=upstream';
+    '?tab=graph&node=REQ-0001&q=traceability&phase=integration_internal&criticality=high&reqclass=non_functional&score=satisfied&kind=requirement&tag=core&status=accepted&highlight=upstream';
   const fullParsed = parseUrlState(fullQuery);
   assert.equal(fullParsed.tab, 'traceability');
   assert.equal(fullParsed.traceabilityView, 'graph');
   assert.equal(fullParsed.nodeId, 'REQ-0001');
   assert.equal(fullParsed.searchQuery, 'traceability');
-  assert.equal(fullParsed.phaseFilter, 'unit');
+  assert.equal(fullParsed.phaseFilter, 'integration_internal');
   assert.equal(fullParsed.criticalityFilter, 'high');
   assert.equal(fullParsed.requirementClassFilter, 'non_functional');
   assert.equal(fullParsed.scoreFilter, 'satisfied');
@@ -61,6 +61,9 @@ test('support: ITb-0015: urlState - クエリ文字列からの状態パース�
   assert.equal(invalidParsed.traceabilityView, 'matrix', 'Invalid tab must fallback to matrix view');
   assert.equal(invalidParsed.nodeId, null, 'Whitespace-only nodeId must fallback to null');
   assert.equal(invalidParsed.phaseFilter, 'all', 'Invalid phase must fallback to all');
+
+  const legacyUnitPhase = parseUrlState('?phase=unit');
+  assert.equal(legacyUnitPhase.phaseFilter, 'all', 'Legacy UT matrix phase must normalize to all');
   assert.equal(invalidParsed.criticalityFilter, 'all', 'Invalid criticality must fallback to all');
   assert.equal(invalidParsed.requirementClassFilter, 'all', 'Invalid reqclass must fallback to all');
   assert.equal(invalidParsed.scoreFilter, 'all', 'Invalid score must fallback to all');
@@ -140,7 +143,10 @@ test('support: ITb-0015: URL状態 - ホーム状態と検索条件変更の履�
     true
   );
   assert.equal(
-    isOnlySearchQueryChanged({ ...home, searchQuery: 'before' }, { ...home, searchQuery: 'after', phaseFilter: 'unit' }),
+    isOnlySearchQueryChanged(
+      { ...home, searchQuery: 'before' },
+      { ...home, searchQuery: 'after', phaseFilter: 'integration_internal' }
+    ),
     false
   );
 });
