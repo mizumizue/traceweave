@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import matter from 'gray-matter';
+import { isRetiredDocStatus } from '../../core/models/docStatus.js';
 import { resolveRepoRoot } from '../system/resolveRepoRoot.js';
 
 const DEFAULT_DOCS_DIR = path.join(resolveRepoRoot(import.meta.url), 'docs');
@@ -17,10 +18,6 @@ const KINDS: Record<string, { kind: string; prefix: string }> = {
   quality: { kind: 'quality_assurance', prefix: 'QA' },
   'test-cases': { kind: 'test_case', prefix: 'TC' },
 };
-
-function isRetiredDocStatus(status: unknown): boolean {
-  return status === 'deprecated' || status === 'superseded';
-}
 
 const HEADINGS: Record<string, string[]> = {
   need: ['### Background', '### Problem', '### Desired Outcome'],

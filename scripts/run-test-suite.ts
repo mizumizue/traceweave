@@ -2,16 +2,15 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import {
   parseTestCaseFilter,
   resolveTestFilesForCase,
   testNamePatternForCase,
 } from '../src/core/testing/formatTestRunCommand.js';
-import { resolveCoverageFilesDir } from '../src/core/coverage/CoverageDetailBuilder.js';
+import { syncDashboardArtifacts } from '../src/application/sync-dashboard-artifacts.js';
+import { resolveRepoRootFromScriptEntry } from './lib/repo-root.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, '..');
+const ROOT = resolveRepoRootFromScriptEntry();
 const REPORTS_DIR = path.join(ROOT, 'reports');
 const REPORT_FILE = path.join(REPORTS_DIR, 'test-results.json');
 
@@ -252,24 +251,12 @@ async function runTests(): Promise<void> {
     const distWebJson = path.join(ROOT, 'src', 'web', 'dist', 'data.json');
     if (fs.existsSync(path.dirname(distWebJson))) {
       try {
-        const { buildTraceWeaveReport } = await import('../src/application/build-report.js');
-        const { report } = buildTraceWeaveReport({
+        syncDashboardArtifacts({
+          projectRoot: ROOT,
           docsDir: path.join(ROOT, 'docs'),
-          useCache: false,
           testReportPath: REPORT_FILE,
         });
-        fs.writeFileSync(distWebJson, JSON.stringify(report), 'utf-8');
         console.log(`\x1b[32m✔ Synchronized latest test outcomes to Web Dashboard data: ${distWebJson}\x1b[0m\n`);
-
-        const coverageSourceDir = resolveCoverageFilesDir(ROOT);
-        const coverageDistDir = path.join(ROOT, 'src', 'web', 'dist', 'coverage-files');
-        if (fs.existsSync(coverageSourceDir)) {
-          fs.mkdirSync(coverageDistDir, { recursive: true });
-          for (const entry of fs.readdirSync(coverageSourceDir)) {
-            if (!entry.endsWith('.json')) continue;
-            fs.copyFileSync(path.join(coverageSourceDir, entry), path.join(coverageDistDir, entry));
-          }
-        }
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
         console.warn(`\x1b[33m⚠ Failed to auto-sync data.json: ${message}\x1b[0m\n`);

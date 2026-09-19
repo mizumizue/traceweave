@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { validateDocs } from './validate-docs.js';
+import { validateDocs } from '../src/infrastructure/governance/validateDocs.js';
 import { validateNoLocalPaths } from './validate-no-local-paths.js';
 import { validateCleanRoot } from './validate-clean-root.js';
 

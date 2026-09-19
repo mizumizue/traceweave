@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { adoptProject } from '../../src/application/adopt-project.js';
+import { adoptProject } from '../../src/application/adopt-project/index.js';
 import { checkAdoptQuality } from '../../src/application/adopt-project/quality-check.js';
 import { repositoryPath } from '../helpers/repo-path.js';
 

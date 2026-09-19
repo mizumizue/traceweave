@@ -83,7 +83,7 @@ traceweave/
 │
 ├── docs/                   # 【製品の決め事】要求・要件・仕様・設計・ADR・品質・テスト
 ├── fixtures/               # テスト用フィクスチャ
-├── scripts/                # 運用・検証スクリプト (validate-docs.ts, test.sh 等)
+├── scripts/                # 運用・検証スクリプト (validate-docs.ts, run-test-suite.ts 等)
 ├── tests/                  # テストスイート
 ├── bin/                    # 【透過実行ラッパー】
 │   ├── traceweave          # POSIX bash ラッパー
@@ -156,9 +156,7 @@ traceweave/
 ./src/node_modules/.bin/tsx scripts/validate-docs.ts
 
 # 単体・結合・E2E テストスイートの実行
-./scripts/test.sh
-# または Windows
-.\scripts\test.cmd
+npm --prefix src test
 
 # src/ 内での直接開発
 npm --prefix src run build

@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import {
   buildAllCoverageFileDetails,
   writeCoverageFileArtifacts,
@@ -11,8 +10,10 @@ import {
   loadLcovRecords,
   resolveLcovReportPath,
 } from '../src/core/coverage/LcovParser.js';
+import { syncDashboardArtifacts } from '../src/application/sync-dashboard-artifacts.js';
+import { resolveRepoRootFromScriptEntry } from './lib/repo-root.js';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = resolveRepoRootFromScriptEntry();
 const lcovPath = resolveLcovReportPath(ROOT);
 const summaryPath = resolveCoverageReportPath(ROOT);
 const sourceRoot = path.join(ROOT, 'src');
@@ -37,34 +38,13 @@ console.log(
   `\x1b[32m✔ Coverage file details generated: ${fileDetails.length} file(s) in reports/coverage-files/\x1b[0m`
 );
 
-async function syncWebDashboard(): Promise<void> {
-  const distWebJson = path.join(ROOT, 'src', 'web', 'dist', 'data.json');
-  if (!fs.existsSync(path.dirname(distWebJson))) return;
-
-  const { buildTraceWeaveReport } = await import('../src/application/build-report.js');
-  const { report } = buildTraceWeaveReport({
+const distWebJson = path.join(ROOT, 'src', 'web', 'dist', 'data.json');
+if (fs.existsSync(path.dirname(distWebJson))) {
+  syncDashboardArtifacts({
+    projectRoot: ROOT,
     docsDir: path.join(ROOT, 'docs'),
-    useCache: false,
   });
-  fs.writeFileSync(distWebJson, JSON.stringify(report), 'utf-8');
   console.log(`\x1b[32m✔ Synchronized coverage to Web Dashboard data: ${distWebJson}\x1b[0m`);
-
-  const coverageSourceDir = path.join(ROOT, 'reports', 'coverage-files');
-  const coverageDistDir = path.join(ROOT, 'src', 'web', 'dist', 'coverage-files');
-  if (fs.existsSync(coverageSourceDir)) {
-    fs.mkdirSync(coverageDistDir, { recursive: true });
-    for (const entry of fs.readdirSync(coverageSourceDir)) {
-      if (!entry.endsWith('.json')) continue;
-      fs.copyFileSync(path.join(coverageSourceDir, entry), path.join(coverageDistDir, entry));
-    }
-  }
 }
 
-syncWebDashboard()
-  .then(() => {
-    console.log('');
-  })
-  .catch(err => {
-    console.error(err);
-    process.exit(1);
-  });
+console.log('');

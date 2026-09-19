@@ -9,12 +9,19 @@ import { ensureUnitCoverageReport } from '../application/ensure-unit-coverage.js
 import { createDashboardServer } from '../application/serve-dashboard.js';
 import { filterCatalog, formatCatalogJson, formatCatalogMarkdown } from '../application/format-catalog.js';
 import { formatTestInputsOutput } from '../application/format-test-inputs.js';
+import { ensureDependenciesInstalled } from '../application/ensure-dependencies.js';
 import { ConsoleReporter } from '../infrastructure/reporters/ConsoleReporter.js';
 import { MarkdownReporter } from '../infrastructure/reporters/MarkdownReporter.js';
-import { HtmlReporter } from '../infrastructure/reporters/HtmlReporter.js';
 import { PortManager } from '../infrastructure/system/PortManager.js';
-import { adoptProject, rollbackAdoption, checkAdoptQuality, type AdoptionMode } from '../application/adopt-project.js';
+import {
+  adoptProject,
+  rollbackAdoption,
+  checkAdoptQuality,
+  type AdoptionMode,
+} from '../application/adopt-project/index.js';
 import { buildWebDashboard } from '../application/build-web-dashboard.js';
+
+ensureDependenciesInstalled();
 
 function exitOnError(err: unknown): never {
   const message = err instanceof Error ? err.message : String(err);
@@ -79,7 +86,7 @@ program
   .command('report')
   .description('Generate quality sufficiency and phase stratum report')
   .option('-d, --docs <dir>', 'Docs directory path')
-  .option('-f, --format <format>', 'Output format (text, json, markdown, html)', 'text')
+  .option('-f, --format <format>', 'Output format (text, json, markdown)', 'text')
   .option('-o, --out <file>', 'Output file path (optional)')
   .action((options) => {
     try {
@@ -102,16 +109,10 @@ program
       } else {
         console.log(output);
       }
-      } else if (options.format === 'html') {
-        const output = HtmlReporter.generateHtml(report);
-        if (options.out) {
-          fs.writeFileSync(options.out, output, 'utf-8');
-          console.log(`HTML report written to ${options.out}`);
-        } else {
-          console.log(output);
-        }
-      } else {
+      } else if (options.format === 'text' || !options.format) {
         ConsoleReporter.printSummary(report);
+      } else {
+        exitOnError(new Error(`Unsupported report format: ${options.format}`));
       }
     } catch (err) {
       exitOnError(err);

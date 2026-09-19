@@ -20,6 +20,15 @@ export function resolvePackageRoot(): string {
   throw new Error('TraceWeave package root (src/package.json) not found.');
 }
 
+/** Package root that includes the Vite web dashboard sources. */
+export function resolveWebPackageRoot(): string {
+  const root = resolvePackageRoot();
+  if (!fs.existsSync(path.join(root, 'web', 'vite.config.ts'))) {
+    throw new Error(`TraceWeave web assets not found under "${root}/web".`);
+  }
+  return root;
+}
+
 export function hasInstalledDependencies(packageRoot: string): boolean {
   return fs.existsSync(path.join(packageRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs'));
 }

@@ -1,5 +1,5 @@
 import { TraceGraph } from '../graph/TraceGraph.js';
-import { isTraceabilityTestCase } from '../sufficiency/SufficiencyScorer.js';
+import { emptyPhaseCounts, isTraceabilityTestCase } from '../sufficiency/SufficiencyScorer.js';
 import {
   DocNode,
   PyramidHealth,
@@ -19,16 +19,6 @@ const PHASE_LABELS: Record<TestLevel, string> = {
   system: 'システムテスト (ST)',
   acceptance: '受入テスト (UAT)',
 };
-
-function emptyPhaseCounts(): PhaseCount {
-  return {
-    unit: 0,
-    integration_internal: 0,
-    integration_external: 0,
-    system: 0,
-    acceptance: 0,
-  };
-}
 
 function isPassed(tc: DocNode): boolean {
   return tc.execution_status === 'passed';

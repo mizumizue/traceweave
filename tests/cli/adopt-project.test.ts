@@ -8,7 +8,7 @@ import {
   createBackup,
   adoptProject,
   rollbackAdoption,
-} from '../../src/application/adopt-project.js';
+} from '../../src/application/adopt-project/index.js';
 import { validateDocs } from '../../scripts/validate-docs.js';
 import { repositoryPath } from '../helpers/repo-path.js';
 

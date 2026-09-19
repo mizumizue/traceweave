@@ -31,7 +31,7 @@ traceweave/
 │   └── test-cases/         # 個別テストケース (TC-*)
 │
 ├── fixtures/               # テスト用静的フィクスチャ
-├── scripts/                # 運用・検証スクリプト (validate-docs.ts, test.sh 等)
+├── scripts/                # 運用・検証スクリプト (validate-docs.ts, run-test-suite.ts 等)
 ├── tests/                  # 単体・結合・E2E テストスイート
 ├── bin/                    # 【透過実行ラッパー】
 │   ├── traceweave          # POSIX bash ラッパー
@@ -137,8 +137,7 @@ traceweave/
 ./src/node_modules/.bin/tsx scripts/validate-docs.ts
 
 # 全テストの実行（Web ビルドおよび全テストスイート）
-./scripts/test.sh
-# または Windows: .\scripts\test.cmd
+npm --prefix src test
 
 # CLI の実行（ルートから透過実行）
 ./bin/traceweave check

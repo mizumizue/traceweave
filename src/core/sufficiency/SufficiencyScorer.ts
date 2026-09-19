@@ -20,7 +20,7 @@ export function isTraceabilityTestCase(tc: DocNode): boolean {
   return Boolean(tc.test_level && TRACEABILITY_TEST_LEVELS.includes(tc.test_level));
 }
 
-function emptyPhaseCounts(): PhaseCount {
+export function emptyPhaseCounts(): PhaseCount {
   return {
     unit: 0,
     integration_internal: 0,

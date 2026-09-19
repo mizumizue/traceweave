@@ -14,7 +14,6 @@
     "test": "tsx ../scripts/run-test-suite.ts",
     "test:coverage": "tsx ../scripts/run-test-coverage.ts",
     "test:ci": "npm run build:web && tsx ../scripts/run-test-suite.ts",
-    "test:raw": "npm run build:web && tsx --test ../tests/**/*.test.ts",
     "analyze:inputs": "tsx ../scripts/analyze-test-inputs.ts",
     "typecheck": "tsc --noEmit",
     "lint": "tsx ../scripts/run-governance-lint.ts",
