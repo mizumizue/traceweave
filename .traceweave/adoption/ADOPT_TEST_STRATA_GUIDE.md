@@ -172,18 +172,26 @@ TraceWeave の `test_level` と TC ID 接頭辞の対応は次のとおりです
 
 ## 5. `.traceweave/config.json` の考え方
 
-複数ランナーを **suite** として定義し、`./bin/traceweave test` で `reports/test-results.json` にマージします。
+複数ランナーを **suite** として定義し、`./bin/traceweave test` で `reports/test-results.json` にマージします。スイート ID（`node`, `e2e`）と工程（`TC-UT-*`, `TC-ITb-*`）は別概念です。1 スイートが複数工程を含んでも、1 工程を複数スイートに分けても構いません。
+
+**詳細な設定リファレンス**（`capture` 三種、`run` が `node-test-tap` で無視される点、マージ戦略、CLI）は TraceWeave 本体の **`.traceweave/README.md`** を参照してください（adopt 先にはコピーされません。必要なら本体リポジトリまたは導入元から参照）。
 
 | `evidenceTier` | 意味 |
 |---|---|
 | `formal` | TC ID キーがダッシュボードの実行結果に載る（既定） |
 | `supplementary` | 走らせてよいが証跡に載せない（`tests/support/**`、`support:` タイトル） |
 
+| `capture`（要約） | いつ使うか |
+|---|---|
+| `node-test-tap` | リポジトリが Node 組み込み `test` + `tests/**/*.test.ts` を正本にする UT/ITa |
+| `fragment` | Vitest / Newman / Playwright 等、ランナー出力を traceweave-v1 に変換して書く場合 |
+| `aggregate` | 既存の `traceweave-capture-test-report.mjs` 等が集約へ直接書く単一ランナー |
+
 Web サンプル向けの fragment 例: `.traceweave/examples/config.web-application.fragment.json`
 
 **最小構成（UT のみから開始）**
 
-1. `node` スイート + `traceweave-capture-test-report.mjs`
+1. `node` スイート（`capture: node-test-tap`）または単一ランナー + `traceweave-capture-test-report.mjs`
 2. REQ が API 契約を持つ SPEC が増えたら `newman-api` または ITb の Node テストを追加
 3. UI の ST/UAT が固まったら `e2e`（Playwright）を追加
 

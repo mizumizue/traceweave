@@ -177,6 +177,7 @@ TraceWeave は **Model Context Protocol (MCP)** に対応しています。Curso
 | `docs/ADOPT_QUALITY_SETUP.md` | 導入後チェックリスト（TC 書き直し、レビュー、レポート、CI） |
 | `scripts/traceweave-capture-test-report.mjs` | テスト名の `TC-xxxx` から traceweave-v1（`reports/test-results.json`）を生成 |
 | （任意）`.traceweave/config.json` | 複数 suite・`traceweave test` 集約（SPEC-0028。単一ランナーだけなら後から追加可） |
+| `.traceweave/README.md` | スイートの考え方・`config.json` フィールド・`capture` / `evidenceTier` の読み物ガイド（TraceWeave 本体リポジトリ） |
 | `.traceweave/examples/config.web-application.fragment.json` | SPA + API 向けスイート定義の参考（TraceWeave 本体リポジトリ） |
 | `.github/workflows/traceweave-governance.yml` | `traceweave check` + テスト + `--strict` |
 | `.cursor/skills/traceweave-test-case-review/` | TC 意味監査スキル |
@@ -198,7 +199,7 @@ adopt 時に配備される **`docs/ADOPT_TEST_STRATA_GUIDE.md`** は、一般�
 - 5 大工程（UT / ITa / ITb / ST / UAT）ごとに **何を証明するか**
 - 典型ハーネス（Vitest / pytest、Newman は **ITb の HTTP 契約向けの一例**、Playwright 等）と TraceWeave の TC ID・スイート tier
 - テストピラミッドと充足度スコアとの関係
-- `.traceweave/config.json` の段階的導入（`.traceweave/examples/config.web-application.fragment.json` を参考）
+- `.traceweave/config.json` の段階的導入（**`.traceweave/README.md`** と `.traceweave/examples/config.web-application.fragment.json` を参考）
 
 TraceWeave 本体リポジトリで内容を先読みする場合は **`.traceweave/adoption/ADOPT_TEST_STRATA_GUIDE.md`**（正本）を参照してください。adopt 実行後は同内容が **`docs/ADOPT_TEST_STRATA_GUIDE.md`** にコピーされます。
 

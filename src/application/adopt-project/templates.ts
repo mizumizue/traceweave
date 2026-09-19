@@ -437,20 +437,3 @@ export function generateMcpConfig(): string {
   );
 }
 
-export function generateCursorRules(): Record<string, string> {
-  const repoRoot = resolveRepoRoot(import.meta.url);
-  const schemaPath = path.join(repoRoot, '.cursor', 'rules', 'docs-document-schema.mdc');
-  const workflowPath = path.join(repoRoot, '.cursor', 'rules', 'implementation-workflow.mdc');
-
-  const schemaRule = fs.existsSync(schemaPath)
-    ? fs.readFileSync(schemaPath, 'utf-8')
-    : '# TraceWeave Documentation Schema\n';
-  const workflowRule = fs.existsSync(workflowPath)
-    ? fs.readFileSync(workflowPath, 'utf-8')
-    : '# Implementation Workflow\n';
-
-  return {
-    '.cursor/rules/docs-document-schema.mdc': schemaRule,
-    '.cursor/rules/implementation-workflow.mdc': workflowRule,
-  };
-}

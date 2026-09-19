@@ -3,8 +3,8 @@ import path from 'node:path';
 import type { AdoptionMode, AdoptionOptions, BackupManifest, ProjectProbeResult } from './types.js';
 import { probeProject } from './probe.js';
 import { createBackup } from './backup.js';
-import { generateStarterDocs, generateBinWrappers, generateCursorRules, generateMcpConfig } from './templates.js';
-import { copyQualityCursorAssets, generateQualityKitFiles } from './quality-kit.js';
+import { generateStarterDocs, generateBinWrappers, generateMcpConfig } from './templates.js';
+import { deployAdoptCursorBundle, generateQualityKitFiles } from './quality-kit.js';
 
 // -----------------------------------------------------------------------------
 // 4. Adoption Executor: 適用実行
@@ -46,9 +46,9 @@ export function adoptProject(options: AdoptionOptions = {}): {
       console.log(`  - Would backup existing assets to: ${options.backupDir || '.traceweave-backup/<timestamp>_' + mode}`);
       console.log(`  - Would create TraceWeave V-Model docs (docs/needs, docs/requirements, etc.)`);
       console.log(`  - Would install bin/traceweave wrappers`);
-      console.log(`  - Would install .cursor/rules`);
+      console.log(`  - Would install .cursor traceability bundle (traceweave-* skills, rules, subagents)`);
       console.log(`  - Would install .cursor/mcp.json`);
-      console.log(`  - Would install quality kit (TC-UT-0002, test capture script, CI workflow, review skills)`);
+      console.log(`  - Would install quality kit (TC-UT-0002, test capture script, CI workflow)`);
       if (mode === 'restructure') {
         console.log(`  - Would migrate root source files to src/ and apply Clean-Root structure`);
       }
@@ -112,10 +112,12 @@ export function adoptProject(options: AdoptionOptions = {}): {
     writeFileTracked(relPath, content, isBash);
   }
 
-  // 5. Generate Cursor Rules
-  const cursorRules = generateCursorRules();
-  for (const [relPath, content] of Object.entries(cursorRules)) {
-    writeFileTracked(relPath, content);
+  // 5. Cursor traceability bundle (skills, rules, subagents)
+  const cursorCreated = deployAdoptCursorBundle(targetDir);
+  for (const rel of cursorCreated) {
+    if (!createdFiles.includes(rel)) {
+      createdFiles.push(rel);
+    }
   }
 
   // 5b. Generate Cursor MCP config (only if missing)
@@ -132,13 +134,6 @@ export function adoptProject(options: AdoptionOptions = {}): {
       writeFileTracked(relPath, content);
     }
   }
-  const qualityAssets = copyQualityCursorAssets(targetDir);
-  for (const rel of qualityAssets) {
-    if (!createdFiles.includes(rel)) {
-      createdFiles.push(rel);
-    }
-  }
-
   // 6. Mode: Restructure (クリーンルート化)
   if (mode === 'restructure') {
     if (!silent) console.log('\n🧹 Performing full project restructuring (Clean Root)...');

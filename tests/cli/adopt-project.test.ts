@@ -90,7 +90,7 @@ test.describe('TraceWeave Adoption Engine (adopt-project)', () => {
       .readdirSync(path.join(tempBaseDir, 'docs', 'glossary'))
       .filter(f => f.startsWith('GLO-') && f.endsWith('.md'));
     const sourceGlossaryCount = fs
-      .readdirSync(path.join(process.cwd(), 'docs', 'glossary'))
+      .readdirSync(repositoryPath('docs/glossary'))
       .filter(f => f.startsWith('GLO-') && f.endsWith('.md')).length;
     assert.equal(
       glossaryFiles.length,
@@ -118,6 +118,14 @@ test.describe('TraceWeave Adoption Engine (adopt-project)', () => {
     assert.ok(
       fs.existsSync(path.join(tempBaseDir, '.cursor', 'skills', 'traceweave-test-case-review', 'SKILL.md'))
     );
+    assert.ok(
+      fs.existsSync(
+        path.join(tempBaseDir, '.cursor', 'skills', 'traceweave-verification-tiers', 'references', 'TIER-MATRIX.md')
+      )
+    );
+    assert.ok(fs.existsSync(path.join(tempBaseDir, '.cursor', 'agents', 'traceweave-test-case-reviewer.md')));
+    assert.ok(fs.existsSync(path.join(tempBaseDir, '.cursor', 'rules', 'test-case-authoring.mdc')));
+    assert.ok(fs.existsSync(path.join(tempBaseDir, '.cursor', 'skills', 'traceweave-document-authoring', 'SKILL.md')));
     const tc1 = fs.readFileSync(path.join(tempBaseDir, 'docs', 'test-cases', 'TC-UT-0001.md'), 'utf-8');
     assert.ok(tc1.includes('AC-001'));
     const tc2 = fs.readFileSync(path.join(tempBaseDir, 'docs', 'test-cases', 'TC-UT-0002.md'), 'utf-8');

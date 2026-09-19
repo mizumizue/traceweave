@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { installCursorSkills } from '../../scripts/install-cursor-skills.js';
+import { installCursorSkills } from '../../src/infrastructure/cursor/installCursorSkills.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const ROOT = path.resolve(path.dirname(__filename), '../..');
@@ -37,6 +37,34 @@ test('installCursorSkills - project ターゲットへ bundled スキルが配�
     const schemaRule = path.join(tempDir, '.cursor', 'rules', 'docs-document-schema.mdc');
     assert.ok(fs.existsSync(schemaRule));
     assert.ok(result.rulesInstalled.includes('docs-document-schema.mdc'));
+
+    const tierMatrix = path.join(
+      tempDir,
+      '.cursor',
+      'skills',
+      'traceweave-verification-tiers',
+      'references',
+      'TIER-MATRIX.md'
+    );
+    assert.ok(fs.existsSync(tierMatrix), 'skill references/ tree should be copied');
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('installCursorSkills - withAgents copies traceweave subagents', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tw-install-agents-'));
+  try {
+    const result = installCursorSkills({
+      repoRoot: ROOT,
+      target: 'project',
+      projectDir: tempDir,
+      withAgents: true,
+    });
+
+    assert.ok(result.agentsInstalled.includes('traceweave-test-case-reviewer.md'));
+    const agentPath = path.join(tempDir, '.cursor', 'agents', 'traceweave-test-case-reviewer.md');
+    assert.ok(fs.existsSync(agentPath));
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }

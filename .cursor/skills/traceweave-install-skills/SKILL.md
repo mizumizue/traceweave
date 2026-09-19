@@ -53,11 +53,13 @@ Project install (external or adopted repo):
 tsx scripts/install-cursor-skills.ts --target project --project-dir "<path-to-target>"
 ```
 
-Include Cursor rules (schema, workflow):
+Include Cursor rules and TraceWeave subagents:
 
 ```bash
-tsx scripts/install-cursor-skills.ts --target personal --with-rules
+tsx scripts/install-cursor-skills.ts --target personal --with-rules --with-agents
 ```
+
+Adopt (`./bin/traceweave adopt`) deploys the project target with `--with-rules --with-agents` automatically.
 
 POSIX wrapper:
 

@@ -149,11 +149,13 @@ TraceWeave は、CI 向け検査からダッシュボード起動まで CLI で�
 
 ### 3.6 `traceweave test` (ワークスペーステストと証跡集約)
 
-`.traceweave/config.json` で宣言した suite を順に実行し、各 suite の出力を **traceweave-v1** 形式（`reports/test-results.json` と同じスキーマ）に読み取ってマージします。ダッシュボードの実行状態はこの**集約ファイルのみ**と TC 文書 ID で結合します（TC 文書の `verifies` は REQ/SPEC への静的リンク）。
+`.traceweave/config.json` で宣言した **スイート（suite）** を順に実行し、各スイートの出力を **traceweave-v1** 形式（`reports/test-results.json` と同じスキーマ）に読み取ってマージします。ダッシュボードの実行状態はこの**集約ファイルのみ**と TC 文書 ID で結合します（TC 文書の `verifies` は REQ/SPEC への静的リンク）。
+
+スイートは「工程（UT/ITa/…）」そのものではなく、**ランナー単位の実行・証跡の取り方**を表します。`evidenceTier: supplementary` のスイートは走らせても集約に載りません。設定の読み物ガイドは **`.traceweave/README.md`**（フィールド一覧・`capture` 選定・段階導入）。
 
 ```bash
 ./bin/traceweave test
-./bin/traceweave test --suite node-test-tap
+./bin/traceweave test --suite node --suite e2e
 ./bin/traceweave test --merge-only
 ./bin/traceweave test -w /path/to/workspace
 ```
@@ -163,9 +165,14 @@ TraceWeave は、CI 向け検査からダッシュボード起動まで CLI で�
 | 静的（何を検証するか） | `docs/test-cases/TC-xxxx.md` の `verifies` | `tags` は実行結合に使わない |
 | 動的（走ったか・結果） | 集約レポートの `results["TC-xxxx"]` | Node TAP はテスト**タイトル**の `TC-xxxx`、それ以外は **fragment JSON のキー** |
 
-- **Node 組み込み `test`**: `capture: node-test-tap` — タイトル先頭 `TC-UT-0001:` 推奨。
-- **Vitest / pytest / 無フレームワーク**: `capture: fragment` — `run` の末尾で traceweave-v1 を書く（例: `fixtures/test-reports/traceweave-v1-minimal.json`、複数 suite 例: `.traceweave/examples/config.multi-suite.fragment.json`）。
-- 契約の全文: `docs/specifications/SPEC-0028.md`
+| `capture` | 用途（要約） |
+|---|---|
+| `node-test-tap` | TraceWeave が Node 組み込み `test` を起動し TAP から TC ID を抽出（`run` は無視）。タイトル先頭 `TC-UT-0001:` 推奨 |
+| `fragment` | `run` で任意ランナーを実行し、末尾で traceweave-v1 を `fragment` パスに書く（Vitest / pytest / Newman / Playwright 等） |
+| `aggregate` | `run` が集約ファイルへ直接 traceweave-v1 を書く |
+
+- 例: `fixtures/test-reports/traceweave-v1-minimal.json`、`.traceweave/examples/config.multi-suite.fragment.json`、本リポジトリ dogfood は `.traceweave/config.json`
+- 契約の全文: `docs/specifications/SPEC-0028.md`（tier: `docs/specifications/SPEC-0030.md`）
 
 ### 3.7 `traceweave test-inputs` (テスト入力解析)
 

@@ -2,6 +2,8 @@
 
 `traceweave adopt` が参照する導入向けガイドの正本です。V 字スキーマ（`docs/needs/` 等）の外に置き、`.traceweave/config.json` や `examples/` と同じく TraceWeave 運用設定の近くにまとめています。
 
+スイートの考え方・`config.json` のフィールド説明は親ディレクトリの **[README.md](../README.md)** を参照してください。
+
 | 正本（本リポジトリ） | adopt 先へのコピー先 |
 |---|---|
 | `ADOPT_TEST_STRATA_GUIDE.md` | `docs/ADOPT_TEST_STRATA_GUIDE.md` |

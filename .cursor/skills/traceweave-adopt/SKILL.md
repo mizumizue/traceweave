@@ -11,7 +11,7 @@ Apply TraceWeave's V-Model traceability matrix and test stratum analyzer to any 
 
 **probe** — Inspect repository topology: scan languages, testing setups, existing docs, package manifests, and git cleanliness.
 **checkpoint** — Guard existing assets: create a verified, timestamped backup and manifest (`.traceweave-backup/`) before touching files.
-**overlay** — Apply non-destructive adoption: keep existing structure intact; add `docs/` V-Model skeleton, `bin/` wrappers, and `.cursor/rules/`.
+**overlay** — Apply non-destructive adoption: keep existing structure intact; add `docs/` V-Model skeleton, `bin/` wrappers, and the Cursor traceability bundle (`traceweave-*` skills, `.cursor/rules/*.mdc`, `traceweave-*` subagents).
 **restructure** — Apply full clean-root migration: reorganize the repository to TraceWeave standards (encapsulate source into `src/`, route commands via `bin/`, purge root clutter).
 **verify** — Prove mechanical correctness: run `./bin/traceweave check` and ensure all starter docs strictly satisfy `docs-document-schema.mdc` with exit code 0.
 **rollback** — Revert cleanly: restore original files from the checkpoint manifest if any phase fails or user requests cancellation.
@@ -63,7 +63,7 @@ Execute non-destructive overlay:
 ```
 1. Injects `docs/` V-Model skeleton (`NEED-0001`, `ACT-0001`, `UC-0001`, `REQ-0001`, `SPEC-0001`, `DSN-0001`, `ADR-0001`, `QA-0001`, `TC-UT-0001`, `SYSTEM_OVERVIEW.md`) with detected project metadata.
 2. Injects transparent execution wrappers (`bin/traceweave`, `bin/traceweave.cmd`, `bin/traceweave.ps1`).
-3. Injects Cursor rules (`.cursor/rules/docs-document-schema.mdc`, `implementation-workflow.mdc`).
+3. Injects the Cursor traceability bundle via the same engine as `scripts/install-cursor-skills.ts` (`--target project --with-rules --with-agents`): all `traceweave-*` skills (including `references/` and `scripts/`), every `.cursor/rules/*.mdc`, and `traceweave-*` subagents under `.cursor/agents/`.
 
 #### Branch B: Restructure Mode (`restructure`)
 Execute full clean-root restructure:
@@ -95,7 +95,7 @@ Prove that the adopted project satisfies all TraceWeave rules and the quality ad
    - `docs/ADOPT_QUALITY_SETUP.md` (post-adopt checklist)
    - `scripts/traceweave-capture-test-report.mjs` (TC-xxxx report capture)
    - `.github/workflows/traceweave-governance.yml` (CI: check + tests + strict)
-   - `.cursor/skills/traceweave-test-case-review/SKILL.md`
+   - Full Cursor traceability bundle (see step 3 overlay list); `adopt-quality-check` verifies skills, rules, and subagents against the platform version
 4. Run adopt quality gate:
    ```bash
    ./bin/traceweave adopt-quality-check "<targetDir>"

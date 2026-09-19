@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { installCursorSkills } from '../../infrastructure/cursor/installCursorSkills.js';
 import { resolveRepoRoot } from '../../infrastructure/system/resolveRepoRoot.js';
 import type { ProjectProbeResult } from './types.js';
 
@@ -39,7 +40,17 @@ TraceWeave adopt 後に、テストケース文書・自動テスト・CI を V�
 - \`### Steps\` と \`### Expected Results\` は、\`docs/requirements/REQ-0001.md\` の AC および \`docs/specifications/SPEC-0001.md\` の契約条項と 1 対 1 で対応させる。
 - 汎用文言（「正常系入力に対する戻り値」等）のまま残さない。
 
-## 2. traceweave-test-case-review で意味監査を通す
+## 2. Cursor トレーサビリティ資材を確認する
+
+adopt 時に TraceWeave 本体と同じ **Cursor バンドル**が \`.cursor/\` へ配備される。
+
+- **スキル**: \`.cursor/skills/traceweave-*\`（文書起票、TC 監査、証跡層、フィクスチャ等）
+- **ルール**: \`.cursor/rules/*.mdc\`（スキーマ、実装ワークフロー、TC 執筆、テスト宣言、証跡層）
+- **サブエージェント**: \`.cursor/agents/traceweave-test-case-reviewer.md\`
+
+手動で再配備する場合は TraceWeave リポジトリで \`tsx scripts/install-cursor-skills.ts --target project --project-dir "<path>" --with-rules --with-agents\`。
+
+## 3. traceweave-test-case-review で意味監査を通す
 
 Cursor エージェントに次を指示する。
 
@@ -47,14 +58,14 @@ Cursor エージェントに次を指示する。
 
 監査では oracle / feasibility / soundness / tautology / stratum-fit の 5 軸で REVISE 指摘がゼロになるまで修正する。
 
-## 3. 実行証跡（traceweave-v1）と TC 結合を整備する
+## 4. 実行証跡（traceweave-v1）と TC 結合を整備する
 
 TraceWeave は **二層**でテストを結合する。
 
 1. **静的（V字）**: \`docs/test-cases/TC-xxxx.md\` の \`verifies\` が REQ/SPEC への効き方を定義する（\`tags\` は分類用で実行結合には使わない）。
 2. **動的（実行）**: 集約レポート \`reports/test-results.json\` の \`results\` キーが TC 文書 ID（\`TC-xxxx\`）と一致すると、ダッシュボードに passed/failed が載る。
 
-### 3a. 単一ランナー（Node / Vitest / Jest 等）
+### 4a. 単一ランナー（Node / Vitest / Jest 等）
 
 - 自動テストは \`.cursor/rules/test-writing-guidelines.mdc\` の**機械連携向け TC 宣言**に従う（\`test('TC-UT-0001: ...')\` 形式。角括弧 \`[TC-UT-0001]\` は不可）。
 - 検出ランナー例: \`${testCmd}\`
@@ -66,7 +77,7 @@ TraceWeave は **二層**でテストを結合する。
 node scripts/traceweave-capture-test-report.mjs
 \`\`\`
 
-### 3b. 複数エンジン・テストフレームワークなし
+### 4b. 複数エンジン・テストフレームワークなし
 
 - 各 suite の \`run\` の末尾で **traceweave-v1** JSON（\`results\` のキー = TC ID）を \`reports/suites/<id>.json\` に書き、\`capture: fragment\` とする。
 - スキーマ例: TraceWeave 本体の \`fixtures/test-reports/traceweave-v1-minimal.json\`
@@ -84,7 +95,7 @@ node scripts/traceweave-capture-test-report.mjs
 
 詳細契約: TraceWeave リポジトリの \`docs/specifications/SPEC-0028.md\`
 
-## 4. CI で traceweave check とテスト実行を回す
+## 5. CI で traceweave check とテスト実行を回す
 
 \`.github/workflows/traceweave-governance.yml\` を有効化し、プルリクエストごとに次を実行する。
 
@@ -94,7 +105,7 @@ node scripts/traceweave-capture-test-report.mjs
 
 TraceWeave CLI が PATH 上で解決できること（\`INSTALL_GUIDE.md\` 参照）を CI 実行前に確認する。
 
-## 5. 機械的ゲート（任意）
+## 6. 機械的ゲート（任意）
 
 \`\`\`bash
 ./bin/traceweave adopt-quality-check
@@ -414,34 +425,15 @@ export function generateQualityKitFiles(
   };
 }
 
-const QUALITY_SKILL_NAMES = ['traceweave-test-case-review', 'traceweave-test-fixture'] as const;
-const QUALITY_RULE_NAMES = ['test-writing-guidelines.mdc'] as const;
-
-export function copyQualityCursorAssets(targetDir: string): string[] {
+/** TraceWeave adopt: full Cursor traceability bundle (skills, rules, subagents). */
+export function deployAdoptCursorBundle(targetDir: string): string[] {
   const repoRoot = resolveRepoRoot(import.meta.url);
-  const created: string[] = [];
-
-  for (const skillName of QUALITY_SKILL_NAMES) {
-    const srcSkill = path.join(repoRoot, '.cursor', 'skills', skillName, 'SKILL.md');
-    if (!fs.existsSync(srcSkill)) continue;
-    const destRel = path.join('.cursor', 'skills', skillName, 'SKILL.md');
-    const destFull = path.join(targetDir, destRel);
-    if (fs.existsSync(destFull)) continue;
-    fs.mkdirSync(path.dirname(destFull), { recursive: true });
-    fs.copyFileSync(srcSkill, destFull);
-    created.push(destRel.replace(/\\\\/g, '/'));
-  }
-
-  for (const ruleName of QUALITY_RULE_NAMES) {
-    const srcRule = path.join(repoRoot, '.cursor', 'rules', ruleName);
-    if (!fs.existsSync(srcRule)) continue;
-    const destRel = path.join('.cursor', 'rules', ruleName);
-    const destFull = path.join(targetDir, destRel);
-    if (fs.existsSync(destFull)) continue;
-    fs.mkdirSync(path.dirname(destFull), { recursive: true });
-    fs.copyFileSync(srcRule, destFull);
-    created.push(destRel.replace(/\\\\/g, '/'));
-  }
-
-  return created;
+  const result = installCursorSkills({
+    repoRoot,
+    target: 'project',
+    projectDir: targetDir,
+    withRules: true,
+    withAgents: true,
+  });
+  return result.createdRelativePaths;
 }

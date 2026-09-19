@@ -1,5 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {
+  listBundledAgents,
+  listBundledSkills,
+} from '../../infrastructure/cursor/installCursorSkills.js';
+import { resolveRepoRoot } from '../../infrastructure/system/resolveRepoRoot.js';
 
 export interface AdoptQualityCheckResult {
   passed: boolean;
@@ -48,11 +53,47 @@ export function checkAdoptQuality(targetDir: string): AdoptQualityCheckResult {
     'scripts/traceweave-capture-test-report.mjs',
     '.github/workflows/traceweave-governance.yml',
     '.cursor/skills/traceweave-test-case-review/SKILL.md',
+    '.cursor/skills/traceweave-test-case-review/TC-REVIEW-CHECKS.md',
+    '.cursor/skills/traceweave-test-case-review/INTERFACE-FENCE.md',
+    '.cursor/skills/traceweave-document-authoring/SKILL.md',
+    '.cursor/skills/traceweave-verification-tiers/references/TIER-MATRIX.md',
+    '.cursor/rules/test-case-authoring.mdc',
+    '.cursor/rules/test-writing-guidelines.mdc',
+    '.cursor/rules/verification-evidence-tiers.mdc',
+    '.cursor/agents/traceweave-test-case-reviewer.md',
   ];
 
   for (const rel of requiredPaths) {
     if (!fs.existsSync(path.join(root, rel))) {
       errors.push(`Missing quality kit file: ${rel}`);
+    }
+  }
+
+  const platformRoot = resolveRepoRoot(import.meta.url);
+  const expectedSkills = listBundledSkills(path.join(platformRoot, '.cursor', 'skills'));
+  for (const skillName of expectedSkills) {
+    const rel = `.cursor/skills/${skillName}/SKILL.md`;
+    if (!fs.existsSync(path.join(root, rel))) {
+      errors.push(`Missing bundled Cursor skill: ${rel}`);
+    }
+  }
+
+  const expectedAgents = listBundledAgents(path.join(platformRoot, '.cursor', 'agents'));
+  for (const agentFile of expectedAgents) {
+    const rel = `.cursor/agents/${agentFile}`;
+    if (!fs.existsSync(path.join(root, rel))) {
+      errors.push(`Missing bundled Cursor agent: ${rel}`);
+    }
+  }
+
+  const platformRulesDir = path.join(platformRoot, '.cursor', 'rules');
+  if (fs.existsSync(platformRulesDir)) {
+    for (const entry of fs.readdirSync(platformRulesDir, { withFileTypes: true })) {
+      if (!entry.isFile() || !entry.name.endsWith('.mdc')) continue;
+      const rel = `.cursor/rules/${entry.name}`;
+      if (!fs.existsSync(path.join(root, rel))) {
+        errors.push(`Missing TraceWeave Cursor rule: ${rel}`);
+      }
     }
   }
 
