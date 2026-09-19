@@ -34,7 +34,24 @@ test('TC-ITb-0022: DecisionsCatalogBuilder - 主要種別集約・相互参照�
   assert.ok(actorsWithUC.length > 0, 'At least one actor must have reverse-referenced use cases');
   assert.deepEqual(
     catalog.items.find(i => i.id === 'ACT-0001')?.relatedUseCases?.map(i => i.id).sort(),
-    ['UC-0001', 'UC-0002', 'UC-0003', 'UC-0004', 'UC-0005', 'UC-0006', 'UC-0007', 'UC-0008', 'UC-0009']
+    [
+      'UC-0001',
+      'UC-0002',
+      'UC-0003',
+      'UC-0004',
+      'UC-0005',
+      'UC-0006',
+      'UC-0007',
+      'UC-0008',
+      'UC-0009',
+      'UC-0010',
+      'UC-0011',
+      'UC-0012',
+      'UC-0013',
+      'UC-0014',
+      'UC-0015',
+      'UC-0017',
+    ]
   );
   const useCasesWithRefs = catalog.items.filter(
     i => i.kind === 'use_case' && (i.relatedActors?.length || 0) > 0 && (i.relatedReqs?.length || 0) > 0
@@ -106,6 +123,7 @@ test('TC-ITb-0022: DecisionsCatalogBuilder - 主要種別集約・相互参照�
     'TC-ITb-0030-04',
     'UC-0001',
     'UC-0003',
+    'UC-0017',
   ].sort());
   for (const item of queryItems) {
     const searchableText = [

@@ -21,6 +21,11 @@ import {
 } from '../application/adopt-project/index.js';
 import { buildWebDashboard } from '../application/build-web-dashboard.js';
 import { runWorkspaceTests } from '../application/run-workspace-tests.js';
+import {
+  prepareWorkspaceTestRun,
+  refreshWebDashboardDataAfterNodeSuite,
+  syncWebDashboardData,
+} from '../application/prepare-workspace-test-run.js';
 import { resolveWorkspace } from '../application/workspace/resolveWorkspace.js';
 
 ensureDependenciesInstalled();
@@ -462,11 +467,34 @@ program
     try {
       const workspace = resolveWorkspace();
       const suiteIds = options.suite?.length ? options.suite : undefined;
+      if (!options.mergeOnly) {
+        await prepareWorkspaceTestRun(workspace);
+      }
       const result = await runWorkspaceTests({
         workspace,
         suiteIds,
         mergeOnly: options.mergeOnly,
+        afterSuite: async suite => {
+          if (suite.id === 'node') {
+            refreshWebDashboardDataAfterNodeSuite(workspace);
+          }
+        },
       });
+      if (!options.mergeOnly) {
+        const distWebJson = path.join(workspace.workspaceRoot, 'src', 'web', 'dist', 'data.json');
+        if (fs.existsSync(path.dirname(distWebJson))) {
+          try {
+            syncWebDashboardData({
+              projectRoot: workspace.workspaceRoot,
+              docsDir: workspace.docsDir,
+              testReportPath: result.aggregatePath,
+            });
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.warn(`\x1b[33m⚠ Failed to auto-sync data.json: ${message}\x1b[0m\n`);
+          }
+        }
+      }
       console.log(
         `\n\x1b[32m✔ Aggregate test report: ${result.aggregatePath}\x1b[0m`
       );

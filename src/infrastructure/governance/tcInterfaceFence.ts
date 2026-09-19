@@ -56,6 +56,10 @@ function findBacktickCodeTokens(sectionText: string, testLevel: TestLevel): stri
     if (isExternalMcpToolBacktick(match, testLevel)) continue;
     const inner = match.slice(1, -1);
     if (TC_BACKTICK_ALLOWLIST.has(inner)) continue;
+    if (/^[A-Z][A-Za-z0-9]*\.[a-z][a-zA-Z0-9]+/.test(inner)) {
+      leaks.push(`dotted implementation call ${match}`);
+      continue;
+    }
     if (/^[a-z]+_[a-z0-9_]+$/.test(inner)) {
       leaks.push(`code-like property ${match}`);
       continue;
