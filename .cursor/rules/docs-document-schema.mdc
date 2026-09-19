@@ -23,7 +23,7 @@ alwaysApply: false
 | `docs/quality/` | `quality_assurance` | `QA-` | 品質特性・合否基準・検証ガバナンス（実装コード参照なし） |
 | `docs/test-cases/` | `test_case` | `TC-` | 決定論的検証ステップ・合否オラクル・実測証跡 |
 
-- ファイル名は ID と一致させる（例: `REQ-0001.md`）。形式は `<PREFIX>-<4桁以上の連番>`。
+- ファイル名は ID と一致させる（例: `REQ-0001.md`）。形式は `<PREFIX>-<4桁以上の連番>`。TC の分割子は `TC-ITb-0001-01.md`（ADR-0010）。
 - フロントマター終了（`---`）直後に必ず `## Content` を置き、kind ごとの規定見出しを順序通り記述する。
 
 ## 2. Frontmatter Schema
@@ -62,9 +62,12 @@ links: [] # 非依存の横断参照
   - `unit_mock`: モック/スタブ単体 / `unit_contract`: 契約・インターフェース単体 / `property_based`: 境界値・特性網羅
   - `api_contract`: API/CLI 契約 / `scenario`: 複数機能シナリオ / `e2e`: 全系エンドツーエンド
   - `performance_load`: 性能・負荷 / `security`: 脆弱性・権限 / `exploratory_manual`: 探索的・手動
-- `verifies`: 1件以上の検証対象 ID 配列（`[REQ-..., SPEC-...]`）
+- `verifies`: 1件以上の検証対象 ID 配列（`[REQ-..., SPEC-...]`）。`unit` は DSN/ADR のみ（REQ-0031）。
 - `parameter_file`: 外部パラメータJSONファイルパス（任意）
+- `derived_from`: 分割元 TC ID（任意。文字列または配列。ADR-0010）
+- `supersedes`: 置換先 TC ID 配列（退役親で必須。ADR-0010）
 ※ `execution_status` および `actual_result` の静的記述・手動更新は廃止（ADR-0006）。テストスクリプト実行レポート（reports/test-results.json）から動的に供給・結合する。
+※ TC 本文は契約観点で記述する（REQ-0034 / SPEC-0029）。外結以上の Steps / Preconditions / Expected に実装・自動化語彙を書かない。
 
 ### quality_assurance (QA) の記載原則（実装非依存）
 - **実装コード・ファイルパス参照禁止**: `tests/**/*.test.ts` や `src/...` などの具体的ファイルパス、クラス名、関数名を記述してはならない（`scripts/validate-docs.ts` で自動検査）。個別のテスト手順は `TC-` に委ね、`QA-` には集約された品質特性と合否判定基準・証跡を記述する。
@@ -107,6 +110,8 @@ links: [] # 非依存の横断参照
 | **REQ (functional)** | `3秒以内` 等の SLA | SPEC Constraints |
 | **REQ/SPEC** | `src/...`, `tests/...` パス | DSN / TC |
 | **active REQ/SPEC** | `clean-root`, `encapsulation` タグ | ADR |
+| **TC (ITb/ST/UAT)** | Steps 等での `fixtures/` 操作、実装型名、`mock`、テストランナー | 契約手順（SPEC-0029） |
 
 - CLI 契約を REQ に書く場合は `links: [SPEC-xxxx]` で SPEC を横断参照する。
+- TC の `[tc-interface-fence]` は現状 warnings。硬化は ADR-0010 / DSN-0024 のフォローで error に昇格可能。
 - CI では `.github/workflows/docs-governance.yml` が `lint` + `./bin/traceweave check` を実行する。

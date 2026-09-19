@@ -90,5 +90,6 @@ Windows PowerShell:
 | `traceweave-docs-audit` | Documentation governance audit |
 | `traceweave-docs-export` | Consolidated doc export |
 | `traceweave-install-skills` | This installer |
-| `traceweave-test-case-review` | TC oracle and stratum review |
+| `traceweave-test-case-review` | TC oracle, interface prose, atomicity, split lineage |
+| Subagent `traceweave-test-case-reviewer` | Read-only TC batch audit (`.cursor/agents/`) |
 | `traceweave-test-fixture` | Test fixture placement |

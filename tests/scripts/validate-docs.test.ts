@@ -505,3 +505,103 @@ test('validateDocs - 有効な REQ が SPEC の depends_on で参照されてい
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 });
+
+function writeMinimalItbTestCase(
+  docsDir: string,
+  opts: { steps: string; status?: string; supersedes?: string[] }
+): void {
+  const tcDir = path.join(docsDir, 'test-cases');
+  fs.mkdirSync(tcDir, { recursive: true });
+  const supersedesYaml =
+    opts.supersedes && opts.supersedes.length > 0
+      ? `supersedes: [${opts.supersedes.map((id) => id).join(', ')}]\n`
+      : '';
+  fs.writeFileSync(
+    path.join(tcDir, 'TC-ITb-0001.md'),
+    `---
+schema_version: 3
+id: TC-ITb-0001
+kind: test_case
+title: Sample ITb TC
+status: ${opts.status ?? 'accepted'}
+created: "2026-09-12"
+updated: "2026-09-12"
+scope: local
+test_level: integration_external
+test_method: api_contract
+verifies: [REQ-0001]
+depends_on: []
+tags: [integration]
+links: []
+${supersedesYaml}---
+## Content
+
+### Objective
+Verify CLI behavior.
+
+### Preconditions
+Server is running.
+
+### Steps
+${opts.steps}
+
+### Expected Results
+Exit code 0.
+`,
+    'utf8'
+  );
+}
+
+/**
+ * 【テスト概要】
+ * - 対象: validateDocs (TC 退役時の supersedes 必須)
+ * - 条件: status deprecated で supersedes 未設定の ITb TC
+ * - 期待結果: ADR-0010 を参照するエラーが返ること
+ */
+test('validateDocs - 退役 test_case に supersedes が無い場合はエラーとなること', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tw-validate-tc-lineage-'));
+  try {
+    const docsDir = path.join(tempDir, 'docs');
+    writeMinimalRequirement(docsDir);
+    writeMinimalSpecification(docsDir);
+    writeMinimalDesign(docsDir);
+    writeMinimalItbTestCase(docsDir, { steps: '1. Run CLI.', status: 'deprecated' });
+
+    const result = validateDocs(docsDir);
+    assert.equal(result.passed, false);
+    assert.ok(
+      result.errors.some((err) => err.includes('supersedes') && err.includes('ADR-0010')),
+      `Expected supersedes error, got: ${result.errors.join(', ')}`
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: validateDocs (TC interface fence 警告)
+ * - 条件: ITb の Steps に実装型名を含む TC
+ * - 期待結果: [tc-interface-fence] 警告が返り lint は passed のままであること
+ */
+test('validateDocs - ITb の Steps に実装型名がある場合は tc-interface-fence 警告となること', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tw-validate-tc-fence-'));
+  try {
+    const docsDir = path.join(tempDir, 'docs');
+    writeMinimalRequirement(docsDir);
+    writeMinimalSpecification(docsDir);
+    writeMinimalDesign(docsDir);
+    writeMinimalItbTestCase(docsDir, {
+      steps: '1. Read fixtures/test-cases/sample.json and pass rows to the service.',
+    });
+
+    const result = validateDocs(docsDir);
+    assert.equal(result.passed, true, `Unexpected errors: ${result.errors.join(', ')}`);
+    assert.ok(
+      result.warnings.some((warn) => warn.includes('[tc-interface-fence]')),
+      `Expected tc-interface-fence warning, got: ${result.warnings.join(', ')}`
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});

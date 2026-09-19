@@ -1,0 +1,42 @@
+---
+description: docs/test-cases の契約観点記述・原子性・分割系譜（REQ-0034 / SPEC-0029 / ADR-0010）
+globs: docs/test-cases/**/*.md
+alwaysApply: false
+---
+
+# テストケース文書の記述ルール
+
+`docs/test-cases/TC-*.md` は **QA が読んで追試できる仕様** である。自動テストの実装手順は `tests/**/*.test.ts` と実行レポート（ADR-0006 / SPEC-0028）に閉じる。
+
+## 1. 原子性（1 文書 1 オラクル）
+
+- 独立した合否判定が複数ある場合は **分割** する。レビューで「分割して」と指示する標準文は ADR-0010 に従う。
+- **分割時**は親と同じ 4 桁番号に枝番を付ける（`TC-ITb-0001-01`, `-02`, …。`SS` は 01..99）。一覧でケースが隣接する。
+- **新規単独** TC は枝番なしで当該層の未使用連番（`TC-ITb-0032` など）。
+- 親（枝番なし）は `status: deprecated` または `superseded` とし、`supersedes: [子 TC, ...]` を必須にする。
+- 子は `derived_from: TC-<STRATUM>-<NNNN>`（枝番なし親）を付ける。
+
+## 2. 工程別の書き方（interface fence）
+
+| `test_level` | Preconditions / Steps / Expected で書くこと |
+|---|---|
+| `integration_external` 以上 | CLI・HTTP・UI・生成物など **観測可能な外部振る舞い** |
+| `integration_internal` | コンポーネント境界・設定・契約 API |
+| `unit` | 公開 API / CLI の入出力（実装名は Objective に限り可） |
+
+**外結以上で Steps / Preconditions / Expected に書かないこと**
+
+- 実装クラス名（`BalanceAnalyzer` 等）
+- `src/` / `tests/` パス、fixtures を「読み込む」操作の主語
+- `mock`、テストランナー名、`npm test` 系の手順
+
+`parameter_file` はフロントマターで宣言する。データの意味は Objective または期待結果で述べ、パスを手順の中心にしない。
+
+## 3. 自動化との関係
+
+- TC 本文に実行結果・ログ・Evidence を書かない（ADR-0006）。
+- コード側の `test('TC-ITb-0003: ...')` は機械連携用。TC 本文をそのままコピーしない。TC は契約、コードは結び付け。
+
+## 4. レビュー
+
+意味監査は `traceweave-test-case-review` スキル、または Subagent `traceweave-test-case-reviewer` を使う。機械検査は `validateDocs` の `[tc-interface-fence]` 警告（SPEC-0029 / DSN-0024）。

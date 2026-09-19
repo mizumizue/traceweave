@@ -19,11 +19,14 @@ const STRATUM_TO_TEST_LEVEL: Record<TestCaseStratumCode, TestLevel> = {
   UAT: 'acceptance',
 };
 
-/** Canonical test case document / report key: TC-<STRATUM>-<NNNN> */
-export const TEST_CASE_ID_PATTERN = /^TC-(UT|ITa|ITb|ST|UAT)-\d{4}$/;
+/** TC-<STRATUM>-<NNNN> or split TC-<STRATUM>-<NNNN>-<SS> where SS is 01..99 (ADR-0010). */
+const TC_ID_REGEX = /^TC-(UT|ITa|ITb|ST|UAT)-(\d{4})(?:-(0[1-9]|[1-9]\d))?$/;
 
-/** Extract all test case ids from free text (titles, logs, JSON). */
-export const TEST_CASE_ID_EXTRACT_PATTERN = /TC-(?:UT|ITa|ITb|ST|UAT)-\d{4}/g;
+export const TEST_CASE_ID_PATTERN = TC_ID_REGEX;
+
+/** Prefer full split id when matching titles and logs. */
+export const TEST_CASE_ID_EXTRACT_PATTERN =
+  /TC-(?:UT|ITa|ITb|ST|UAT)-\d{4}(?:-(?:0[1-9]|[1-9]\d))?/g;
 
 export function stratumCodeForTestLevel(testLevel: TestLevel): TestCaseStratumCode {
   return TEST_LEVEL_TO_STRATUM[testLevel];
@@ -33,15 +36,37 @@ export function testLevelForStratumCode(code: TestCaseStratumCode): TestLevel {
   return STRATUM_TO_TEST_LEVEL[code];
 }
 
+export function parseTestCaseIdParts(
+  testCaseId: string
+): { stratum: TestCaseStratumCode; serial: string; splitSuffix: string | null } | null {
+  const match = testCaseId.match(TC_ID_REGEX);
+  if (!match) return null;
+  return {
+    stratum: match[1] as TestCaseStratumCode,
+    serial: match[2],
+    splitSuffix: match[3] ?? null,
+  };
+}
+
 export function parseTestCaseStratumCode(testCaseId: string): TestCaseStratumCode | null {
-  const match = testCaseId.match(/^TC-(UT|ITa|ITb|ST|UAT)-\d{4}$/);
-  return match ? (match[1] as TestCaseStratumCode) : null;
+  return parseTestCaseIdParts(testCaseId)?.stratum ?? null;
+}
+
+/** Base id without split suffix (TC-ITb-0001-03 → TC-ITb-0001). */
+export function baseTestCaseId(testCaseId: string): string | null {
+  const parts = parseTestCaseIdParts(testCaseId);
+  if (!parts) return null;
+  return `TC-${parts.stratum}-${parts.serial}`;
+}
+
+export function isSplitTestCaseId(testCaseId: string): boolean {
+  return parseTestCaseIdParts(testCaseId)?.splitSuffix !== null;
 }
 
 export function assertTestCaseId(testCaseId: string): void {
   if (!TEST_CASE_ID_PATTERN.test(testCaseId)) {
     throw new Error(
-      `Invalid test case id "${testCaseId}". Expected format TC-UT-0001 (stratum code UT|ITa|ITb|ST|UAT + 4 digits).`
+      `Invalid test case id "${testCaseId}". Expected TC-UT-0001 or split TC-UT-0001-01 (stratum + 4 digits, optional -01..99).`
     );
   }
 }

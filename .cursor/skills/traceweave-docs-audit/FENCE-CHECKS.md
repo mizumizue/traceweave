@@ -58,3 +58,14 @@ Quality criteria and evidence strategy only; concrete steps live in `TC-`.
 - `need`, `actor`, `use_case`, `decision`, `test_case`: `depends_on: []`.
 - `use_case` `actor_refs` / `requirement_refs`, `decision` `links`, `test_case` `verifies` resolve to existing IDs.
 - No dependency skips (REQ → DSN without SPEC) or cycles (also checked by `./bin/traceweave check`).
+
+## 9. Test case contract (TC)
+
+Active `test_case` documents follow SPEC-0029 / ADR-0010.
+
+- **Interface fence (ITb, ST, UAT)**: Preconditions, Steps, and Expected Results use external observables only. No implementation class names, `src/` / `tests/` paths, fixture load steps, or runner/mock vocabulary in those sections.
+- **Atomicity**: One independent oracle per TC id. Multiple disjoint scenarios require split with new stratum serial ids.
+- **Lineage**: Retired parents declare `supersedes`. Split children use `TC-<STRATUM>-<NNNN>-<SS>` (01..99). `derived_from` points at the retired base id.
+- **Automation separation**: Execution outcomes stay in reports (ADR-0006). TC prose is not a test script.
+
+Semantic SPLIT/REVISE audits use `traceweave-test-case-review` or subagent `traceweave-test-case-reviewer`.

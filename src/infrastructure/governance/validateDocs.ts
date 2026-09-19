@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import matter from 'gray-matter';
 import { isRetiredDocStatus } from '../../core/models/docStatus.js';
-import { testCaseIdMatchesTestLevel } from '../../core/testing/testCaseId.js';
+import { TEST_CASE_ID_PATTERN, testCaseIdMatchesTestLevel } from '../../core/testing/testCaseId.js';
 import type { TestLevel } from '../../core/models/types.js';
 import { resolveRepoRoot } from '../system/resolveRepoRoot.js';
 
@@ -158,6 +158,67 @@ function findRequirementFenceLeaks(body: string, requirementClass: string | unde
   return leaks;
 }
 
+const EXTERNAL_INTERFACE_TEST_LEVELS: TestLevel[] = [
+  'integration_external',
+  'system',
+  'acceptance',
+];
+
+function extractTestCaseSection(content: string, sectionTitle: string): string {
+  const re = new RegExp(`^### ${sectionTitle}\\s*[\\r\\n]+([\\s\\S]*?)(?=^### |\\z)`, 'm');
+  const match = content.match(re);
+  return match?.[1] ?? '';
+}
+
+function normalizeTestCaseIdList(value: unknown): string[] {
+  if (value === undefined || value === null) {
+    return [];
+  }
+  if (typeof value === 'string') {
+    return [value];
+  }
+  if (Array.isArray(value)) {
+    return value.map(String);
+  }
+  return [];
+}
+
+const TC_INTERFACE_BANNED: { label: string; re: RegExp }[] = [
+  { label: 'implementation or test file path', re: /(?:tests?|src)\/[a-zA-Z0-9_\-/]+\.(?:ts|js|tsx|jsx)/ },
+  { label: 'fixtures path as an operation', re: /fixtures\/[a-zA-Z0-9_\-/]+/ },
+  { label: 'test runner name', re: /\b(?:jest|vitest|mocha|pytest)\b/i },
+  { label: 'mocking directive', re: /\bmock(?:s|ed|ing)?\b/i },
+  { label: 'npm test invocation', re: /\bnpm\s+--prefix\s+src\s+test\b/i },
+];
+
+export function findTestCaseInterfaceFenceLeaks(
+  sectionText: string,
+  testLevel: TestLevel
+): string[] {
+  if (!EXTERNAL_INTERFACE_TEST_LEVELS.includes(testLevel)) {
+    return [];
+  }
+  const leaks: string[] = [];
+  for (const { label, re } of TC_INTERFACE_BANNED) {
+    if (re.test(sectionText)) {
+      leaks.push(label);
+    }
+  }
+  const implTypes =
+    sectionText.match(/\b[A-Z][a-zA-Z0-9]{2,}(?:Analyzer|Builder|Registry|Scorer|Parser|Loader)\b/g) ??
+    [];
+  for (const token of implTypes) {
+    leaks.push(`implementation type "${token}"`);
+  }
+  for (const leak of findBacktickImplementationLeaks(sectionText)) {
+    const inner = leak.slice(1, -1);
+    if (/^[A-Z]/.test(inner)) {
+      leaks.push(`implementation identifier ${leak}`);
+    }
+  }
+  return [...new Set(leaks)];
+}
+
 export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): {
   passed: boolean;
   errors: string[];
@@ -217,10 +278,9 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): {
       errors.push(`${filePath}: Filename stem "${stem}" != id "${fid}"`);
     }
     if (kind === 'test_case') {
-      const tcPattern = /^TC-(UT|ITa|ITb|ST|UAT)-\d{4}$/;
-      if (!tcPattern.test(fid)) {
+      if (!TEST_CASE_ID_PATTERN.test(fid)) {
         errors.push(
-          `${filePath}: Invalid test_case id "${fid}", expected TC-<STRATUM>-NNNN (UT|ITa|ITb|ST|UAT)`
+          `${filePath}: Invalid test_case id "${fid}", expected TC-<STRATUM>-NNNN or split TC-<STRATUM>-NNNN-SS (SS 01..99)`
         );
       }
     } else {
@@ -321,6 +381,41 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): {
           }
         }
       }
+
+      const derivedFrom = normalizeTestCaseIdList(meta.derived_from);
+      const supersedes = normalizeTestCaseIdList(meta.supersedes);
+      for (const lineageId of [...derivedFrom, ...supersedes]) {
+        if (!TEST_CASE_ID_PATTERN.test(lineageId)) {
+          errors.push(
+            `${filePath}: derived_from/supersedes must list valid TC ids (base or split -01..99, got "${lineageId}")`
+          );
+        } else if (!allIds.has(lineageId)) {
+          errors.push(`${filePath}: lineage target "${lineageId}" not found`);
+        }
+      }
+      if (isRetiredDocStatus(meta.status) && supersedes.length === 0) {
+        errors.push(
+          `${filePath}: retired test_case must declare supersedes: [TC-...] (ADR-0010)`
+        );
+      }
+
+      if (!isRetiredDocStatus(meta.status)) {
+        const tcContent = extractContentBody(body);
+        const fenceLeaks = new Set<string>();
+        for (const sectionTitle of ['Preconditions', 'Steps', 'Expected Results']) {
+          for (const leak of findTestCaseInterfaceFenceLeaks(
+            extractTestCaseSection(tcContent, sectionTitle),
+            meta.test_level as TestLevel
+          )) {
+            fenceLeaks.add(leak);
+          }
+        }
+        for (const leak of fenceLeaks) {
+          warnings.push(
+            `${filePath}: [tc-interface-fence] ${leak} in Preconditions/Steps/Expected (SPEC-0029)`
+          );
+        }
+      }
     }
 
     if (kind === 'use_case') {
@@ -396,6 +491,10 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): {
         errors.push(
           `${filePath}: quality_assurance must not reference implementation or test files directly. Found: ${foundCodePaths.join(', ')}`
         );
+      }
+    } else if (kind === 'test_case') {
+      if (deps.length > 0) {
+        errors.push(`${filePath}: test_case must have depends_on: []`);
       }
     }
 
