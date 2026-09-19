@@ -12,9 +12,9 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 対象: DocParser & DocMtimeCache（仕様セクション抽出・ADR-0006 純化・キャッシュ永続化の外部結合）
  * - 条件: 4仕様セクションのみの test_case Markdown 文書を mtime キャッシュ有効状態でパース
  * - 期待結果: 仕様セクションが正確に抽出され、execution_status は pending、actual_result は未設定、キャッシュ再取得時も同一データが得られること
- * - 関連文書: TC-0027, REQ-0006, REQ-0007, SPEC-0006, SPEC-0007, ADR-0006
+ * - 関連文書: TC-ITb-0018, REQ-0006, REQ-0007, SPEC-0006, SPEC-0007, ADR-0006
  */
-test('TC-0027: DocParser & DocMtimeCache - 仕様セクション抽出・pending 既定値およびキャッシュ永続化の外部結合検証', () => {
+test('TC-ITb-0018: DocParser & DocMtimeCache - 仕様セクション抽出・pending 既定値およびキャッシュ永続化の外部結合検証', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'traceweave-parser-cache-'));
   const cachePath = path.join(tmpDir, 'cache.json');
   const cache = new DocMtimeCache(cachePath);
@@ -23,8 +23,8 @@ test('TC-0027: DocParser & DocMtimeCache - 仕様セクション抽出・pending
   try {
     const subDir = path.join(tmpDir, 'test-cases');
     fs.mkdirSync(subDir, { recursive: true });
-    const docPath = path.join(subDir, 'TC-9999.md');
-    const fixturePath = repositoryPath('tests/fixtures/docs/docparser-cache/test-cases/TC-9999.md');
+    const docPath = path.join(subDir, 'TC-ITa-0013.md');
+    const fixturePath = repositoryPath('tests/fixtures/docs/docparser-cache/test-cases/TC-ITa-0013.md');
     fs.copyFileSync(fixturePath, docPath);
 
     const cacheMtime = new Date('2020-01-01T00:00:00.000Z');
@@ -33,7 +33,7 @@ test('TC-0027: DocParser & DocMtimeCache - 仕様セクション抽出・pending
     const nodes1 = parser.parseDirectory(tmpDir);
     assert.equal(nodes1.length, 1);
     const node1 = nodes1[0];
-    assert.equal(node1.id, 'TC-9999');
+    assert.equal(node1.id, 'TC-ITa-0013');
     assert.equal(node1.execution_status, 'pending');
     assert.equal(node1.actual_result, undefined);
     assert.equal(node1.evidence_log, undefined);
@@ -59,7 +59,7 @@ test('TC-0027: DocParser & DocMtimeCache - 仕様セクション抽出・pending
     const normalizedPath = DocParser.toPortablePath(docPath);
     const cachedNode = cache.get(normalizedPath, Math.floor(fs.statSync(docPath).mtimeMs));
     assert.ok(cachedNode, 'Node must exist in mtime cache');
-    assert.equal(cachedNode.id, 'TC-9999');
+    assert.equal(cachedNode.id, 'TC-ITa-0013');
     assert.equal(cachedNode.content, node1.content);
   } finally {
     cache.close();

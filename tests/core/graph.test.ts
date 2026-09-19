@@ -8,9 +8,9 @@ import { DocNode } from '../../src/core/models/types.js';
  * - 対象: TraceGraph (トレーサビリティ有向グラフ)
  * - 条件: NEED -> REQ -> SPEC の依存連鎖と、SPECを検証するTCノードを有向グラフに追加
  * - 期待結果: 上流(upstream)・下流(downstream)ノードの双方向探索、および要件(REQ)に紐づく全テストケース(TC)の解決が正しく行われること
- * - 関連文書: TC-0001, REQ-0001, SPEC-0002
+ * - 関連文書: TC-UT-0001, REQ-0001, SPEC-0002
  */
-test('TC-0001: TraceGraph - 有向グラフのノード登録と上流・下流（upstream/downstream）および要件紐づきTCの双方向トラバースができること', () => {
+test('TC-UT-0001: TraceGraph - 有向グラフのノード登録と上流・下流（upstream/downstream）および要件紐づきTCの双方向トラバースができること', () => {
   const graph = new TraceGraph();
 
   const need: DocNode = {
@@ -57,7 +57,7 @@ test('TC-0001: TraceGraph - 有向グラフのノード登録と上流・下流�
   };
 
   const tc: DocNode = {
-    id: 'TC-0001',
+    id: 'TC-UT-0001',
     kind: 'test_case',
     title: 'Test 1',
     status: 'accepted',
@@ -83,10 +83,10 @@ test('TC-0001: TraceGraph - 有向グラフのノード登録と上流・下流�
   assert.equal(graph.getDownstream('NEED-0001')[0]?.id, 'REQ-0001');
   assert.equal(graph.getSpecsForRequirement('REQ-0001')[0]?.id, 'SPEC-0001');
 
-  // REQ-0001 should find TC-0001 via SPEC-0001
+  // REQ-0001 should find TC-UT-0001 via SPEC-0001
   const tcs = graph.getAllTestCasesForRequirement('REQ-0001');
   assert.equal(tcs.length, 1);
-  assert.equal(tcs[0].id, 'TC-0001');
+  assert.equal(tcs[0].id, 'TC-UT-0001');
 
   // No cycles
   assert.equal(graph.detectCycles().length, 0);
@@ -99,9 +99,9 @@ test('TC-0001: TraceGraph - 有向グラフのノード登録と上流・下流�
  * - 対象: TraceGraph (循環参照検知アルゴリズム)
  * - 条件: REQ-0001 -> SPEC-0001 -> DSN-0001 -> REQ-0001 の3ノード循環依存データを構築
  * - 期待結果: detectCycles() が1件の循環ループを検出し、循環を構成する3つのノードIDを正しく特定すること
- * - 関連文書: TC-0001, REQ-0001, SPEC-0002
+ * - 関連文書: TC-UT-0001, REQ-0001, SPEC-0002
  */
-test('TC-0001: TraceGraph - 多段の依存関係ループ（循環参照）を検出し、循環パス配列を正確に特定できること', () => {
+test('TC-UT-0001: TraceGraph - 多段の依存関係ループ（循環参照）を検出し、循環パス配列を正確に特定できること', () => {
   const graph = new TraceGraph();
 
   const nodeA: DocNode = {
@@ -163,9 +163,9 @@ test('TC-0001: TraceGraph - 多段の依存関係ループ（循環参照）を�
  * - 対象: TraceGraph (孤立ノードおよび未解決参照の検知)
  * - 条件: どこからも参照されず依存も持たない孤立ノード(REQ-9999)、および存在しないIDを参照するノード(SPEC-9999)を追加
  * - 期待結果: detectOrphans() で孤立ノードが検出され、detectMissingReferences() で欠落IDが正確に特定されること
- * - 関連文書: TC-0001, REQ-0001, SPEC-0002
+ * - 関連文書: TC-UT-0001, REQ-0001, SPEC-0002
  */
-test('TC-0001: TraceGraph - 依存先を持たない孤立ノード（orphan）および未存在ノードを参照する欠落リンクを正しく検知できること', () => {
+test('TC-UT-0001: TraceGraph - 依存先を持たない孤立ノード（orphan）および未存在ノードを参照する欠落リンクを正しく検知できること', () => {
   const graph = new TraceGraph();
 
   const orphan: DocNode = {
@@ -273,9 +273,9 @@ test('TraceGraph - 上流要件（REQ）を持たないスタンドアロン仕�
  * - 対象: TraceGraph (グラフ構築性能)
  * - 条件: NEED→REQ→SPEC→TC の鎖を 250 セット（計 1,000 ノード）で合成生成
  * - 期待結果: 構築と detectCycles() の合計が 50ms 以内で完了すること
- * - 関連文書: TC-0039, SPEC-0002, QA-0001
+ * - 関連文書: TC-UT-0010, SPEC-0002, QA-0001
  */
-test('TC-0039: TraceGraph - 1,000ノード規模のグラフ構築と循環検知が50ms以内に完了すること', () => {
+test('TC-UT-0010: TraceGraph - 1,000ノード規模のグラフ構築と循環検知が50ms以内に完了すること', () => {
   const graph = new TraceGraph();
   const baseDate = '2026-09-12';
 

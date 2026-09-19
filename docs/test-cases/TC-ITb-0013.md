@@ -1,0 +1,47 @@
+---
+schema_version: 3
+id: TC-ITb-0013
+kind: test_case
+title: 決め事カタログの全種別集計・相互参照解決およびフィルタリングの検証
+status: accepted
+created: '2026-09-12'
+updated: '2026-09-12'
+scope: local
+test_level: integration_external
+test_method: scenario
+verifies:
+  - REQ-0017
+  - REQ-0018
+  - REQ-0019
+  - SPEC-0017
+depends_on: []
+tags:
+  - integration
+  - decisions
+  - catalog
+  - relationships
+  - filtering
+  - cross-cutting
+  - cli
+links: []
+---
+## Content
+
+### Objective
+決め事カタログの集計・相互参照・フィルタリングを、合成ノードと実ドキュメント群に対して検証する。CLI およびブラウザ表示は対象外とする。
+
+### Preconditions
+- リポジトリ内のドキュメント（ACT, UC, REQ, SPEC, DSN, ADR, QA, NEED, TC）が正しくパースされ、`DocNode` 配列として供給されていること。
+
+### Steps
+1. パース済みノード群を `DecisionsCatalogBuilder.build(nodes)` に入力し、カタログオブジェクトを生成する。
+2. 全9種別のカウント（`kindCounts`）が正確に算出されていること、総件数（`totalCount`）がノード総数と一致することを検証する。
+3. アクターノード（ACT）において、自身を参照しているユースケース（UC）が `relatedUseCases` に逆引き紐付けされていることを検証する。
+4. ユースケースノード（UC）において、参照先アクター（`relatedActors`）および要件（`relatedReqs`）が正しく解決されていることを検証する。
+5. 意思決定ノード（ADR）および設計ノード（DSN）において、相互リンク（`relatedDesigns` / `relatedDecisions`）が正しく紐付いていることを検証する。
+6. 種別フィルター（`kind`）、タグフィルター（`tag`）、キーワード検索（`query`）を適用したフィルタリング結果が期待通りの件数と内容に絞り込まれることを検証する。
+
+### Expected Results
+- `kindCounts` にすべての種別の正確な件数が格納され、欠落がないこと。
+- アクターとユースケース、設計とADRの相互関係が双方向で完全に解決されること。
+- フィルタリングが決定論的に動作し、誤った種別やキーワードのデータが混入しないこと。

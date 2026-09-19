@@ -1,6 +1,6 @@
 import type { TestCaseExecutionReport, TestResultsReport } from '../models/types.js';
 
-const TC_ID_PATTERN = /TC-\d{4}/;
+const TC_ID_PATTERN = /TC-(?:UT|ITa|ITb|ST|UAT)-\d{4}/;
 
 export interface NewmanReportLike {
   run?: {

@@ -11,9 +11,9 @@ import { DocParser } from '../../src/infrastructure/parser/DocParser.js';
  * - 対象: DecisionsCatalogBuilder (決め事カタログ構築・集約)
  * - 条件: 全9種別（actor, use_case, need, requirement, specification, design, decision, QA, test_case）の合成DocNode群を渡してカタログを構築
  * - 期待結果: 全9種別の件数集計、ACTとUCの逆引き参照、DSNとADRの双方向リンク、種別・タグ・キーワードによるフィルタリングが正常に動作すること
- * - 関連文書: TC-0017, REQ-0017, REQ-0018, REQ-0019, SPEC-0017
+ * - 関連文書: TC-ITb-0013, REQ-0017, REQ-0018, REQ-0019, SPEC-0017
  */
-test('TC-0017: DecisionsCatalogBuilder - 全9種別のドキュメント集約、相互参照解決（ACT-UC逆引き・DSN-ADR双方向）およびフィルタリングが正しく機能すること', () => {
+test('TC-ITb-0013: DecisionsCatalogBuilder - 全9種別のドキュメント集約、相互参照解決（ACT-UC逆引き・DSN-ADR双方向）およびフィルタリングが正しく機能すること', () => {
   const nodes: DocNode[] = [
     {
       id: 'ACT-0001',
@@ -124,7 +124,7 @@ test('TC-0017: DecisionsCatalogBuilder - 全9種別のドキュメント集約�
       content: '',
     },
     {
-      id: 'TC-0001',
+      id: 'TC-UT-0001',
       kind: 'test_case',
       title: 'マトリクス生成テスト',
       status: 'accepted',
@@ -201,9 +201,9 @@ test('TC-0017: DecisionsCatalogBuilder - 全9種別のドキュメント集約�
  * - 対象: DecisionsCatalogBuilder & DocParser 結合テスト
  * - 条件: 実際のリポジトリ内 docs/ ディレクトリをスキャンして全ドキュメントをパース
  * - 期待結果: 70件以上のドキュメントがカタログ化され、各主要種別の件数が0件超となり、ACT-0001等の相互参照が正常に解決されること
- * - 関連文書: TC-0017, REQ-0017, REQ-0018
+ * - 関連文書: TC-ITb-0013, REQ-0017, REQ-0018
  */
-test('TC-0017: DecisionsCatalogBuilder - 実際のdocsディレクトリを読み込み、全種別のカタログ集約と相互参照解決が決定論的に成功すること', () => {
+test('TC-ITb-0013: DecisionsCatalogBuilder - 実際のdocsディレクトリを読み込み、全種別のカタログ集約と相互参照解決が決定論的に成功すること', () => {
   const parser = new DocParser();
   const docsDir = fs.existsSync(path.resolve(process.cwd(), 'docs'))
     ? path.resolve(process.cwd(), 'docs')

@@ -26,9 +26,9 @@ function spawnPortHolder(port: number): ChildProcess {
  * - 対象: PortManager.isPortAvailable
  * - 条件: 任意の空きポートおよび一時的に専有したポートに対して判定を実行
  * - 期待結果: 空きポートでは true、専有中ポートでは false が返されること
- * - 関連文書: TC-0033, REQ-0005, SPEC-0004
+ * - 関連文書: TC-ITb-0024, REQ-0005, SPEC-0004
  */
-test('TC-0033: PortManager - 空きポートおよび専有中ポートの利用可否を正確に判定できること', async () => {
+test('TC-ITb-0024: PortManager - 空きポートおよび専有中ポートの利用可否を正確に判定できること', async () => {
   const port = 39871;
   const initiallyFree = await PortManager.isPortAvailable(port);
   assert.equal(initiallyFree, true, `Port ${port} should initially be free`);
@@ -52,9 +52,9 @@ test('TC-0033: PortManager - 空きポートおよび専有中ポートの利用
  * - 対象: PortManager.reclaimPort
  * - 条件: 別プロセスが指定ポートを LISTEN 専有している状態
  * - 期待結果: 先行プロセスが終了され、ポートが解放されて reclaim が成功すること
- * - 関連文書: TC-0033, REQ-0005, SPEC-0004
+ * - 関連文書: TC-ITb-0024, REQ-0005, SPEC-0004
  */
-test('TC-0033: PortManager - 専有中ポートの先行プロセスを終了してポートを解放できること', async () => {
+test('TC-ITb-0024: PortManager - 専有中ポートの先行プロセスを終了してポートを解放できること', async () => {
   const port = 39872;
   assert.equal(await PortManager.isPortAvailable(port), true);
 

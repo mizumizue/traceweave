@@ -184,6 +184,74 @@ export interface MethodCount {
 
 export type UseCaseSufficiencyStatus = 'unassigned' | 'scored';
 
+export interface TestStratumCaseSections {
+  objective?: string;
+  preconditions?: string;
+  steps?: string;
+  testData?: string;
+  expectedResults?: string;
+}
+
+export interface TestStratumUseCaseRef {
+  id: string;
+  title: string;
+}
+
+export interface TestStratumCaseClassification {
+  useCases: TestStratumUseCaseRef[];
+  requirementClasses: RequirementClass[];
+}
+
+export interface TestStratumCaseExecution {
+  status: TestExecutionStatus;
+  durationMs?: number;
+  errorMessage?: string;
+  actualResult?: string;
+}
+
+export type TestCaseReadiness = 'strong' | 'adequate' | 'attention' | 'blocked';
+
+export interface TestStratumLinkedRequirement {
+  id: string;
+  score: number;
+  isFullySatisfied: boolean;
+  missing: boolean;
+}
+
+export interface TestStratumCaseEntry {
+  id: string;
+  title: string;
+  testMethod?: TestMethod;
+  verifies: string[];
+  parameterFile?: string;
+  parameters?: TestCaseDataset;
+  sections: TestStratumCaseSections;
+  execution: TestStratumCaseExecution;
+  classification: TestStratumCaseClassification;
+  readiness: TestCaseReadiness;
+  gapHints: string[];
+  linkedRequirements: TestStratumLinkedRequirement[];
+}
+
+export interface TestStratumChapter {
+  level: TestLevel;
+  label: string;
+  shortLabel: string;
+  cases: TestStratumCaseEntry[];
+  passedCount: number;
+  failedCount: number;
+  pendingCount: number;
+  skippedCount: number;
+  likelySufficientCount: number;
+  needsAttentionCount: number;
+}
+
+export interface TestStratumCatalog {
+  chapters: TestStratumChapter[];
+  unassignedCases: TestStratumCaseEntry[];
+  totalCases: number;
+}
+
 export interface UseCaseSufficiency {
   useCaseId: string;
   title: string;
@@ -424,6 +492,7 @@ export interface TraceWeaveReport {
   pyramid: PyramidHealthReport;
   requirements: RequirementSufficiency[];
   useCases: UseCaseSufficiency[];
+  testStratumCatalog?: TestStratumCatalog;
   matrix: MatrixRow[];
   gaps: {
     untestedRequirements: string[];

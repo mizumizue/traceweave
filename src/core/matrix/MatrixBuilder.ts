@@ -2,6 +2,7 @@ import { TraceGraph } from '../graph/TraceGraph.js';
 import { isActiveRequirement } from '../models/docStatus.js';
 import { isTraceabilityTestCase } from '../sufficiency/SufficiencyScorer.js';
 import { UseCaseSufficiencyScorer } from '../sufficiency/UseCaseSufficiencyScorer.js';
+import { buildTestStratumCatalog } from '../testing/buildTestStratumCatalog.js';
 import {
   DocNode,
   MatrixRow,
@@ -151,6 +152,7 @@ export class MatrixBuilder {
     const visualGraph = TraceabilityGraphBuilder.buildGraph(allNodes);
     const useCaseScorer = new UseCaseSufficiencyScorer();
     const useCases = useCaseScorer.calculateAll(graph, sufficiencies);
+    const testStratumCatalog = buildTestStratumCatalog(allNodes, sufficiencies);
     const scoredUseCases = useCases.filter(uc => uc.status === 'scored');
     const useCaseCount = useCases.length;
     const useCaseAssignedCount = scoredUseCases.length;
@@ -196,6 +198,7 @@ export class MatrixBuilder {
       pyramid,
       requirements: sufficiencies,
       useCases,
+      testStratumCatalog,
       matrix,
       gaps: {
         untestedRequirements,

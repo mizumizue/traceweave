@@ -11,14 +11,9 @@ import {
   PhaseCount,
   UnitCoverageReport,
 } from '../models/types.js';
+import { TEST_LEVEL_LABELS, TEST_STRATUM_ORDER } from '../testing/testLevelLabels.js';
 
-const PHASE_LABELS: Record<TestLevel, string> = {
-  unit: '単体テスト (UT)',
-  integration_internal: '内部結合テスト (ITa)',
-  integration_external: '外部結合テスト (ITb)',
-  system: 'システムテスト (ST)',
-  acceptance: '受入テスト (UAT)',
-};
+const PHASE_LABELS = TEST_LEVEL_LABELS;
 
 function isPassed(tc: DocNode): boolean {
   return tc.execution_status === 'passed';
@@ -67,13 +62,7 @@ export class BalanceAnalyzer {
     graph?: TraceGraph,
     unitCoverage?: UnitCoverageReport
   ): StratumReport[] {
-    const levels: TestLevel[] = [
-      'unit',
-      'integration_internal',
-      'integration_external',
-      'system',
-      'acceptance',
-    ];
+    const levels: TestLevel[] = [...TEST_STRATUM_ORDER];
 
     if (totalRequirements === 0) {
       return levels.map(level => ({

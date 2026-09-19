@@ -48,7 +48,7 @@ export function adoptProject(options: AdoptionOptions = {}): {
       console.log(`  - Would install bin/traceweave wrappers`);
       console.log(`  - Would install .cursor/rules`);
       console.log(`  - Would install .cursor/mcp.json`);
-      console.log(`  - Would install quality kit (TC-0002, test capture script, CI workflow, review skills)`);
+      console.log(`  - Would install quality kit (TC-UT-0002, test capture script, CI workflow, review skills)`);
       if (mode === 'restructure') {
         console.log(`  - Would migrate root source files to src/ and apply Clean-Root structure`);
       }

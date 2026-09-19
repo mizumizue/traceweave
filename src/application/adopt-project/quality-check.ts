@@ -42,8 +42,8 @@ export function checkAdoptQuality(targetDir: string): AdoptQualityCheckResult {
   const warnings: string[] = [];
 
   const requiredPaths = [
-    'docs/test-cases/TC-0001.md',
-    'docs/test-cases/TC-0002.md',
+    'docs/test-cases/TC-UT-0001.md',
+    'docs/test-cases/TC-UT-0002.md',
     'docs/ADOPT_QUALITY_SETUP.md',
     'scripts/traceweave-capture-test-report.mjs',
     '.github/workflows/traceweave-governance.yml',
@@ -56,22 +56,22 @@ export function checkAdoptQuality(targetDir: string): AdoptQualityCheckResult {
     }
   }
 
-  const tc1 = readIfExists(path.join(root, 'docs/test-cases/TC-0001.md'));
-  const tc2 = readIfExists(path.join(root, 'docs/test-cases/TC-0002.md'));
+  const tc1 = readIfExists(path.join(root, 'docs/test-cases/TC-UT-0001.md'));
+  const tc2 = readIfExists(path.join(root, 'docs/test-cases/TC-UT-0002.md'));
 
   if (tc1 && !tc1.includes('AC-001')) {
-    errors.push('TC-0001 Expected Results must reference REQ-0001 AC-001');
+    errors.push('TC-UT-0001 Expected Results must reference REQ-0001 AC-001');
   }
   if (tc2 && !tc2.includes('AC-002')) {
-    errors.push('TC-0002 Expected Results must reference REQ-0001 AC-002');
+    errors.push('TC-UT-0002 Expected Results must reference REQ-0001 AC-002');
   }
 
   for (const phrase of BOILERPLATE_PHRASES) {
     if (tc1?.includes(phrase)) {
-      warnings.push(`TC-0001 still contains adopt boilerplate: "${phrase}"`);
+      warnings.push(`TC-UT-0001 still contains adopt boilerplate: "${phrase}"`);
     }
     if (tc2?.includes(phrase)) {
-      warnings.push(`TC-0002 still contains adopt boilerplate: "${phrase}"`);
+      warnings.push(`TC-UT-0002 still contains adopt boilerplate: "${phrase}"`);
     }
   }
 
@@ -79,10 +79,10 @@ export function checkAdoptQuality(targetDir: string): AdoptQualityCheckResult {
   if (testFiles.length === 0) {
     warnings.push('No automated test files found under tests/ or test/. Add TC-xxxx named tests.');
   } else {
-    const hasTc1 = testFiles.some((file) => readIfExists(file)?.includes('TC-0001'));
-    const hasTc2 = testFiles.some((file) => readIfExists(file)?.includes('TC-0002'));
-    if (!hasTc1) warnings.push('No test file references TC-0001 in its title or body.');
-    if (!hasTc2) warnings.push('No test file references TC-0002 in its title or body.');
+    const hasTc1 = testFiles.some((file) => readIfExists(file)?.includes('TC-UT-0001'));
+    const hasTc2 = testFiles.some((file) => readIfExists(file)?.includes('TC-UT-0002'));
+    if (!hasTc1) warnings.push('No test file references TC-UT-0001 in its title or body.');
+    if (!hasTc2) warnings.push('No test file references TC-UT-0002 in its title or body.');
   }
 
   return {

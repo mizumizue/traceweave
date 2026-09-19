@@ -2,7 +2,7 @@ import React from 'react';
 import {
   Link2,
   Layers,
-  Code2,
+  BookOpen,
   Compass,
   AlertTriangle,
 } from 'lucide-react';
@@ -12,18 +12,18 @@ interface TabNavProps {
   activeTab: AppTab;
   onSelectTab: (tab: AppTab) => void;
   matrixCount: number;
-  unitCoveragePercent: number;
   decisionsCount: number;
   totalGapsCount: number;
+  testCaseCount: number;
 }
 
 export function TabNav({
   activeTab,
   onSelectTab,
   matrixCount,
-  unitCoveragePercent,
   decisionsCount,
   totalGapsCount,
+  testCaseCount,
 }: TabNavProps) {
   return (
     <nav className="flex items-center space-x-2 sm:space-x-3 border-b border-slate-800/80 pb-px overflow-x-auto no-scrollbar scroll-smooth">
@@ -62,18 +62,18 @@ export function TabNav({
       </button>
 
       <button
-        onClick={() => onSelectTab('unit')}
-        title="単体テスト実装カバレッジ (関数・分岐)"
+        onClick={() => onSelectTab('testbooks')}
+        title="層別テスト仕様・結果一覧（UT→UAT）"
         className={`px-3.5 py-2.5 text-xs sm:text-sm font-semibold flex items-center gap-2 border-b-2 transition-all rounded-t-lg whitespace-nowrap shrink-0 ${
-          activeTab === 'unit'
-            ? 'border-cyan-400 text-cyan-400 bg-slate-900/60 shadow-sm'
+          activeTab === 'testbooks'
+            ? 'border-indigo-400 text-indigo-300 bg-slate-900/60 shadow-sm'
             : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/30'
         }`}
       >
-        <Code2 className="w-4 h-4 shrink-0" />
-        <span>単体カバレッジ</span>
-        <span className="ml-1 text-[11px] font-mono px-2 py-0.5 bg-cyan-950/80 border border-cyan-800/60 rounded-full text-cyan-300 shrink-0 leading-none">
-          {unitCoveragePercent}%
+        <BookOpen className="w-4 h-4 shrink-0" />
+        <span>テスト仕様・結果</span>
+        <span className="ml-1 text-[11px] font-mono px-2 py-0.5 bg-indigo-950/80 border border-indigo-800/60 rounded-full text-indigo-200 shrink-0 leading-none">
+          {testCaseCount}
         </span>
       </button>
 

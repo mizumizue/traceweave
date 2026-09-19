@@ -129,7 +129,7 @@ export function InteractiveTestRunner({ node, onTestExecuted }: InteractiveTestR
 
   const dataset = node.parameters;
   const patterns: TestCasePattern[] = dataset?.patterns || (
-    node.id === 'TC-0002' || node.id === 'TC-0010'
+    node.id === 'TC-UT-0002' || node.id === 'TC-ITb-0007'
       ? [
           {
             id: 'default-high',

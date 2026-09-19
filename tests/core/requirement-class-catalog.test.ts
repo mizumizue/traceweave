@@ -26,9 +26,9 @@ function node(partial: Partial<DocNode> & Pick<DocNode, 'id' | 'kind' | 'title'>
  * - 対象: DecisionsCatalogBuilder と filterMatrixRows の要件区分伝播・フィルター
  * - 条件: 機能要件・非機能要件・仕様が混在する合成ノード
  * - 期待結果: 件数集計と区分フィルターが混入なく切り分け、分割順が機能→非機能→その他になる
- * - 関連文書: TC-0035, REQ-0026, REQ-0027, SPEC-0021
+ * - 関連文書: TC-ITa-0002, REQ-0026, REQ-0027, SPEC-0021
  */
-test('TC-0035: 要件区分 - カタログ伝播・フィルターおよびグループ分割が混入なく動作すること', () => {
+test('TC-ITa-0002: 要件区分 - カタログ伝播・フィルターおよびグループ分割が混入なく動作すること', () => {
   const nodes: DocNode[] = [
     node({ id: 'NEED-0001', kind: 'need', title: '区分したい' }),
     node({
@@ -121,9 +121,9 @@ test('TC-0035: 要件区分 - カタログ伝播・フィルターおよびグ�
  * - 対象: 実ドキュメントからのレポート構築
  * - 条件: docs/ をパースしてカタログとサマリーを得る
  * - 期待結果: FR/NFR 件数が要件総数と整合し、新設ツリーが追跡できる
- * - 関連文書: TC-0035, NEED-0009, REQ-0026, REQ-0027, REQ-0028
+ * - 関連文書: TC-ITa-0002, NEED-0009, REQ-0026, REQ-0027, REQ-0028
  */
-test('TC-0035: 要件区分 - 実レポートの FR/NFR 件数と NEED-0009 トレーサビリティが整合すること', () => {
+test('TC-ITa-0002: 要件区分 - 実レポートの FR/NFR 件数と NEED-0009 トレーサビリティが整合すること', () => {
   const { report, graph } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
   const reqCount = graph.getRequirements().length;
   assert.equal(

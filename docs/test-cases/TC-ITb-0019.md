@@ -1,0 +1,40 @@
+---
+schema_version: 3
+id: TC-ITb-0019
+kind: test_case
+title: Web資材配置とビルド出力設定に関するリポジトリ構成確認
+status: accepted
+created: '2026-09-13'
+updated: '2026-09-13'
+scope: local
+test_level: integration_external
+test_method: scenario
+verifies:
+  - ADR-0004
+depends_on: []
+tags:
+  - test
+  - integration
+  - clean-root
+  - web
+  - build
+  - path-resolution
+links:
+  - DSN-0006
+---
+## Content
+
+### Objective
+本ケースは実行時システム要件ではなく、Web 資材配置に関する ADR/Chore の確認である。構成ファイルと出力候補の配置が決定事項に沿うことだけを確認する。
+
+### Preconditions
+`src/web/` 配下のソースコード、設定ファイル、および CLI パス解決ロジックが利用可能であること。
+
+### Steps
+1. リポジトリルートを検査し、Web 開発資材（`index.html`, `vite.config.ts`, `tailwind.config.js`, `postcss.config.js`）がルート直下に存在せず、`src/web/` 配下にのみ配置されていることを確認する。
+2. `src/web/vite.config.ts` の設定内容を検査し、ルートディレクトリが `src/web`、ビルド出力先が適切に設定されていることを確認する。
+3. `src/web/dist/` に `index.html` と `data.json` が存在することを確認する。
+
+### Expected Results
+- ステップ1でルート直下に Web 資材が存在せず、クリーンルート規約が保たれていること。
+- ステップ2および3で、Web 資材と `src/web/dist/` のビルド出力配置が決定事項と矛盾しないこと。

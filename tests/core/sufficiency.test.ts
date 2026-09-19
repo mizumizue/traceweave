@@ -67,7 +67,7 @@ function addHighCriticalityPhaseSet(
     'acceptance',
   ];
   for (const [index, level] of levels.entries()) {
-    graph.addNode(createLinkedTestCase(`TC-0038-${index + 1}`, level, requirementId, statuses[level]));
+    graph.addNode(createLinkedTestCase(`TC-UT-0009-${index + 1}`, level, requirementId, statuses[level]));
   }
 }
 
@@ -80,9 +80,9 @@ function assertAllPhaseCountsZero(counts: PhaseCount): void {
  * - 対象: SufficiencyScorer (要件充足度スコア計算)
  * - 条件: 関連するテストケース(TC)が一切紐づいていない高重要度(high)要件を渡してスコア計算を実行
  * - 期待結果: 充足度スコアが 0%、isFullySatisfied が false、missingPhases に unit や integration_internal が含まれること
- * - 関連文書: TC-0002, REQ-0002, SPEC-0003
+ * - 関連文書: TC-UT-0002, REQ-0002, SPEC-0003
  */
-test('TC-0002: SufficiencyScorer - テストが紐づかない未検証要件に対してスコア0%および未実施フェーズが返されること', () => {
+test('TC-UT-0002: SufficiencyScorer - テストが紐づかない未検証要件に対してスコア0%および未実施フェーズが返されること', () => {
   const graph = new TraceGraph();
   const scorer = new SufficiencyScorer();
 
@@ -114,9 +114,9 @@ test('TC-0002: SufficiencyScorer - テストが紐づかない未検証要件に
  * - 対象: SufficiencyScorer (高重要度要件の多層テスト充足度計算)
  * - 条件: 高重要度(high)要件に対し、単体(UT)のみ紐づけた状態から結合(ITa, ITb)・受入(UAT)テストを順次追加
  * - 期待結果: UTのみで30点、全層揃うことで100点(isFullySatisfied: true, missingPhases: 0件)へと段階的に加算されること
- * - 関連文書: TC-0002, REQ-0002, SPEC-0003
+ * - 関連文書: TC-UT-0002, REQ-0002, SPEC-0003
  */
-test('TC-0002: SufficiencyScorer - 高重要度（high）要件において各テスト層の追加に応じた段階的スコアリングと100%充足判定が行われること', () => {
+test('TC-UT-0002: SufficiencyScorer - 高重要度（high）要件において各テスト層の追加に応じた段階的スコアリングと100%充足判定が行われること', () => {
   const graph = new TraceGraph();
   const scorer = new SufficiencyScorer();
 
@@ -137,7 +137,7 @@ test('TC-0002: SufficiencyScorer - 高重要度（high）要件において各�
   graph.addNode(req);
 
   const tcUnit: DocNode = {
-    id: 'TC-0001',
+    id: 'TC-UT-0001',
     kind: 'test_case',
     title: 'UT',
     status: 'accepted',
@@ -162,7 +162,7 @@ test('TC-0002: SufficiencyScorer - 高重要度（high）要件において各�
 
   // Add integration_internal (+35), integration_external (+35), acceptance (+30)
   const tcInt: DocNode = {
-    id: 'TC-0002',
+    id: 'TC-UT-0002',
     kind: 'test_case',
     title: 'ITa',
     status: 'accepted',
@@ -179,7 +179,7 @@ test('TC-0002: SufficiencyScorer - 高重要度（high）要件において各�
     content: '',
   };
   const tcExt: DocNode = {
-    id: 'TC-0003',
+    id: 'TC-ITb-0001',
     kind: 'test_case',
     title: 'ITb',
     status: 'accepted',
@@ -196,7 +196,7 @@ test('TC-0002: SufficiencyScorer - 高重要度（high）要件において各�
     content: '',
   };
   const tcUat: DocNode = {
-    id: 'TC-0004',
+    id: 'TC-ITb-0002',
     kind: 'test_case',
     title: 'UAT',
     status: 'accepted',
@@ -228,9 +228,9 @@ test('TC-0002: SufficiencyScorer - 高重要度（high）要件において各�
  * - 対象: SufficiencyScorer (中重要度要件のスコア計算)
  * - 条件: 単体テスト(UT)のみが紐づいた中重要度(medium)要件を計算
  * - 期待結果: 中重要度は50%と判定されること
- * - 関連文書: TC-0002, REQ-0002, SPEC-0003
+ * - 関連文書: TC-UT-0002, REQ-0002, SPEC-0003
  */
-test('TC-0002: SufficiencyScorer - 中重要度（medium）要件に対して重要度別の重み付けルールが正しく適用されること', () => {
+test('TC-UT-0002: SufficiencyScorer - 中重要度（medium）要件に対して重要度別の重み付けルールが正しく適用されること', () => {
   const graph = new TraceGraph();
   const scorer = new SufficiencyScorer();
 
@@ -251,7 +251,7 @@ test('TC-0002: SufficiencyScorer - 中重要度（medium）要件に対して重
   graph.addNode(reqMed);
 
   const tcUnit: DocNode = {
-    id: 'TC-0010',
+    id: 'TC-ITb-0007',
     kind: 'test_case',
     title: 'UT',
     status: 'accepted',
@@ -279,9 +279,9 @@ test('TC-0002: SufficiencyScorer - 中重要度（medium）要件に対して重
  * - 対象: SufficiencyScorer (実行ステータスと充足度加算)
  * - 条件: 重要度 High の要件に単体・内部結合・外部結合・受入の TC 文書を紐づけ、すべて未実行のままスコア算出
  * - 期待結果: スコア 0%、documentedPhaseCounts は各工程 1 件を保持、実行工程件数（phaseCounts）はすべて 0 であること
- * - 関連文書: TC-0038 Step 1, REQ-0002 AC-004, SPEC-0003
+ * - 関連文書: TC-UT-0009 Step 1, REQ-0002 AC-004, SPEC-0003
  */
-test('TC-0038: SufficiencyScorer - 全工程が未実行のときスコア0%かつ文書工程件数のみ保持されること', () => {
+test('TC-UT-0009: SufficiencyScorer - 全工程が未実行のときスコア0%かつ文書工程件数のみ保持されること', () => {
   const graph = new TraceGraph();
   const scorer = new SufficiencyScorer();
   const req = createHighRequirement();
@@ -312,9 +312,9 @@ test('TC-0038: SufficiencyScorer - 全工程が未実行のときスコア0%か�
  * - 対象: SufficiencyScorer (実行ステータスと充足度加算)
  * - 条件: 重要度 High の要件に同一文書構成で単体のみ実行合格、残りは未実行または失敗
  * - 期待結果: 単体はトレーサビリティ充足に加算されずスコア 0% であること
- * - 関連文書: TC-0038 Step 2, REQ-0031, SPEC-0026
+ * - 関連文書: TC-UT-0009 Step 2, REQ-0031, SPEC-0026
  */
-test('TC-0038: SufficiencyScorer - 単体のみ実行合格のとき高重要度要件のトレーサビリティスコアは0%となること', () => {
+test('TC-UT-0009: SufficiencyScorer - 単体のみ実行合格のとき高重要度要件のトレーサビリティスコアは0%となること', () => {
   const graph = new TraceGraph();
   const scorer = new SufficiencyScorer();
   const req = createHighRequirement();
@@ -341,14 +341,14 @@ test('TC-0038: SufficiencyScorer - 単体のみ実行合格のとき高重要度
  * - 対象: SufficiencyScorer (実行ステータスと充足度加算)
  * - 条件: 失敗ステータスの単体テストのみが紐づく重要度 High 要件
  * - 期待結果: 充足度スコアが 0% であること
- * - 関連文書: TC-0038 Step 3, REQ-0002 AC-004, SPEC-0003
+ * - 関連文書: TC-UT-0009 Step 3, REQ-0002 AC-004, SPEC-0003
  */
-test('TC-0038: SufficiencyScorer - 失敗ステータスの単体テストのみではスコア0%となること', () => {
+test('TC-UT-0009: SufficiencyScorer - 失敗ステータスの単体テストのみではスコア0%となること', () => {
   const graph = new TraceGraph();
   const scorer = new SufficiencyScorer();
   const req = createHighRequirement();
   graph.addNode(req);
-  graph.addNode(createLinkedTestCase('TC-0038-FAILED', 'unit', req.id, 'failed'));
+  graph.addNode(createLinkedTestCase('TC-UT-0009-FAILED', 'unit', req.id, 'failed'));
 
   const res = scorer.calculateRequirement(graph, req);
 
@@ -384,7 +384,7 @@ test('SufficiencyScorer - 上流要件を持たないスタンドアロン仕様
   };
 
   const tc1: DocNode = {
-    id: 'TC-0001',
+    id: 'TC-UT-0001',
     kind: 'test_case',
     title: 'Unit Test for Spec',
     status: 'accepted',
@@ -402,7 +402,7 @@ test('SufficiencyScorer - 上流要件を持たないスタンドアロン仕様
   };
 
   const tc2: DocNode = {
-    id: 'TC-0002',
+    id: 'TC-UT-0002',
     kind: 'test_case',
     title: 'Integration Test for Spec',
     status: 'accepted',
@@ -457,7 +457,7 @@ test('MatrixBuilder - 上流要件を持たないスタンドアロン仕様が�
   };
 
   const tc: DocNode = {
-    id: 'TC-0001',
+    id: 'TC-UT-0001',
     kind: 'test_case',
     title: 'Unit Test for Spec',
     status: 'accepted',

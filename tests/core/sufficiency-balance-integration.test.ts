@@ -10,9 +10,9 @@ import { DocNode } from '../../src/core/models/types.js';
  * - 対象: SufficiencyScorer, BalanceAnalyzer, TraceGraph（有向グラフと品質充足度・ピラミッド地層分析の内部結合）
  * - 条件: High/Medium/Low 要件と複数工程の TC を含むグラフを構築し、実行合格（execution_status: passed）のみがスコア加算対象となるよう TC ステータスを付与して結合解析を実行
  * - 期待結果: 実行合格 TC のみで重要度別スコアが算出され、pending の TC は加算されないこと。100% 充足要件は全 TC 合格、一部未達要件は passed/pending 混在で REQ-0002 準拠の低スコアとなること。地層密度・ピラミッド診断も実行合格件数に基づくこと
- * - 関連文書: TC-0025, REQ-0002, REQ-0003, SPEC-0003
+ * - 関連文書: TC-ITa-0001, REQ-0002, REQ-0003, SPEC-0003
  */
-test('TC-0025: SufficiencyScorer & BalanceAnalyzer - 有向グラフからの重要度別スコアリングと工程地層密度・ピラミッド診断の内部結合検証', () => {
+test('TC-ITa-0001: SufficiencyScorer & BalanceAnalyzer - 有向グラフからの重要度別スコアリングと工程地層密度・ピラミッド診断の内部結合検証', () => {
   const graph = new TraceGraph();
   const scorer = new SufficiencyScorer();
   const analyzer = new BalanceAnalyzer();

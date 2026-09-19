@@ -8,10 +8,10 @@ import { TraceabilityGraphBuilder } from '../../src/core/graph/TraceabilityGraph
  * 【テスト概要】
  * - 対象: TraceabilityGraphBuilder のレイアウト契約およびドキュメント依存グラフ
  * - 条件: 実ドキュメントから描画データを構築し、選択ノードのハイライトを検査
- * - 期待結果: 描画ノードとハイライト状態が契約どおり生成され、NEED-0007からTC-0018までのトレーサビリティが結合されていること
- * - 関連文書: TC-0018, REQ-0020, REQ-0021, REQ-0022, SPEC-0018
+ * - 期待結果: 描画ノードとハイライト状態が契約どおり生成され、NEED-0007からTC-ITb-0014までのトレーサビリティが結合されていること
+ * - 関連文書: TC-ITb-0014, REQ-0020, REQ-0021, REQ-0022, SPEC-0018
  */
-test('TC-0018: トレーサビリティグラフ - レイアウトと選択ノードのハイライト契約検証', () => {
+test('TC-ITb-0014: トレーサビリティグラフ - レイアウトと選択ノードのハイライト契約検証', () => {
   const { graph, nodes } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
   const graphData = TraceabilityGraphBuilder.buildGraph(nodes, { selectedNodeId: 'REQ-0020' });
   assert.ok(graphData.nodes.length > 0);
@@ -40,8 +40,8 @@ test('TC-0018: トレーサビリティグラフ - レイアウトと選択ノ�
   assert.ok(spec0018?.depends_on.includes('REQ-0021'));
   assert.ok(spec0018?.depends_on.includes('REQ-0022'));
 
-  const tc0018 = graph.getNode('TC-0018');
-  assert.ok(tc0018, 'TC-0018 must exist');
+  const tc0018 = graph.getNode('TC-ITb-0014');
+  assert.ok(tc0018, 'TC-ITb-0014 must exist');
   assert.ok(tc0018?.verifies?.includes('REQ-0020'));
   assert.ok(tc0018?.verifies?.includes('SPEC-0018'));
 });

@@ -15,9 +15,9 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 対象: requirementClass 判定・ラベル契約、および要件文書の必須検証
  * - 条件: 許容値・不正値・欠落、ならびに実リポジトリの docs/ を検証
  * - 期待結果: FR/NFR ラベルが固定され、不正値は未分類のまま残り、実文書は区分必須を満たす
- * - 関連文書: TC-0034, REQ-0026, REQ-0028, SPEC-0021
+ * - 関連文書: TC-UT-0007, REQ-0026, REQ-0028, SPEC-0021
  */
-test('TC-0034: requirementClass - 許容値判定と FR/NFR ラベル契約が決定論的であること', () => {
+test('TC-UT-0007: requirementClass - 許容値判定と FR/NFR ラベル契約が決定論的であること', () => {
   assert.equal(isRequirementClass('functional'), true);
   assert.equal(isRequirementClass('non_functional'), true);
   assert.equal(isRequirementClass('quality'), false);
@@ -53,9 +53,9 @@ test('TC-0034: requirementClass - 許容値判定と FR/NFR ラベル契約が�
  * - 対象: validate-docs（要件区分の必須検証）
  * - 条件: リポジトリ実ドキュメントを検証する
  * - 期待結果: 全要件が functional または non_functional を持ち、検証が成功する
- * - 関連文書: TC-0034, REQ-0026, SPEC-0021
+ * - 関連文書: TC-UT-0007, REQ-0026, SPEC-0021
  */
-test('TC-0034: validate-docs - 実リポジトリの要件が requirement_class 必須検証を通過すること', () => {
+test('TC-UT-0007: validate-docs - 実リポジトリの要件が requirement_class 必須検証を通過すること', () => {
   const result = validateDocs(repositoryPath('docs'));
   assert.equal(result.passed, true, result.errors.join('\n'));
   const reqs = result.docs.filter(doc => doc.meta.kind === 'requirement');

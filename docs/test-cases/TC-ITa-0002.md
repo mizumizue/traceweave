@@ -1,0 +1,44 @@
+---
+schema_version: 3
+id: TC-ITa-0002
+kind: test_case
+title: 要件区分のカタログ・マトリクス伝播および区分フィルターの検証
+status: accepted
+created: '2026-09-13'
+updated: '2026-09-13'
+scope: local
+test_level: integration_internal
+test_method: scenario
+verifies:
+  - REQ-0026
+  - REQ-0027
+  - SPEC-0021
+depends_on: []
+tags:
+  - integration
+  - requirement-class
+  - catalog
+  - matrix
+  - filter
+links: []
+---
+## Content
+
+### Objective
+パース済みノードからカタログとマトリクスへ要件区分が伝播し、区分フィルターが機能要件と非機能要件を混入なく切り分けることを検証する。
+
+### Preconditions
+- 機能要件・非機能要件・要件以外の種別を含む合成ノード配列が用意されていること。
+- カタログ構築とマトリクス行フィルターが同一プロセス内で呼び出せること。
+
+### Steps
+1. 合成ノードから決め事カタログを構築し、各要件項目の区分と `requirementClassCounts` が入力と一致することを確認する。
+2. カタログフィルターに `functional` を指定し、残る要件が機能要件のみであること、要件以外の種別は残ることを確認する。
+3. カタログフィルターに `non_functional` を指定し、残る要件が非機能要件のみであることを確認する。
+4. 区分付きマトリクス行に対し同じ区分フィルターを適用し、一致しない区分の行が除外されることを確認する。
+5. カタログ項目を区分で分割し、機能要件群・非機能要件群・その他の順と各件数が見出し用に取得できることを確認する。
+
+### Expected Results
+- カタログとマトリクスの区分値がソースノードと一致する。
+- `functional` フィルターに非機能要件が混入せず、`non_functional` フィルターに機能要件が混入しない。
+- 分割結果の件数合計が元の項目数と一致する。

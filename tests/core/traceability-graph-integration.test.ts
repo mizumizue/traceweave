@@ -10,9 +10,9 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 対象: TraceabilityGraphBuilder & TraceGraph（実ドキュメントのグラフレイアウト・トレースパス探索・種別除外・インスペクター連動）
  * - 条件: 実際の docs/ 配下の全ドキュメントから有向グラフおよびビジュアルグラフレイアウトを生成
  * - 期待結果: 階層ランク別ノード配置、祖先・子孫パスハイライト、種別除外フィルター、および選択ノードデータが正しく算出されること
- * - 関連文書: TC-0032, REQ-0020, REQ-0021, REQ-0022, SPEC-0018
+ * - 関連文書: TC-ITb-0023, REQ-0020, REQ-0021, REQ-0022, SPEC-0018
  */
-test('TC-0032: TraceabilityGraphBuilder - 階層レイアウト計算・上流下流パス探索および種別除外・詳細インスペクター連動の外部結合検証', () => {
+test('TC-ITb-0023: TraceabilityGraphBuilder - 階層レイアウト計算・上流下流パス探索および種別除外・詳細インスペクター連動の外部結合検証', () => {
   const parser = new DocParser();
   const nodes = parser.parseDirectory(repositoryPath('docs'));
   const graph = new TraceGraph();

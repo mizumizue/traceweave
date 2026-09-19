@@ -1,13 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {
+  assertTestCaseId,
+  escapeTestCaseIdForRegExp,
+  TEST_CASE_ID_PATTERN,
+} from './testCaseId.js';
 
-export const TEST_CASE_ID_PATTERN = /^TC-\d{4}$/;
-
-export function assertTestCaseId(testCaseId: string): void {
-  if (!TEST_CASE_ID_PATTERN.test(testCaseId)) {
-    throw new Error(`Invalid test case id "${testCaseId}". Expected format TC-0000.`);
-  }
-}
+export { assertTestCaseId, TEST_CASE_ID_PATTERN };
 
 export function parseTestCaseFilter(argv: readonly string[]): string | undefined {
   for (let i = 0; i < argv.length; i++) {
@@ -16,7 +15,7 @@ export function parseTestCaseFilter(argv: readonly string[]): string | undefined
 
     const value = argv[i + 1];
     if (!value || value.startsWith('-')) {
-      throw new Error(`${flag} requires a test case id (for example TC-0033).`);
+      throw new Error(`${flag} requires a test case id (for example TC-ITb-0001).`);
     }
 
     assertTestCaseId(value);
@@ -41,7 +40,9 @@ export function testNamePatternForCase(testCaseId: string): string {
 
 export function testFileDeclaresCase(fileContent: string, testCaseId: string): boolean {
   assertTestCaseId(testCaseId);
-  const linePattern = new RegExp(`^\\s*test\\s*\\(\\s*[\`'"]${testCaseId}:`);
+  const linePattern = new RegExp(
+    `^\\s*test\\s*\\(\\s*[\`'"]${escapeTestCaseIdForRegExp(testCaseId)}:`
+  );
   return fileContent.split('\n').some(line => linePattern.test(line));
 }
 

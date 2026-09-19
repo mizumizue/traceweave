@@ -187,7 +187,7 @@ npm --prefix src test
 ```yaml
 ---
 schema_version: 3
-id: TC-0001
+id: TC-UT-0001
 kind: test_case
 title: トレーサビリティグラフの多段循環参照検知テスト
 status: accepted

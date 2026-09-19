@@ -79,8 +79,8 @@ test.describe('TraceWeave Adoption Engine (adopt-project)', () => {
     assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs', 'specifications', 'SPEC-0001.md')));
     assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs', 'design', 'DSN-0001.md')));
     assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs', 'decisions', 'ADR-0001.md')));
-    assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs', 'test-cases', 'TC-0001.md')));
-    assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs', 'test-cases', 'TC-0002.md')));
+    assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs', 'test-cases', 'TC-UT-0001.md')));
+    assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs', 'test-cases', 'TC-UT-0002.md')));
     assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs', 'actors', 'ACT-0001.md')));
     assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs', 'usecases', 'UC-0001.md')));
     assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs', 'quality', 'QA-0001.md')));
@@ -111,9 +111,9 @@ test.describe('TraceWeave Adoption Engine (adopt-project)', () => {
     assert.ok(
       fs.existsSync(path.join(tempBaseDir, '.cursor', 'skills', 'traceweave-test-case-review', 'SKILL.md'))
     );
-    const tc1 = fs.readFileSync(path.join(tempBaseDir, 'docs', 'test-cases', 'TC-0001.md'), 'utf-8');
+    const tc1 = fs.readFileSync(path.join(tempBaseDir, 'docs', 'test-cases', 'TC-UT-0001.md'), 'utf-8');
     assert.ok(tc1.includes('AC-001'));
-    const tc2 = fs.readFileSync(path.join(tempBaseDir, 'docs', 'test-cases', 'TC-0002.md'), 'utf-8');
+    const tc2 = fs.readFileSync(path.join(tempBaseDir, 'docs', 'test-cases', 'TC-UT-0002.md'), 'utf-8');
     assert.ok(tc2.includes('AC-002'));
 
     // 4. validateDocs でスキーマ検査をパスすること

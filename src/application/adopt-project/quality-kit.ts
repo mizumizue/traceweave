@@ -29,8 +29,8 @@ TraceWeave adopt 後に、テストケース文書・自動テスト・CI を V�
 
 ## 1. スターター TC をプロジェクト固有の REQ/SPEC に沿って書き直す
 
-- \`docs/test-cases/TC-0001.md\` は REQ-0001 の **AC-001**（正常系）を検証する手順に更新する。
-- \`docs/test-cases/TC-0002.md\` は REQ-0001 の **AC-002**（異常系）を検証する手順に更新する。
+- \`docs/test-cases/TC-UT-0001.md\` は REQ-0001 の **AC-001**（正常系）を検証する手順に更新する。
+- \`docs/test-cases/TC-UT-0002.md\` は REQ-0001 の **AC-002**（異常系）を検証する手順に更新する。
 - \`### Steps\` と \`### Expected Results\` は、\`docs/requirements/REQ-0001.md\` の AC および \`docs/specifications/SPEC-0001.md\` の契約条項と 1 対 1 で対応させる。
 - 汎用文言（「正常系入力に対する戻り値」等）のまま残さない。
 
@@ -38,7 +38,7 @@ TraceWeave adopt 後に、テストケース文書・自動テスト・CI を V�
 
 Cursor エージェントに次を指示する。
 
-> TC-0001 と TC-0002 を traceweave-test-case-review スキルで監査して
+> TC-UT-0001 と TC-UT-0002 を traceweave-test-case-review スキルで監査して
 
 監査では oracle / feasibility / soundness / tautology / stratum-fit の 5 軸で REVISE 指摘がゼロになるまで修正する。
 
@@ -51,7 +51,7 @@ TraceWeave は **二層**でテストを結合する。
 
 ### 3a. 単一ランナー（Node / Vitest / Jest 等）
 
-- 自動テストは \`.cursor/rules/test-writing-guidelines.mdc\` の**機械連携向け TC 宣言**に従う（\`test('TC-0001: ...')\` 形式。角括弧 \`[TC-0001]\` は不可）。
+- 自動テストは \`.cursor/rules/test-writing-guidelines.mdc\` の**機械連携向け TC 宣言**に従う（\`test('TC-UT-0001: ...')\` 形式。角括弧 \`[TC-UT-0001]\` は不可）。
 - 検出ランナー例: \`${testCmd}\`
 - ワークスペースに \`.traceweave/config.json\` を置き、\`capture: node-test-tap\` で TAP から TC ID を抽出するか、実行後に capture スクリプトで traceweave-v1 を書く。
 
@@ -69,10 +69,10 @@ node scripts/traceweave-capture-test-report.mjs
 
 \`\`\`json
 {
-  "testCaseId": "TC-0001",
+  "testCaseId": "TC-UT-0001",
   "status": "passed",
   "durationMs": 12,
-  "testTitle": "TC-0001: oracle label",
+  "testTitle": "TC-UT-0001: oracle label",
   "executedAt": "2026-09-19T00:00:00.000Z"
 }
 \`\`\`
@@ -124,7 +124,7 @@ function findPackageRoot() {
 }
 
 function extractTcIds(text) {
-  return [...String(text).matchAll(/TC-\\d{4}/g)].map((m) => m[0]);
+  return [...String(text).matchAll(/TC-(?:UT|ITa|ITb|ST|UAT)-\\d{4}/g)].map((m) => m[0]);
 }
 
 function writeReport(results, executedAt) {

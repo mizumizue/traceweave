@@ -9,9 +9,9 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 対象: リポジトリ構成ガバナンス（クリーンルート規約および資産カプセル化）
  * - 条件: ワークスペースルート、src/、src/web/、bin/ ディレクトリのファイル配置を検査
  * - 期待結果: ルート直下に禁止資材（node_modules, dist, HTML/CSS設定）が存在せず、実装資材がsrc/に、Web資材がsrc/web/に完全集約されていること
- * - 関連文書: TC-0014, TC-0016, ADR-0004, ADR-0005
+ * - 関連文書: TC-ITb-0010, TC-ITb-0012, ADR-0004, ADR-0005
  */
-test('TC-0014 & TC-0016: クリーンルート規約 - ルート直下の禁止資材非存在、src/webへの資材カプセル化、およびbin/ラッパー配置の検証', () => {
+test('TC-ITb-0010 & TC-ITb-0012: クリーンルート規約 - ルート直下の禁止資材非存在、src/webへの資材カプセル化、およびbin/ラッパー配置の検証', () => {
   const rootDir = repositoryPath();
 
   // 1. Prohibited development assets directly in root (clean root)

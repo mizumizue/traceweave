@@ -10,6 +10,8 @@ interface UnitCoverageViewProps {
   unitCoverage: UnitCoverageReport;
   selectedFilePath: string | null;
   onSelectFilePath: (filePath: string | null) => void;
+  /** Omit outer page chrome when nested in TestBooksView. */
+  embedded?: boolean;
 }
 
 const DENSITY_LABELS: Record<UnitCoverageReport['density'], string> = {
@@ -23,6 +25,7 @@ export function UnitCoverageView({
   unitCoverage,
   selectedFilePath,
   onSelectFilePath,
+  embedded = false,
 }: UnitCoverageViewProps) {
   const isPending = unitCoverage.status === 'pending';
   const [fileDetail, setFileDetail] = useState<CoverageFileDetailResponse | null>(null);
@@ -65,15 +68,21 @@ export function UnitCoverageView({
     };
   }, [selectedFilePath, isPending]);
 
+  const panelClass = embedded
+    ? 'space-y-4'
+    : 'bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl';
+
   return (
     <>
-      <div className="space-y-6 animate-fadeIn">
-        <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl">
-          <h2 className="text-base font-bold text-slate-100 mb-1.5 flex items-center gap-2">
-            <FunctionSquare className="w-5 h-5 text-cyan-400" />
-            <span>単体テスト実装カバレッジ (Unit Implementation Coverage)</span>
-          </h2>
-          <p className="text-xs text-slate-400 mb-5">
+      <div className={embedded ? 'space-y-4' : 'space-y-6 animate-fadeIn'}>
+        <section className={panelClass}>
+          {!embedded && (
+            <h2 className="text-base font-bold text-slate-100 mb-1.5 flex items-center gap-2">
+              <FunctionSquare className="w-5 h-5 text-cyan-400" />
+              <span>単体テスト実装カバレッジ (Unit Implementation Coverage)</span>
+            </h2>
+          )}
+          <p className={`text-xs text-slate-400 ${embedded ? 'mb-4' : 'mb-5'}`}>
             ファイル行をクリックすると、実装コードと関連テストコードを並べてモーダル表示します。未実行分岐は赤、実行済みは緑で示します。
           </p>
 

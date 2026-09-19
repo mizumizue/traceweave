@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import matter from 'gray-matter';
 import { isRetiredDocStatus } from '../../core/models/docStatus.js';
+import { testCaseIdMatchesTestLevel } from '../../core/testing/testCaseId.js';
+import type { TestLevel } from '../../core/models/types.js';
 import { resolveRepoRoot } from '../system/resolveRepoRoot.js';
 
 const DEFAULT_DOCS_DIR = path.join(resolveRepoRoot(import.meta.url), 'docs');
@@ -214,9 +216,18 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): {
     if (stem !== fid) {
       errors.push(`${filePath}: Filename stem "${stem}" != id "${fid}"`);
     }
-    const idPattern = new RegExp(`^${prefix}-\\d{4,}$`);
-    if (!idPattern.test(fid)) {
-      errors.push(`${filePath}: Invalid id format "${fid}", expected matching prefix "${prefix}-XXXX"`);
+    if (kind === 'test_case') {
+      const tcPattern = /^TC-(UT|ITa|ITb|ST|UAT)-\d{4}$/;
+      if (!tcPattern.test(fid)) {
+        errors.push(
+          `${filePath}: Invalid test_case id "${fid}", expected TC-<STRATUM>-NNNN (UT|ITa|ITb|ST|UAT)`
+        );
+      }
+    } else {
+      const idPattern = new RegExp(`^${prefix}-\\d{4,}$`);
+      if (!idPattern.test(fid)) {
+        errors.push(`${filePath}: Invalid id format "${fid}", expected matching prefix "${prefix}-XXXX"`);
+      }
     }
 
     if (meta.schema_version !== 3) {
@@ -285,6 +296,10 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): {
       }
       if (!VALID_TEST_LEVELS.includes(meta.test_level)) {
         errors.push(`${filePath}: Invalid test_level "${meta.test_level}". Expected one of ${VALID_TEST_LEVELS.join(', ')}`);
+      } else if (!testCaseIdMatchesTestLevel(String(fid), meta.test_level as TestLevel)) {
+        errors.push(
+          `${filePath}: test_case id "${fid}" does not match test_level "${meta.test_level}" (expected stratum in id: UT|ITa|ITb|ST|UAT)`
+        );
       }
       if (!VALID_TEST_METHODS.includes(meta.test_method)) {
         errors.push(`${filePath}: Invalid test_method "${meta.test_method}". Expected one of ${VALID_TEST_METHODS.join(', ')}`);

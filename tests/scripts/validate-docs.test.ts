@@ -119,10 +119,10 @@ function writeTestCaseWithForbiddenSection(
   const tcDir = path.join(docsDir, 'test-cases');
   fs.mkdirSync(tcDir, { recursive: true });
   fs.writeFileSync(
-    path.join(tcDir, 'TC-0001.md'),
+    path.join(tcDir, 'TC-UT-0001.md'),
     `---
 schema_version: 3
-id: TC-0001
+id: TC-UT-0001
 kind: test_case
 title: Sample TC
 status: accepted

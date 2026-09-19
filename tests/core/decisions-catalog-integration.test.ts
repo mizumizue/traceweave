@@ -11,9 +11,9 @@ import { execFileSync } from 'node:child_process';
  * - 対象: DocParser & DecisionsCatalogBuilder & ConsoleReporter（実ドキュメントのカタログ集約・相互参照解決・CLI出力）
  * - 条件: 実際の docs/ ディレクトリをパースし、DecisionsCatalogBuilder による相互参照解決・集計・フィルタリングを実行
  * - 期待結果: 主要種別のドキュメントが集約され、ACT-UC逆引きやDSN-ADR双方向リンクが解決され、種別フィルターが正しく適用されること
- * - 関連文書: TC-0031, REQ-0017, REQ-0018, REQ-0019, SPEC-0017
+ * - 関連文書: TC-ITb-0022, REQ-0017, REQ-0018, REQ-0019, SPEC-0017
  */
-test('TC-0031: DecisionsCatalogBuilder - 主要種別集約・相互参照（ACT-UC/DSN-ADR）解決およびCLIフィルタリングの外部結合検証', () => {
+test('TC-ITb-0022: DecisionsCatalogBuilder - 主要種別集約・相互参照（ACT-UC/DSN-ADR）解決およびCLIフィルタリングの外部結合検証', () => {
   const parser = new DocParser();
   const nodes = parser.parseDirectory(repositoryPath('docs'));
 
@@ -97,14 +97,14 @@ test('TC-0031: DecisionsCatalogBuilder - 主要種別集約・相互参照（ACT
     'SPEC-0020',
     'SPEC-0021',
     'SPEC-0023',
-    'TC-0006',
-    'TC-0020',
-    'TC-0023',
-    'TC-0026',
-    'TC-0031',
-    'TC-0035',
-    'TC-0041',
-    'TC-0061',
+    'TC-ITb-0004',
+    'TC-ITb-0016',
+    'TC-UT-0006',
+    'TC-ITb-0017',
+    'TC-ITb-0022',
+    'TC-ITa-0002',
+    'TC-ST-0002',
+    'TC-ITb-0030',
     'UC-0001',
     'UC-0003',
   ].sort());

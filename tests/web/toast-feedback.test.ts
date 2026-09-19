@@ -17,10 +17,10 @@ const appSource = fs.readFileSync(
  * 【テスト概要】
  * - 対象: Web ダッシュボード トースト通知基盤（Toaster マウント契約）
  * - 条件: App.tsx ソースおよびトレーサビリティグラフを検査
- * - 期待結果: Toaster がルートに常駐マウントされ、REQ-0012 / SPEC-0012 / TC-0037 の追跡関係が成立していること
- * - 関連文書: TC-0037, REQ-0012, SPEC-0012
+ * - 期待結果: Toaster がルートに常駐マウントされ、REQ-0012 / SPEC-0012 / TC-ITb-0025 の追跡関係が成立していること
+ * - 関連文書: TC-ITb-0025, REQ-0012, SPEC-0012
  */
-test('TC-0037: トースト基盤 - ルートコンポーネントに Toaster が契約どおりマウントされていること', () => {
+test('TC-ITb-0025: トースト基盤 - ルートコンポーネントに Toaster が契約どおりマウントされていること', () => {
   assert.match(appSource, /<Toaster/);
   assert.match(appSource, /position="bottom-right"/);
   assert.match(appSource, /theme="dark"/);
@@ -29,12 +29,12 @@ test('TC-0037: トースト基盤 - ルートコンポーネントに Toaster �
 
 /**
  * 【テスト概要】
- * - 対象: Traceability Graph (REQ-0012, SPEC-0012, TC-0037)
+ * - 対象: Traceability Graph (REQ-0012, SPEC-0012, TC-ITb-0025)
  * - 条件: docs/ 配下のドキュメント群からトレーサビリティグラフを構築
- * - 期待結果: REQ-0012, SPEC-0012, TC-0037 がグラフに存在し、仕様・検証の依存関係が正しく確立していること
- * - 関連文書: TC-0037, REQ-0012, SPEC-0012
+ * - 期待結果: REQ-0012, SPEC-0012, TC-ITb-0025 がグラフに存在し、仕様・検証の依存関係が正しく確立していること
+ * - 関連文書: TC-ITb-0025, REQ-0012, SPEC-0012
  */
-test('TC-0037: トレーサビリティ連鎖 - REQ-0012 から SPEC-0012 および TC-0037 の追跡関係の検証', () => {
+test('TC-ITb-0025: トレーサビリティ連鎖 - REQ-0012 から SPEC-0012 および TC-ITb-0025 の追跡関係の検証', () => {
   const { graph } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
 
   const req0012 = graph.getNode('REQ-0012');
@@ -45,8 +45,8 @@ test('TC-0037: トレーサビリティ連鎖 - REQ-0012 から SPEC-0012 およ
   assert.ok(spec0012, 'SPEC-0012 must exist in the traceability graph');
   assert.deepEqual(spec0012?.depends_on, ['REQ-0012']);
 
-  const tc0037 = graph.getNode('TC-0037');
-  assert.ok(tc0037, 'TC-0037 must exist in the traceability graph');
+  const tc0037 = graph.getNode('TC-ITb-0025');
+  assert.ok(tc0037, 'TC-ITb-0025 must exist in the traceability graph');
   assert.ok(tc0037?.verifies?.includes('REQ-0012'));
   assert.ok(tc0037?.verifies?.includes('SPEC-0012'));
 });

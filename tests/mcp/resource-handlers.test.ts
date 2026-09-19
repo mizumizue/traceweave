@@ -12,9 +12,9 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 対象: MCP リソースハンドラ (listDocResources / readDocResource)
  * - 条件: 実リポジトリ docs/ を入力としてリソース一覧と読み取りを実行
  * - 期待結果: NEED-0001 リソースが列挙され、本文が読み取れること
- * - 関連文書: TC-0061, SPEC-0023
+ * - 関連文書: TC-ITb-0030, SPEC-0023
  */
-test('TC-0061: docs/ 配下の Markdown が traceweave-doc:// リソースとして列挙・読取できること', () => {
+test('TC-ITb-0030: docs/ 配下の Markdown が traceweave-doc:// リソースとして列挙・読取できること', () => {
   const docsDir = repositoryPath('docs');
   const resources = listDocResources(docsDir);
   assert.ok(resources.length > 0);

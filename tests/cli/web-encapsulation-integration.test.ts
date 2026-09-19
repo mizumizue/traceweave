@@ -10,9 +10,9 @@ import viteConfig from '../../src/web/vite.config.js';
  * - 対象: Web資材集約・ビルド設定およびCLIアセット配信解決
  * - 条件: src/web 配下の設定ファイル、ビルド成果物、およびCLI配信パス解決候補リストを検査
  * - 期待結果: ルート直下に個別のWeb設定ファイルが存在せず、src/web配下に集約され、CLIが優先的に解決できること
- * - 関連文書: TC-0028, ADR-0004
+ * - 関連文書: TC-ITb-0019, ADR-0004
  */
-test('TC-0028: Webフロントエンド開発資材のカプセル化・ビルド出力設定およびCLIアセット解決の外部結合検証', () => {
+test('TC-ITb-0019: Webフロントエンド開発資材のカプセル化・ビルド出力設定およびCLIアセット解決の外部結合検証', () => {
   const rootDir = repositoryPath();
 
   // 1. Root directory must NOT contain individual web asset configs

@@ -12,9 +12,9 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 対象: DocMtimeCache (ファイル更新日時による mtime キャッシュ)
  * - 条件: パース済みDocNodeを同一mtime(1000)で保存し、同一mtimeおよび異なるmtime(2000)で取得
  * - 期待結果: 同一mtimeではキャッシュヒットしてノードが正しく復元され、異なるmtimeではキャッシュミス(null)となること
- * - 関連文書: TC-0004, REQ-0004, SPEC-0004
+ * - 関連文書: TC-ITb-0002, REQ-0004, SPEC-0004
  */
-test('TC-0004: DocMtimeCache - ファイル更新日時（mtime）に基づくパース済みノードの保存・取得およびキャッシュミス検知ができること', () => {
+test('TC-ITb-0002: DocMtimeCache - ファイル更新日時（mtime）に基づくパース済みノードの保存・取得およびキャッシュミス検知ができること', () => {
   const cache = new DocMtimeCache(':memory:');
 
   const filePath = 'C:/dummy/REQ-0001.md';
@@ -58,9 +58,9 @@ test('TC-0004: DocMtimeCache - ファイル更新日時（mtime）に基づく�
  * - 対象: DocParser & DocMtimeCache 連携
  * - 条件: フィクスチャから取得したMarkdownドキュメントを一時ディレクトリに展開し、同一パーサーで2回パースを実行
  * - 期待結果: 1回目のパースでファイルが読み込まれてキャッシュ登録され、2回目のパースではキャッシュから取得されること
- * - 関連文書: TC-0004, REQ-0004, SPEC-0004
+ * - 関連文書: TC-ITb-0002, REQ-0004, SPEC-0004
  */
-test('TC-0004: DocParser - ディレクトリ全体のパースにおいて mtime キャッシュが機能し高速化されること', () => {
+test('TC-ITb-0002: DocParser - ディレクトリ全体のパースにおいて mtime キャッシュが機能し高速化されること', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'traceweave-test-'));
   const needsDir = path.join(tmpDir, 'needs');
   fs.mkdirSync(needsDir);
@@ -102,14 +102,14 @@ test('TC-0004: DocParser - ディレクトリ全体のパースにおいて mtim
  * - 対象: DocParser (test_case 文書の仕様セクションおよび ADR-0006 純化)
  * - 条件: Objective、Preconditions、Steps、Expected Results の4セクションのみを含む test_case マークダウンフィクスチャをパース
  * - 期待結果: execution_status は pending、actual_result/evidence_log は未設定、4仕様セクションのみが DocNode にマッピングされること
- * - 関連文書: TC-0008, REQ-0007, SPEC-0007, ADR-0006
+ * - 関連文書: TC-ITb-0005, REQ-0007, SPEC-0007, ADR-0006
  */
-test('TC-0008: DocParser - test_case文書の仕様セクション（Objective/Steps/Expected Results）を正しくパースし、実行結果は pending 既定値とすること', () => {
-  const tcFile = repositoryPath('tests/fixtures/docs/storage/test-cases/TC-0001.md');
+test('TC-ITb-0005: DocParser - test_case文書の仕様セクション（Objective/Steps/Expected Results）を正しくパースし、実行結果は pending 既定値とすること', () => {
+  const tcFile = repositoryPath('tests/fixtures/docs/storage/test-cases/TC-UT-0001.md');
   const parser = new DocParser();
   const node = parser.parseFile(tcFile);
   assert.ok(node);
-  assert.equal(node.id, 'TC-0001');
+  assert.equal(node.id, 'TC-UT-0001');
   assert.equal(node.execution_status, 'pending');
   assert.equal(node.actual_result, undefined);
   assert.equal(node.evidence_log, undefined);

@@ -163,7 +163,7 @@ TraceWeave は、CI 向け検査からダッシュボード起動まで CLI で�
 | 静的（何を検証するか） | `docs/test-cases/TC-xxxx.md` の `verifies` | `tags` は実行結合に使わない |
 | 動的（走ったか・結果） | 集約レポートの `results["TC-xxxx"]` | Node TAP はテスト**タイトル**の `TC-xxxx`、それ以外は **fragment JSON のキー** |
 
-- **Node 組み込み `test`**: `capture: node-test-tap` — タイトル先頭 `TC-0001:` 推奨。
+- **Node 組み込み `test`**: `capture: node-test-tap` — タイトル先頭 `TC-UT-0001:` 推奨。
 - **Vitest / pytest / 無フレームワーク**: `capture: fragment` — `run` の末尾で traceweave-v1 を書く（例: `fixtures/test-reports/traceweave-v1-minimal.json`、複数 suite 例: `.traceweave/examples/config.multi-suite.fragment.json`）。
 - 契約の全文: `docs/specifications/SPEC-0028.md`
 
@@ -304,8 +304,8 @@ TraceWeave MCP サーバーは、次の 4 つのツールを AI エージェン�
       "needId": "NEED-0001",
       "specs": [{ "id": "SPEC-0001", "title": "..." }],
       "allTestCases": [
-        { "id": "TC-0001", "level": "unit", "method": "unit_mock" },
-        { "id": "TC-0026", "level": "integration_external", "method": "api_contract" }
+        { "id": "TC-UT-0001", "level": "unit", "method": "unit_mock" },
+        { "id": "TC-ITb-0017", "level": "integration_external", "method": "api_contract" }
       ],
       "score": 100
     },

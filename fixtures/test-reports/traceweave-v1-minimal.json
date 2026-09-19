@@ -5,11 +5,11 @@
   "failedCount": 0,
   "skippedCount": 0,
   "results": {
-    "TC-0001": {
-      "testCaseId": "TC-0001",
+    "TC-UT-0001": {
+      "testCaseId": "TC-UT-0001",
       "status": "passed",
       "durationMs": 12,
-      "testTitle": "TC-0001: example oracle",
+      "testTitle": "TC-UT-0001: example oracle",
       "executedAt": "2026-09-19T00:00:00.000Z"
     }
   }

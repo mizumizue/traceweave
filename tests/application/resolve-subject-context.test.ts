@@ -11,9 +11,9 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 対象: resolveSubjectContext（対象アプリ表示名解決）
  * - 条件: CLI・設定・パッケージマニフェスト・ディレクトリ名の各入力
  * - 期待結果: SPEC-0025 の優先順で displayName と source が決定されること
- * - 関連文書: TC-0057, REQ-0030, SPEC-0025
+ * - 関連文書: TC-UT-0016, REQ-0030, SPEC-0025
  */
-test('TC-0057: resolveSubjectContext - CLI 指定が最優先で解決されること', () => {
+test('TC-UT-0016: resolveSubjectContext - CLI 指定が最優先で解決されること', () => {
   const result = resolveSubjectContext({
     repoRoot: repositoryPath(),
     cliSubject: 'override-app',
@@ -27,9 +27,9 @@ test('TC-0057: resolveSubjectContext - CLI 指定が最優先で解決される�
  * - 対象: resolveSubjectContext（設定ファイル解決）
  * - 条件: .traceweave/config.json に displayName を設定
  * - 期待結果: config ソースが package 名より優先されること
- * - 関連文書: TC-0057, REQ-0030, SPEC-0025
+ * - 関連文書: TC-UT-0016, REQ-0030, SPEC-0025
  */
-test('TC-0057: resolveSubjectContext - 設定ファイルがパッケージ名より優先されること', () => {
+test('TC-UT-0016: resolveSubjectContext - 設定ファイルがパッケージ名より優先されること', () => {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'tw-subject-config-'));
   try {
     fs.mkdirSync(path.join(tempRoot, '.traceweave'), { recursive: true });
@@ -57,9 +57,9 @@ test('TC-0057: resolveSubjectContext - 設定ファイルがパッケージ名�
  * - 対象: resolveSubjectContext（フォールバック）
  * - 条件: マニフェストも設定もない空ディレクトリ
  * - 期待結果: ディレクトリ名または unknown-project が返ること
- * - 関連文書: TC-0057, REQ-0030, SPEC-0025
+ * - 関連文書: TC-UT-0016, REQ-0030, SPEC-0025
  */
-test('TC-0057: resolveSubjectContext - 入力不足時にフォールバック名が返ること', () => {
+test('TC-UT-0016: resolveSubjectContext - 入力不足時にフォールバック名が返ること', () => {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'tw-subject-fallback-'));
   try {
     const result = resolveSubjectContext({ repoRoot: tempRoot });

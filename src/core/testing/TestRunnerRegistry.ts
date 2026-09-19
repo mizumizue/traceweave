@@ -19,7 +19,7 @@ export class TestRunnerRegistry {
   private static handlers = new Map<string, TestHandler>();
 
   static {
-    // TC-0002 / TC-0010: Sufficiency scoring (Pure calculation logic with simple inputs & outputs)
+    // TC-UT-0002 / TC-ITb-0007: Sufficiency scoring (Pure calculation logic with simple inputs & outputs)
     const sufficiencyHandler: TestHandler = inputs => {
       const logs: string[] = [];
       const criticality = (inputs.criticality || 'medium') as Criticality;
@@ -50,9 +50,9 @@ export class TestRunnerRegistry {
         logs,
       };
     };
-    this.register('TC-0002', sufficiencyHandler);
+    this.register('TC-UT-0002', sufficiencyHandler);
 
-    // TC-0003 / TC-0011: Pyramid health diagnostics (Pure calculation logic with simple inputs & outputs)
+    // TC-ITb-0001 / TC-ITb-0008: Pyramid health diagnostics (Pure calculation logic with simple inputs & outputs)
     const pyramidHandler: TestHandler = inputs => {
       const logs: string[] = [];
       const counts: PhaseCount = {
@@ -83,8 +83,8 @@ export class TestRunnerRegistry {
         logs,
       };
     };
-    this.register('TC-0003', pyramidHandler);
-    this.register('TC-0011', pyramidHandler);
+    this.register('TC-ITb-0001', pyramidHandler);
+    this.register('TC-ITb-0008', pyramidHandler);
   }
 
   public static register(testCaseId: string, handler: TestHandler): void {

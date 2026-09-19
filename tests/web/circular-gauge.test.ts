@@ -9,9 +9,9 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 対象: CircularGauge (SVG円形ゲージ座標・オフセット幾何計算)
  * - 条件: 0%、50%、100%のパーセンテージ、ならびに負数(-25%)、100%超過(150%)、NaNの境界値を入力
  * - 期待結果: 半径・円周長・strokeDashoffsetが幾何学的に正しく計算され、異常値・超過値が0〜100に安全にクランプされること
- * - 関連文書: TC-0012, REQ-0010, SPEC-0010
+ * - 関連文書: TC-UT-0003, REQ-0010, SPEC-0010
  */
-test('TC-0012: CircularGauge - 0%〜100%の境界値計算、超過・負数クランプ処理、および円周オフセットが正確に計算されること', () => {
+test('TC-UT-0003: CircularGauge - 0%〜100%の境界値計算、超過・負数クランプ処理、および円周オフセットが正確に計算されること', () => {
   // Test at 0%
   const geo0 = calculateCircularGauge(0, 40, 4);
   assert.equal(geo0.clampedPercentage, 0);
@@ -49,9 +49,9 @@ test('TC-0012: CircularGauge - 0%〜100%の境界値計算、超過・負数ク�
  * - 対象: CircularGauge (スコアに応じた配色閾値判定)
  * - 条件: 85点/80点(高スコア)、65点/50点(中スコア)、49点/0点(低スコア)の各値を判定
  * - 期待結果: 80点以上でteal(#2dd4bf)、50〜79点でamber(#fbbf24)、50点未満でrose(#fb7185)のstroke/textカラーが返されること
- * - 関連文書: TC-0012, REQ-0010, SPEC-0010
+ * - 関連文書: TC-UT-0003, REQ-0010, SPEC-0010
  */
-test('TC-0012: CircularGauge - スコア閾値（80%以上: teal、50%〜79%: amber、50%未満: rose）に応じた配色定義が正しく返されること', () => {
+test('TC-UT-0003: CircularGauge - スコア閾値（80%以上: teal、50%〜79%: amber、50%未満: rose）に応じた配色定義が正しく返されること', () => {
   // >= 80 -> teal
   const colorsHigh = getScoreColor(85);
   assert.equal(colorsHigh.stroke, '#2dd4bf');
@@ -81,10 +81,10 @@ test('TC-0012: CircularGauge - スコア閾値（80%以上: teal、50%〜79%: am
  * 【テスト概要】
  * - 対象: CircularGauge & TraceWeave レポート統合
  * - 条件: docs/ 配下の実ドキュメントからレポートを生成し、全体スコア、各要件行スコア、各テスト層カバレッジ率を検査
- * - 期待結果: 全てのスコア・割合が円形ゲージ幾何計算に適合し、REQ-0010・SPEC-0010・TC-0012/0013のトレーサビリティ連鎖が確立していること
- * - 関連文書: TC-0013, REQ-0010, SPEC-0010
+ * - 期待結果: 全てのスコア・割合が円形ゲージ幾何計算に適合し、REQ-0010・SPEC-0010・TC-UT-0003/0013のトレーサビリティ連鎖が確立していること
+ * - 関連文書: TC-ITb-0009, REQ-0010, SPEC-0010
  */
-test('TC-0013: CircularGauge - ダッシュボード全体の各指標（全体スコア、要件行、テスト層カバレッジ）への円形ゲージ統合およびトレーサビリティの検証', () => {
+test('TC-ITb-0009: CircularGauge - ダッシュボード全体の各指標（全体スコア、要件行、テスト層カバレッジ）への円形ゲージ統合およびトレーサビリティの検証', () => {
   const { report, graph } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
 
   // 1. Header Global Scores
@@ -123,12 +123,12 @@ test('TC-0013: CircularGauge - ダッシュボード全体の各指標（全体�
   assert.ok(spec0010, 'SPEC-0010 must exist in the graph');
   assert.deepEqual(spec0010?.depends_on, ['REQ-0010']);
 
-  const tc0012 = graph.getNode('TC-0012');
-  assert.ok(tc0012, 'TC-0012 must exist in the graph');
+  const tc0012 = graph.getNode('TC-UT-0003');
+  assert.ok(tc0012, 'TC-UT-0003 must exist in the graph');
   assert.deepEqual(tc0012?.verifies ?? [], []);
 
-  const tc0013 = graph.getNode('TC-0013');
-  assert.ok(tc0013, 'TC-0013 must exist in the graph');
+  const tc0013 = graph.getNode('TC-ITb-0009');
+  assert.ok(tc0013, 'TC-ITb-0009 must exist in the graph');
   assert.ok(tc0013?.verifies?.includes('REQ-0010'));
   assert.ok(tc0013?.verifies?.includes('SPEC-0010'));
 

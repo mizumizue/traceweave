@@ -17,11 +17,11 @@ test('mergeTestResultsReports - fail-wins で failed が passed より優先さ�
     failedCount: 0,
     skippedCount: 0,
     results: {
-      'TC-0001': {
-        testCaseId: 'TC-0001',
+      'TC-UT-0001': {
+        testCaseId: 'TC-UT-0001',
         status: 'passed',
         durationMs: 1,
-        testTitle: 'TC-0001: ok',
+        testTitle: 'TC-UT-0001: ok',
         executedAt: '2026-01-01T00:00:00.000Z',
       },
     },
@@ -33,17 +33,17 @@ test('mergeTestResultsReports - fail-wins で failed が passed より優先さ�
     failedCount: 1,
     skippedCount: 0,
     results: {
-      'TC-0001': {
-        testCaseId: 'TC-0001',
+      'TC-UT-0001': {
+        testCaseId: 'TC-UT-0001',
         status: 'failed',
         durationMs: 2,
-        testTitle: 'TC-0001: bad',
+        testTitle: 'TC-UT-0001: bad',
         executedAt: '2026-01-02T00:00:00.000Z',
       },
     },
   };
 
   const merged = mergeTestResultsReports([a, b], 'fail-wins');
-  assert.equal(merged.results['TC-0001'].status, 'failed');
+  assert.equal(merged.results['TC-UT-0001'].status, 'failed');
   assert.equal(merged.failedCount, 1);
 });

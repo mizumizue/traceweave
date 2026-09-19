@@ -11,9 +11,9 @@ import { serializeMatrixCsv, serializeReportJson } from '../../src/web/src/utils
  * - 対象: Web公開契約（テストピラミッド、ゲージ閾値、エクスポート）
  * - 条件: 公開された工程・ゲージ・エクスポート契約と実ドキュメントの追跡グラフを呼び出す
  * - 期待結果: 公開契約が期待値を返し、REQ-0014/0015等のトレーサビリティが確立していること
- * - 関連文書: TC-0015, REQ-0014, REQ-0015, SPEC-0014, SPEC-0015
+ * - 関連文書: TC-ITb-0011, REQ-0014, REQ-0015, SPEC-0014, SPEC-0015
  */
-test('TC-0015: Web公開契約 - テストピラミッド、ゲージ閾値、エクスポートの検証', () => {
+test('TC-ITb-0011: Web公開契約 - テストピラミッド、ゲージ閾値、エクスポートの検証', () => {
   assert.equal(PYRAMID_LAYERS.length, 5);
   assert.deepEqual(PYRAMID_LAYERS.map(layer => layer.level), [
     'acceptance',
@@ -33,8 +33,8 @@ test('TC-0015: Web公開契約 - テストピラミッド、ゲージ閾値、�
   assert.ok(spec0014, 'SPEC-0014 must exist in the graph');
   assert.deepEqual(spec0014?.depends_on, ['REQ-0014']);
 
-  const tc0015 = graph.getNode('TC-0015');
-  assert.ok(tc0015, 'TC-0015 must exist in the graph');
+  const tc0015 = graph.getNode('TC-ITb-0011');
+  assert.ok(tc0015, 'TC-ITb-0011 must exist in the graph');
   assert.ok(tc0015?.verifies?.includes('REQ-0014'));
   assert.ok(tc0015?.verifies?.includes('REQ-0015'));
   assert.ok(tc0015?.verifies?.includes('SPEC-0014'));

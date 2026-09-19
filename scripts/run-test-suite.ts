@@ -6,6 +6,7 @@ import { syncDashboardArtifacts } from '../src/application/sync-dashboard-artifa
 import { runWorkspaceTests } from '../src/application/run-workspace-tests.js';
 import { resolveWorkspace } from '../src/application/workspace/resolveWorkspace.js';
 import { resolveRepoRootFromScriptEntry } from './lib/repo-root.js';
+import { dropLegacyTestResultArtifacts } from './lib/drop-legacy-test-artifacts.js';
 
 const ROOT = resolveRepoRootFromScriptEntry();
 
@@ -32,6 +33,18 @@ async function runTests(): Promise<void> {
   await ensureWebDistBuilt();
   const testCaseFilter = parseTestCaseFilter(process.argv.slice(2));
   const workspace = resolveWorkspace({ workspaceRoot: ROOT });
+
+  const suitesDir = path.join(ROOT, 'reports', 'suites');
+  if (
+    dropLegacyTestResultArtifacts({
+      aggregatePath: workspace.testResultsAggregatePath,
+      suitesDir,
+    })
+  ) {
+    console.log(
+      '\x1b[33m⚠ Dropped legacy TC-xxxx test result artifacts; suites will regenerate stratum keys.\x1b[0m\n'
+    );
+  }
 
   if (testCaseFilter) {
     console.log(`🚀 Running filtered test suite for ${testCaseFilter}...`);

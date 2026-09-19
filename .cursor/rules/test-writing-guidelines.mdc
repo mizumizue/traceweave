@@ -43,17 +43,17 @@ test('[テスト対象] 条件・入力において期待される結果・振�
 
 ```typescript
 // ✅ GOOD: 機械連携と人間可読性の両立
-test('TC-0005: checkDocs - 正常なドキュメント群に対して検証エラーが0件となり合格すること', () => { ... });
+test('TC-ITb-0003: checkDocs - 正常なドキュメント群に対して検証エラーが0件となり合格すること', () => { ... });
 
 // ❌ BAD: 角括弧付き（--tc のファイル解決・名前パターンに一致しない）
-test('[TC-0005]: checkDocs - ...', () => { ... });
+test('[TC-ITb-0003]: checkDocs - ...', () => { ... });
 
 // ❌ BAD: 概要コメントにのみ TC があり、test 宣言行に TC ID がない
 test('checkDocs - 正常なドキュメント群に対して検証エラーが0件となり合格すること', () => { ... });
 
 // ⚠️ インデント付きの test('TC-xxxx: も行単位解析では拾えるが、トップレベル宣言を正本とする
 test.describe('checkDocs', () => {
-  test('TC-0005: strictモードで欠落リンクを検出すること', () => { ... });
+  test('TC-ITb-0003: strictモードで欠落リンクを検出すること', () => { ... });
 });
 ```
 
@@ -71,7 +71,7 @@ test.describe('checkDocs', () => {
  * - 対象: BalanceAnalyzer (ピラミッド充足度・密度分析)
  * - 条件: 高重要度REQと中重要度REQが混在し、各テスト層の件数が不均衡なデータを投入
  * - 期待結果: unit層が heavy (100%)、integration_external層が missing (0%) として正確に分類・算出されること
- * - 関連文書: TC-0003, REQ-0003
+ * - 関連文書: TC-ITb-0001, REQ-0003
  */
 test('BalanceAnalyzer - 各テスト層のカバレッジ率と密度判定（heavy/missing等）が正しく分析されること', () => {
   // ...
@@ -109,16 +109,16 @@ test('TraceGraph - builds directed graph and traverses upstream / downstream', (
  * - 対象: checkDocs (CLIドキュメント整合性チェッカー)
  * - 条件: 正常な docs/ 配下の実ドキュメント群を対象に通常モードで実行
  * - 期待結果: 全検証ルールを通過し、passed: true かつエラー件数 0 件でレポートが生成されること
- * - 関連文書: TC-0005, REQ-0005
+ * - 関連文書: TC-ITb-0003, REQ-0005
  */
-test('TC-0005: checkDocs - 正常なドキュメント群に対して検証エラーが0件となり合格すること', () => { ... });
+test('TC-ITb-0003: checkDocs - 正常なドキュメント群に対して検証エラーが0件となり合格すること', () => { ... });
 
 /**
  * 【テスト概要】
  * - 対象: TestCaseInputAnalyzer (テストケース入力値変更可否判定)
  * - 条件: 外部環境依存（e2e, scenario, manual）を含むテストケースノードを解析
  * - 期待結果: Rule-1 により「変更不可 (unmodifiable)」と判定され、除外理由が記録されること
- * - 関連文書: TC-0009, REQ-0009
+ * - 関連文書: TC-ITb-0006, REQ-0009
  */
 test('TestCaseInputAnalyzer - Rule 1: 外部環境依存（E2E・手動・シナリオ）を持つテストケースが入力変更不可として除外されること', () => { ... });
 ```

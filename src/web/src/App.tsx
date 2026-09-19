@@ -11,12 +11,14 @@ import {
   buildFullUrl,
   isUrlStateEqual,
   AppTab,
+  TestBookLevel,
   TraceabilityView,
   GraphHighlightMode,
   AppUrlState,
   getHomeUrlState,
   isOnlySearchQueryChanged,
 } from './utils/urlState.js';
+import { TestLevel } from '../../core/models/types.js';
 import { DecisionsBrowser } from './components/DecisionsBrowser.js';
 import { TraceabilityGraphView } from './components/TraceabilityGraphView.js';
 import { PYRAMID_LAYERS } from './components/VisualTestPyramid.js';
@@ -26,7 +28,7 @@ import { TabNav } from './components/TabNav.js';
 import { TraceabilityViewToggle } from './components/TraceabilityViewToggle.js';
 import { MatrixView } from './components/MatrixView.js';
 import { StratumView } from './components/StratumView.js';
-import { UnitCoverageView } from './components/UnitCoverageView.js';
+import { TestBooksView } from './components/TestBooksView.js';
 import { GapsView } from './components/GapsView.js';
 import { Footer } from './components/Footer.js';
 import { NodeDetailModal } from './components/NodeDetailModal.js';
@@ -81,7 +83,20 @@ export default function App() {
   const [graphHighlight, setGraphHighlight] = useState<GraphHighlightMode>(initialUrlState.graphHighlight);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialUrlState.nodeId);
   const [unitCoverageFile, setUnitCoverageFile] = useState<string | null>(initialUrlState.unitCoverageFile);
+  const [testBookLevel, setTestBookLevel] = useState<TestBookLevel | null>(
+    initialUrlState.testBookLevel
+  );
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const openStratumLayer = useCallback((level: TestLevel) => {
+    setTestBookLevel(level);
+    setActiveTab('testbooks');
+    toast.info(
+      level === 'unit'
+        ? '単体カバレッジを表示しました'
+        : 'テスト仕様・結果一覧を開きました'
+    );
+  }, []);
 
   const isNavigatingFromPopstateRef = useRef(false);
   const lastSyncedStateRef = useRef<AppUrlState>(initialUrlState);
@@ -148,6 +163,7 @@ export default function App() {
       setCatalogStatus(parsed.catalogStatus);
       setGraphHighlight(parsed.graphHighlight);
       setUnitCoverageFile(parsed.unitCoverageFile);
+      setTestBookLevel(parsed.testBookLevel);
 
       lastSyncedStateRef.current = parsed;
 
@@ -212,6 +228,7 @@ export default function App() {
       catalogTag,
       catalogStatus,
       graphHighlight,
+      testBookLevel,
     }),
     [
       activeTab,
@@ -227,6 +244,7 @@ export default function App() {
       catalogTag,
       catalogStatus,
       graphHighlight,
+      testBookLevel,
     ]
   );
 
@@ -284,6 +302,7 @@ export default function App() {
     setCatalogTag(home.catalogTag);
     setCatalogStatus(home.catalogStatus);
     setGraphHighlight(home.graphHighlight);
+    setTestBookLevel(home.testBookLevel);
   };
 
   const isFilterActive =
@@ -426,9 +445,9 @@ export default function App() {
           activeTab={activeTab}
           onSelectTab={setActiveTab}
           matrixCount={filteredMatrix.length}
-          unitCoveragePercent={Math.round((report.unitCoverage?.functionCoverage ?? 0) * 100)}
           decisionsCount={catalogData.totalCount}
           totalGapsCount={totalGapsCount}
+          testCaseCount={report.summary.totalTestCases}
         />
 
         {activeTab === 'traceability' && (
@@ -478,6 +497,7 @@ export default function App() {
           <StratumView
             strata={report.strata}
             pyramid={report.pyramid}
+            onOpenTestBooks={openStratumLayer}
             onFilterPhase={phase => {
               const next = phaseFilter === phase ? 'all' : phase;
               setPhaseFilter(next);
@@ -491,11 +511,24 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'unit' && report.unitCoverage && (
-          <UnitCoverageView
+        {activeTab === 'testbooks' && (
+          <TestBooksView
+            testStratumCatalog={report.testStratumCatalog}
+            nodes={report.nodes ?? []}
+            requirements={report.requirements}
             unitCoverage={report.unitCoverage}
-            selectedFilePath={unitCoverageFile}
-            onSelectFilePath={setUnitCoverageFile}
+            activeLevel={testBookLevel ?? 'integration_internal'}
+            onActiveLevelChange={level => setTestBookLevel(level)}
+            onSelectNode={id => setSelectedNodeId(id)}
+            unitCoverageFile={unitCoverageFile}
+            onSelectUnitCoverageFile={setUnitCoverageFile}
+            onFilterMatrix={level => {
+              setPhaseFilter(level);
+              setActiveTab('traceability');
+              setTraceabilityView('matrix');
+              const layer = PYRAMID_LAYERS.find(item => item.level === level);
+              if (layer) toast.info(`マトリクスを "${layer.name}" で絞り込みました`);
+            }}
           />
         )}
 

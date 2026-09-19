@@ -18,9 +18,9 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 対象: urlState.ts (URLクエリパラメータパース・シリアライズ・履歴制御ユーティリティ)
  * - 条件: 正常なパラメータ文字列、空文字列、異常値、デフォルト値混在クエリを投入
  * - 期待結果: 各種パラメータ（tab, node, q, phase, criticality, score, kind, tag, status, highlight）が正確にパースされ、不正値が安全にフォールバックすること
- * - 関連文書: TC-0019, REQ-0024, SPEC-0019
+ * - 関連文書: TC-ITb-0015, REQ-0024, SPEC-0019
  */
-test('TC-0019: urlState - クエリ文字列からの状態パースと不正値フォールバックが正確に行われること', () => {
+test('TC-ITb-0015: urlState - クエリ文字列からの状態パースと不正値フォールバックが正確に行われること', () => {
   // 1. 空・未指定時はデフォルト状態が返ること
   const defaultParsed = parseUrlState('');
   assert.equal(defaultParsed.tab, 'traceability');
@@ -89,9 +89,9 @@ test('TC-0019: urlState - クエリ文字列からの状態パースと不正値
  * - 対象: urlState.ts (URLシリアライズおよび等価性判定)
  * - 条件: 部分状態・全指定状態・同一状態・差分状態を投入
  * - 期待結果: デフォルト値が除外されたクリーンなクエリ文字列が生成され、等価性判定が正確に行われること
- * - 関連文書: TC-0019, REQ-0024, SPEC-0019
+ * - 関連文書: TC-ITb-0015, REQ-0024, SPEC-0019
  */
-test('TC-0019: urlState - 状態オブジェクトからクリーンなクエリ文字列生成および等価性判定が正確に行われること', () => {
+test('TC-ITb-0015: urlState - 状態オブジェクトからクリーンなクエリ文字列生成および等価性判定が正確に行われること', () => {
   // 1. デフォルト状態はクリーンな空文字列になること
   const emptyQuery = serializeUrlState(DEFAULT_URL_STATE);
   assert.equal(emptyQuery, '', 'Default state should serialize to clean empty string');
@@ -130,9 +130,9 @@ test('TC-0019: urlState - 状態オブジェクトからクリーンなクエリ
  * - 対象: URL 状態および履歴更新分類の公開契約
  * - 条件: ホーム状態と検索条件変更の分類関数を呼び出す
  * - 期待結果: URL 状態の初期値と履歴更新分類が契約どおり返ること
- * - 関連文書: TC-0019, REQ-0023, REQ-0024, SPEC-0019, DSN-0010
+ * - 関連文書: TC-ITb-0015, REQ-0023, REQ-0024, SPEC-0019, DSN-0010
  */
-test('TC-0019: URL状態 - ホーム状態と検索条件変更の履歴更新分類契約', () => {
+test('TC-ITb-0015: URL状態 - ホーム状態と検索条件変更の履歴更新分類契約', () => {
   const home = getHomeUrlState();
   assert.deepEqual(home, DEFAULT_URL_STATE);
   assert.equal(
@@ -147,12 +147,12 @@ test('TC-0019: URL状態 - ホーム状態と検索条件変更の履歴更新�
 
 /**
  * 【テスト概要】
- * - 対象: V-model トレーサビリティ連鎖 (NEED-0008 -> REQ-0023, 0024 -> SPEC-0019 -> TC-0019)
+ * - 対象: V-model トレーサビリティ連鎖 (NEED-0008 -> REQ-0023, 0024 -> SPEC-0019 -> TC-ITb-0015)
  * - 条件: buildTraceWeaveReport を実行して有向グラフを検査
  * - 期待結果: 新設された要求・要件・仕様・テストケースの依存関係が正確に結合されていること
- * - 関連文書: TC-0019, NEED-0008, REQ-0023, REQ-0024, SPEC-0019
+ * - 関連文書: TC-ITb-0015, NEED-0008, REQ-0023, REQ-0024, SPEC-0019
  */
-test('TC-0019: トレーサビリティ連鎖 - NEED-0008 から REQ-0023, REQ-0024, SPEC-0019, TC-0019 の双方向追跡の検証', () => {
+test('TC-ITb-0015: トレーサビリティ連鎖 - NEED-0008 から REQ-0023, REQ-0024, SPEC-0019, TC-ITb-0015 の双方向追跡の検証', () => {
   const { graph } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
 
   // 1. NEED-0008
@@ -178,11 +178,11 @@ test('TC-0019: トレーサビリティ連鎖 - NEED-0008 から REQ-0023, REQ-0
   assert.ok(spec0019?.depends_on.includes('REQ-0023'), 'SPEC-0019 must depend on REQ-0023');
   assert.ok(spec0019?.depends_on.includes('REQ-0024'), 'SPEC-0019 must depend on REQ-0024');
 
-  // 4. TC-0019
-  const tc0019 = graph.getNode('TC-0019');
-  assert.ok(tc0019, 'TC-0019 must exist');
+  // 4. TC-ITb-0015
+  const tc0019 = graph.getNode('TC-ITb-0015');
+  assert.ok(tc0019, 'TC-ITb-0015 must exist');
   assert.equal(tc0019?.kind, 'test_case');
-  assert.ok(tc0019?.verifies?.includes('REQ-0023'), 'TC-0019 must verify REQ-0023');
-  assert.ok(tc0019?.verifies?.includes('REQ-0024'), 'TC-0019 must verify REQ-0024');
-  assert.ok(tc0019?.verifies?.includes('SPEC-0019'), 'TC-0019 must verify SPEC-0019');
+  assert.ok(tc0019?.verifies?.includes('REQ-0023'), 'TC-ITb-0015 must verify REQ-0023');
+  assert.ok(tc0019?.verifies?.includes('REQ-0024'), 'TC-ITb-0015 must verify REQ-0024');
+  assert.ok(tc0019?.verifies?.includes('SPEC-0019'), 'TC-ITb-0015 must verify SPEC-0019');
 });

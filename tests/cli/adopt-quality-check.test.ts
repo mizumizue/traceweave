@@ -16,7 +16,7 @@ test('checkAdoptQuality - adopt 直後の品質キットが必須ファイルと
     const result = checkAdoptQuality(tempBaseDir);
     assert.equal(result.passed, true, result.errors.join('; '));
     assert.ok(
-      result.warnings.some((w) => w.includes('TC-0001') || w.includes('test files')),
+      result.warnings.some((w) => w.includes('TC-UT-0001') || w.includes('test files')),
       `expected customization warnings, got: ${result.warnings.join('; ')}`
     );
   } finally {
@@ -29,7 +29,7 @@ test('checkAdoptQuality - 品質キット未配備のディレクトリは不合
   try {
     const result = checkAdoptQuality(tempBaseDir);
     assert.equal(result.passed, false);
-    assert.ok(result.errors.some((e) => e.includes('TC-0002.md')));
+    assert.ok(result.errors.some((e) => e.includes('TC-UT-0002.md')));
   } finally {
     fs.rmSync(tempBaseDir, { recursive: true, force: true });
   }

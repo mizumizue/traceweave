@@ -1,0 +1,35 @@
+---
+schema_version: 3
+id: TC-ITb-0027
+kind: test_case
+title: CLI catalog 要件区分統計の外部結合検証
+status: accepted
+created: '2026-09-14'
+updated: '2026-09-14'
+scope: local
+test_level: integration_external
+test_method: api_contract
+verifies:
+  - REQ-0026
+  - REQ-0027
+  - SPEC-0021
+depends_on: []
+tags:
+  - strata
+  - high-criticality
+links: []
+---
+## Content
+
+### Objective
+CLI catalog が要件区分統計を JSON で返す。
+
+### Preconditions
+テストランナーが利用可能であること。
+
+### Steps
+1. 対象モジュールに入力を与え、契約どおりの出力を取得する。
+2. 期待される属性・件数・状態を検査する。
+
+### Expected Results
+- 各検査項目が契約どおりに満たされること。

@@ -9,9 +9,9 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 対象: binラッパースクリプト群およびクリーンルート規約
  * - 条件: bin/ 配下のラッパーファイル、NODE_PATH設定ロジック、およびルート直下の資材構成を検査
  * - 期待結果: ルートに node_modules や dist が存在せず、bin/traceweave ラッパー経由で依存関係が透過的に解決される構成であること
- * - 関連文書: TC-0030, ADR-0005
+ * - 関連文書: TC-ITb-0021, ADR-0005
  */
-test('TC-0030: クリーンルート規約およびbinラッパー構成の外部結合検証', () => {
+test('TC-ITb-0021: クリーンルート規約およびbinラッパー構成の外部結合検証', () => {
   const rootDir = repositoryPath();
 
   // 1. Root remains free of generated/dependency directories.

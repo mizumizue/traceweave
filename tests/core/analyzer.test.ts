@@ -12,9 +12,9 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 対象: BalanceAnalyzer (テスト層充足度・密度分析)
  * - 条件: 高重要度REQ(unit=2, itA=1, sys=1, uat=1)および中重要度REQ(unit=1)のモックデータを渡して analyzeStrata を実行
  * - 期待結果: unit層のカバレッジ率が 1.0 (density: 'heavy')、integration_external層のカバレッジ率が 0.0 (density: 'missing') と正しく判定されること
- * - 関連文書: TC-0003, REQ-0003
+ * - 関連文書: TC-ITb-0001, REQ-0003
  */
-test('TC-0003: BalanceAnalyzer - 各テスト層のカバレッジ率および密度判定（heavy/missing等）が正しく計算されること', () => {
+test('TC-ITb-0001: BalanceAnalyzer - 各テスト層のカバレッジ率および密度判定（heavy/missing等）が正しく計算されること', () => {
   const analyzer = new BalanceAnalyzer();
   const unitCoverage = {
     status: 'available' as const,
@@ -88,9 +88,9 @@ test('TC-0003: BalanceAnalyzer - 各テスト層のカバレッジ率および�
  *   3. 結合テスト中心で全工程が揃った健全トロフィー（Healthy Trophy）データを投入
  *   4. 結合偏重かつシステムテスト欠落・単体僅少の不均衡（Unbalanced）データを投入
  * - 期待結果: それぞれ 'inverted_ice_cream', 'hollow_hourglass', 'healthy_trophy', 'unbalanced' として検出され、適切な警告・推奨メッセージが出力されること
- * - 関連文書: TC-0003, REQ-0003
+ * - 関連文書: TC-ITb-0001, REQ-0003
  */
-test('TC-0003: BalanceAnalyzer - 逆アイスクリームコーン型、中間空洞化、健全トロフィー型、不均衡・工程欠落型を正確に検知できること', () => {
+test('TC-ITb-0001: BalanceAnalyzer - 逆アイスクリームコーン型、中間空洞化、健全トロフィー型、不均衡・工程欠落型を正確に検知できること', () => {
   const analyzer = new BalanceAnalyzer();
   const graph = new TraceGraph();
 
@@ -153,9 +153,9 @@ test('TC-0003: BalanceAnalyzer - 逆アイスクリームコーン型、中間�
  * - 対象: BalanceAnalyzer (実行合格フィルタ・未テスト SPEC 警告区分)
  * - 条件: 実行合格 TC のみ紐づく SPEC、文書のみ（pending）TC のみ紐づく SPEC、TC 未紐付け SPEC を含むグラフ
  * - 期待結果: analyzeStrata は passed のみ集計し、diagnosePyramid は文書未紐付けと実行合格なしを別警告で出力すること
- * - 関連文書: REQ-0002, TC-0003
+ * - 関連文書: REQ-0002, TC-ITb-0001
  */
-test('TC-0003: BalanceAnalyzer - 実行合格 TC のみを工程集計し、文書のみと実行合格なしを区別して警告すること', () => {
+test('TC-ITb-0001: BalanceAnalyzer - 実行合格 TC のみを工程集計し、文書のみと実行合格なしを区別して警告すること', () => {
   const analyzer = new BalanceAnalyzer();
   const graph = new TraceGraph();
 
@@ -211,9 +211,9 @@ test('TC-0003: BalanceAnalyzer - 実行合格 TC のみを工程集計し、文�
   assert.ok(pyramid.warnings.some(w => w.includes('実行合格のテストケースがない') && w.includes('SPEC-DOC')));
 });
 
-test('TC-0003: BalanceAnalyzer - 外部パラメータセットの全診断パターンが実行結果と一致すること', () => {
+test('TC-ITb-0001: BalanceAnalyzer - 外部パラメータセットの全診断パターンが実行結果と一致すること', () => {
   const dataset = JSON.parse(
-    fs.readFileSync(repositoryPath('fixtures/test-cases/TC-0011.json'), 'utf8')
+    fs.readFileSync(repositoryPath('fixtures/test-cases/TC-ITb-0008.json'), 'utf8')
   );
   const result = TestRunnerRegistry.runDataset(dataset);
   assert.equal(result.total, 5);

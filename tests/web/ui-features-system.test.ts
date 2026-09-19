@@ -11,9 +11,9 @@ import { filterMatrixRows, serializeMatrixCsv, serializeMatrixJson } from '../..
  * - 対象: Web UIインタラクティブ機能総合検証（モーダル履歴・立体ピラミッド連動・多軸フィルターエクスポート）
  * - 条件: モーダル履歴、ピラミッド指標、フィルター、エクスポートの公開契約およびトレーサビリティ連鎖を検証
  * - 期待結果: 公開契約が期待値を返し、REQ-0013/0014/0015およびSPEC-0013/0014/0015の追跡性が確立していること
- * - 関連文書: TC-0024, REQ-0013, REQ-0014, REQ-0015, SPEC-0013, SPEC-0014, SPEC-0015
+ * - 関連文書: TC-ST-0001, REQ-0013, REQ-0014, REQ-0015, SPEC-0013, SPEC-0014, SPEC-0015
  */
-test('TC-0024: Web UIインタラクティブ機能（モーダル履歴・立体ピラミッド連動・多軸フィルターエクスポート）の総合検証', () => {
+test('TC-ST-0001: Web UIインタラクティブ機能（モーダル履歴・立体ピラミッド連動・多軸フィルターエクスポート）の総合検証', () => {
   const { graph, report } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
   let history = appendModalHistory({ history: ['REQ-0013'], index: 0 }, 'SPEC-0013');
   history = moveModalHistory(history, 'back');
@@ -50,9 +50,9 @@ test('TC-0024: Web UIインタラクティブ機能（モーダル履歴・立�
   assert.ok(spec0015, 'SPEC-0015 must exist in the graph');
   assert.deepEqual(spec0015?.depends_on, ['REQ-0015']);
 
-  // TC-0024 verification
-  const tc0024 = graph.getNode('TC-0024');
-  assert.ok(tc0024, 'TC-0024 must exist in the graph');
+  // TC-ST-0001 verification
+  const tc0024 = graph.getNode('TC-ST-0001');
+  assert.ok(tc0024, 'TC-ST-0001 must exist in the graph');
   assert.ok(tc0024?.verifies?.includes('REQ-0013'));
   assert.ok(tc0024?.verifies?.includes('REQ-0014'));
   assert.ok(tc0024?.verifies?.includes('REQ-0015'));

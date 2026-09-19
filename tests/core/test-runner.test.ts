@@ -9,22 +9,22 @@ import { repositoryPath } from '../helpers/repo-path.js';
 /**
  * 【テスト概要】
  * - 対象: TestRunnerRegistry (データ駆動テストのバッチ実行)
- * - 条件: 外部フィクスチャファイル (fixtures/test-cases/TC-0010.json) から5パターン以上のデータセットをロードして runDataset を実行
+ * - 条件: 外部フィクスチャファイル (fixtures/test-cases/TC-ITb-0007.json) から5パターン以上のデータセットをロードして runDataset を実行
  * - 期待結果: 全事前定義パターンが passed となり、failed が 0 件、実行ログとミリ秒単位の所要時間が得られること
- * - 関連文書: TC-0010, REQ-0008, SPEC-0008
+ * - 関連文書: TC-ITb-0007, REQ-0008, SPEC-0008
  */
-test('TC-0010: TestRunnerRegistry - 外部パラメータファイルからデータセットを読み込み、事前定義全パターンのバッチ実行が合格すること', () => {
-  const fixturePath = repositoryPath('fixtures/test-cases/TC-0010.json');
-  assert.ok(fs.existsSync(fixturePath), 'Fixture file TC-0010.json should exist');
+test('TC-ITb-0007: TestRunnerRegistry - 外部パラメータファイルからデータセットを読み込み、事前定義全パターンのバッチ実行が合格すること', () => {
+  const fixturePath = repositoryPath('fixtures/test-cases/TC-ITb-0007.json');
+  assert.ok(fs.existsSync(fixturePath), 'Fixture file TC-ITb-0007.json should exist');
 
   const dataset: TestCaseDataset = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
-  assert.equal(dataset.testCaseId, 'TC-0010');
+  assert.equal(dataset.testCaseId, 'TC-ITb-0007');
   assert.ok(dataset.patterns.length >= 5, 'Should have at least 5 parameter combinations');
 
-  // TC-0010 は UI 実行対象外のため、同一ロジックの TC-0002 ハンドラでパターンを検証する
+  // TC-ITb-0007 は UI 実行対象外のため、同一ロジックの TC-UT-0002 ハンドラでパターンを検証する
   const results = dataset.patterns.map(pattern =>
     TestRunnerRegistry.runTest({
-      testCaseId: 'TC-0002',
+      testCaseId: 'TC-UT-0002',
       inputs: pattern.inputs,
       expected: pattern.expected,
     })
@@ -48,12 +48,12 @@ test('TC-0010: TestRunnerRegistry - 外部パラメータファイルからデ�
  *   1. 期待値と実測値が一致する正常入力パラメータを投入
  *   2. 実測値(30点)と異なる誤った期待値(100点)を指定した不一致パラメータを投入
  * - 期待結果: 正常系では passed (isMatch: true) となり、不一致系では厳格に failed (isMatch: false) と判定されること
- * - 関連文書: TC-0010, REQ-0008, REQ-0009, SPEC-0008
+ * - 関連文書: TC-ITb-0007, REQ-0008, REQ-0009, SPEC-0008
  */
-test('TC-0010: TestRunnerRegistry - 手動入力パラメータによるテスト実行と期待値不一致（mismatch）の厳格な検知ができること', () => {
+test('TC-ITb-0007: TestRunnerRegistry - 手動入力パラメータによるテスト実行と期待値不一致（mismatch）の厳格な検知ができること', () => {
   // 1. Valid custom input matching expected
   const validRun = TestRunnerRegistry.runTest({
-    testCaseId: 'TC-0002',
+    testCaseId: 'TC-UT-0002',
     inputs: {
       criticality: 'high',
       phaseCounts: {
@@ -77,7 +77,7 @@ test('TC-0010: TestRunnerRegistry - 手動入力パラメータによるテス�
 
   // 2. Mismatch detection (User specifies wrong expected)
   const mismatchRun = TestRunnerRegistry.runTest({
-    testCaseId: 'TC-0002',
+    testCaseId: 'TC-UT-0002',
     inputs: {
       criticality: 'high',
       phaseCounts: { unit: 1, integration_internal: 0, integration_external: 0, system: 0, acceptance: 0 },
@@ -95,27 +95,27 @@ test('TC-0010: TestRunnerRegistry - 手動入力パラメータによるテス�
 /**
  * 【テスト概要】
  * - 対象: TestRunnerRegistry (UI実行可否フィルタリングおよび非単純I/Oテストの除外保護)
- * - 条件: 純粋計算テスト(TC-0010, TC-0011等)と外部環境依存テスト(TC-0004, TC-0005等)の実行可否を確認し、除外テストの実行を試行
+ * - 条件: 純粋計算テスト(TC-ITb-0007, TC-ITb-0008等)と外部環境依存テスト(TC-ITb-0002, TC-ITb-0003等)の実行可否を確認し、除外テストの実行を試行
  * - 期待結果: 純粋計算テストのみ isExecutable: true となり、除外テストは実行拒否 (status: 'error') されること
- * - 関連文書: TC-0010, REQ-0008, REQ-0009, SPEC-0008
+ * - 関連文書: TC-ITb-0007, REQ-0008, REQ-0009, SPEC-0008
  */
-test('TC-0010: TestRunnerRegistry - 外部環境依存テスト（非単純I/O）のUI実行除外および不一致検知が正しく行われること', () => {
+test('TC-ITb-0007: TestRunnerRegistry - 外部環境依存テスト（非単純I/O）のUI実行除外および不一致検知が正しく行われること', () => {
   // 1. Pure calculation tests are executable
-  assert.equal(TestRunnerRegistry.has('TC-0010'), false, 'TC-0010 has external parameter_file and is excluded from UI');
-  assert.equal(TestRunnerRegistry.has('TC-0011'), true);
-  assert.equal(TestRunnerRegistry.has('TC-0002'), true);
-  assert.equal(TestRunnerRegistry.has('TC-0003'), true);
+  assert.equal(TestRunnerRegistry.has('TC-ITb-0007'), false, 'TC-ITb-0007 has external parameter_file and is excluded from UI');
+  assert.equal(TestRunnerRegistry.has('TC-ITb-0008'), true);
+  assert.equal(TestRunnerRegistry.has('TC-UT-0002'), true);
+  assert.equal(TestRunnerRegistry.has('TC-ITb-0001'), true);
 
   // 2. Integration / E2E / CLI tests requiring external env are excluded from UI execution
-  assert.equal(TestRunnerRegistry.has('TC-0004'), false, 'Storage test must be excluded from UI execution');
-  assert.equal(TestRunnerRegistry.has('TC-0005'), false, 'CLI test must be excluded from UI execution');
-  assert.equal(TestRunnerRegistry.has('TC-0006'), false, 'Build test must be excluded from UI execution');
-  assert.equal(TestRunnerRegistry.has('TC-0007'), false, 'Dogfooding test must be excluded from UI execution');
+  assert.equal(TestRunnerRegistry.has('TC-ITb-0002'), false, 'Storage test must be excluded from UI execution');
+  assert.equal(TestRunnerRegistry.has('TC-ITb-0003'), false, 'CLI test must be excluded from UI execution');
+  assert.equal(TestRunnerRegistry.has('TC-ITb-0004'), false, 'Build test must be excluded from UI execution');
+  assert.equal(TestRunnerRegistry.has('TC-UAT-0001'), false, 'Dogfooding test must be excluded from UI execution');
   assert.equal(TestRunnerRegistry.has('UNKNOWN-TC'), false);
 
   // 3. Attempting to run excluded test returns status: 'error' with clear exclusion reason
   const excludedRun = TestRunnerRegistry.runTest({
-    testCaseId: 'TC-0004',
+    testCaseId: 'TC-ITb-0002',
     inputs: { test: true },
     expected: { success: true },
   });
@@ -123,9 +123,9 @@ test('TC-0010: TestRunnerRegistry - 外部環境依存テスト（非単純I/O�
   assert.equal(excludedRun.isMatch, false);
   assert.ok(excludedRun.error?.includes('UI実行に対応していません'));
 
-  // 4. Mismatch detection on executable test case (TC-0011)
+  // 4. Mismatch detection on executable test case (TC-ITb-0008)
   const mismatchRun = TestRunnerRegistry.runTest({
-    testCaseId: 'TC-0011',
+    testCaseId: 'TC-ITb-0008',
     inputs: { unit: 2, integration_internal: 0, integration_external: 0, system: 10, acceptance: 30 },
     expected: { status: 'healthy', hasWarnings: false }, // actual is inverted_ice_cream
   });

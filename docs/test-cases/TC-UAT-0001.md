@@ -1,0 +1,43 @@
+---
+schema_version: 3
+id: TC-UAT-0001
+kind: test_case
+title: 全工程を通じた TraceWeave 自己ドッグフーディング受入検証
+status: accepted
+created: '2026-09-12'
+updated: '2026-09-12'
+scope: local
+test_level: acceptance
+test_method: exploratory_manual
+verifies:
+  - REQ-0001
+  - REQ-0002
+  - REQ-0003
+  - REQ-0004
+  - REQ-0005
+depends_on: []
+tags:
+  - test
+  - acceptance
+  - dogfooding
+links:
+  - UC-0001
+  - UC-0002
+---
+## Content
+
+### Objective
+TraceWeave 自身の `docs/` を用いて自作 CLI および Web ダッシュボードを実行し、自身が定義した要求・要件・仕様・設計・テストケースが美しいトレーサビリティマトリクスおよび地層ヒートマップとして閲覧できることを受入確認する。
+
+### Preconditions
+TraceWeave の全モジュール（Core, CLI, Web）がビルド済みであること。
+
+### Steps
+1. `npm --prefix src run lint` を実行し、自身の `docs/` にエラーがゼロ件であることを確認する。
+2. `npm --prefix src test` を実行し、単体・結合テストの結果を記録する。
+3. `npm --prefix src run build` を実行し、CLI と Web ダッシュボードの双方をビルドする。
+4. ブラウザでダッシュボードを表示し、マトリクスと工程地層を目視確認する（ブラウザ実行環境がある場合のみ）。
+
+### Expected Results
+- スキーマバリデーションが exit code 0 でパスすること。
+- 自動コマンドの結果が記録され、利用可能な場合はブラウザ上で自己トレーサビリティを確認できること。

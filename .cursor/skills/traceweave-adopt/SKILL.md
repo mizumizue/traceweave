@@ -61,7 +61,7 @@ Execute non-destructive overlay:
 ```bash
 ./bin/traceweave adopt "<targetDir>" --mode overlay
 ```
-1. Injects `docs/` V-Model skeleton (`NEED-0001`, `ACT-0001`, `UC-0001`, `REQ-0001`, `SPEC-0001`, `DSN-0001`, `ADR-0001`, `QA-0001`, `TC-0001`, `SYSTEM_OVERVIEW.md`) with detected project metadata.
+1. Injects `docs/` V-Model skeleton (`NEED-0001`, `ACT-0001`, `UC-0001`, `REQ-0001`, `SPEC-0001`, `DSN-0001`, `ADR-0001`, `QA-0001`, `TC-UT-0001`, `SYSTEM_OVERVIEW.md`) with detected project metadata.
 2. Injects transparent execution wrappers (`bin/traceweave`, `bin/traceweave.cmd`, `bin/traceweave.ps1`).
 3. Injects Cursor rules (`.cursor/rules/docs-document-schema.mdc`, `implementation-workflow.mdc`).
 
@@ -90,7 +90,7 @@ Prove that the adopted project satisfies all TraceWeave rules and the quality ad
    - `0 errors`
    - `PASS: Traceability and documentation checks passed successfully!`
 3. Verify quality kit files exist:
-   - `docs/test-cases/TC-0001.md` and `TC-0002.md` reference REQ-0001 AC-001 / AC-002
+   - `docs/test-cases/TC-UT-0001.md` and `TC-UT-0002.md` reference REQ-0001 AC-001 / AC-002
    - `docs/ADOPT_QUALITY_SETUP.md` (post-adopt checklist)
    - `scripts/traceweave-capture-test-report.mjs` (TC-xxxx report capture)
    - `.github/workflows/traceweave-governance.yml` (CI: check + tests + strict)
@@ -101,7 +101,7 @@ Prove that the adopted project satisfies all TraceWeave rules and the quality ad
    ```
    Warnings about boilerplate TC text or missing `TC-xxxx` in test code are expected immediately after adopt. Resolve them per `docs/ADOPT_QUALITY_SETUP.md`.
 5. Run semantic test-case review (agent skill):
-   - Invoke `traceweave-test-case-review` on `TC-0001` and `TC-0002` until REVISE findings are cleared.
+   - Invoke `traceweave-test-case-review` on `TC-UT-0001` and `TC-UT-0002` until REVISE findings are cleared.
 6. If validation fails and cannot be resolved immediately, execute rollback:
    ```bash
    ./bin/traceweave adopt "<targetDir>" --rollback "<backupDir>"

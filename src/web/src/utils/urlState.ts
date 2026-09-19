@@ -5,8 +5,12 @@
  * 双方向同期およびブラウザ履歴スタック制御を提供する。
  */
 
+import type { TestLevel } from '../../../core/models/types.js';
+
 export type TraceabilityView = 'matrix' | 'graph';
-export type AppTab = 'traceability' | 'stratum' | 'unit' | 'decisions' | 'gaps';
+export type AppTab = 'traceability' | 'stratum' | 'testbooks' | 'decisions' | 'gaps';
+
+export type TestBookLevel = TestLevel;
 
 /** @deprecated Legacy tab values accepted in URLs for backward compatibility */
 const LEGACY_TRACEABILITY_TABS = ['matrix', 'graph'] as const;
@@ -25,11 +29,27 @@ export interface AppUrlState {
   catalogTag: string | null;
   catalogStatus: string;
   graphHighlight: GraphHighlightMode;
+  /** Active stratum when tab=testbooks (query: book=) */
+  testBookLevel: TestBookLevel | null;
 }
 
 export type GraphHighlightMode = 'all' | 'upstream' | 'downstream';
 
-export const VALID_TABS: readonly AppTab[] = ['traceability', 'stratum', 'unit', 'decisions', 'gaps'] as const;
+export const VALID_TABS: readonly AppTab[] = [
+  'traceability',
+  'stratum',
+  'testbooks',
+  'decisions',
+  'gaps',
+] as const;
+
+export const VALID_TEST_BOOK_LEVELS: readonly TestBookLevel[] = [
+  'unit',
+  'integration_internal',
+  'integration_external',
+  'system',
+  'acceptance',
+] as const;
 export const VALID_TRACEABILITY_VIEWS: readonly TraceabilityView[] = ['matrix', 'graph'] as const;
 export const VALID_GRAPH_HIGHLIGHTS: readonly GraphHighlightMode[] = ['all', 'upstream', 'downstream'] as const;
 export const VALID_CRITICALITIES = ['all', 'high', 'medium', 'low'] as const;
@@ -72,6 +92,7 @@ export const DEFAULT_URL_STATE: AppUrlState = {
   catalogTag: null,
   catalogStatus: 'all',
   graphHighlight: 'all',
+  testBookLevel: null,
 };
 
 export function getHomeUrlState(): AppUrlState {
@@ -89,6 +110,9 @@ function parseTraceabilityView(rawView: string | null, legacyTab?: string | null
 }
 
 function parseTab(rawTab: string | null): AppTab {
+  if (rawTab === 'unit') {
+    return 'testbooks';
+  }
   if (rawTab && (VALID_TABS as readonly string[]).includes(rawTab)) {
     return rawTab as AppTab;
   }
@@ -159,6 +183,15 @@ export function parseUrlState(queryOrUrl?: string): AppUrlState {
   const rawUnitFile = params.get('ucfile');
   const unitCoverageFile = rawUnitFile && rawUnitFile.trim() ? rawUnitFile.trim() : null;
 
+  const rawBook = params.get('book');
+  let testBookLevel: TestBookLevel | null =
+    rawBook && (VALID_TEST_BOOK_LEVELS as readonly string[]).includes(rawBook)
+      ? (rawBook as TestBookLevel)
+      : null;
+  if (tab === 'testbooks' && rawTab === 'unit' && !testBookLevel) {
+    testBookLevel = 'unit';
+  }
+
   return {
     tab,
     traceabilityView,
@@ -173,6 +206,7 @@ export function parseUrlState(queryOrUrl?: string): AppUrlState {
     catalogTag,
     catalogStatus,
     graphHighlight,
+    testBookLevel,
   };
 }
 
@@ -236,8 +270,12 @@ export function serializeUrlState(state: Partial<AppUrlState>): string {
     params.set('highlight', merged.graphHighlight);
   }
 
-  if (merged.tab === 'unit' && merged.unitCoverageFile) {
+  if (merged.tab === 'testbooks' && merged.unitCoverageFile) {
     params.set('ucfile', merged.unitCoverageFile);
+  }
+
+  if (merged.tab === 'testbooks' && merged.testBookLevel) {
+    params.set('book', merged.testBookLevel);
   }
 
   const query = params.toString();
@@ -279,7 +317,8 @@ export function isUrlStateEqual(a: AppUrlState, b: AppUrlState): boolean {
     a.catalogKind === b.catalogKind &&
     a.catalogTag === b.catalogTag &&
     a.catalogStatus === b.catalogStatus &&
-    a.graphHighlight === b.graphHighlight
+    a.graphHighlight === b.graphHighlight &&
+    a.testBookLevel === b.testBookLevel
   );
 }
 

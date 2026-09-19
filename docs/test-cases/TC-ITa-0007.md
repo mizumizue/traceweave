@@ -1,0 +1,36 @@
+---
+schema_version: 3
+id: TC-ITa-0007
+kind: test_case
+title: 実ドキュメントカタログ統計の内部結合検証
+status: accepted
+created: '2026-09-14'
+updated: '2026-09-14'
+scope: local
+test_level: integration_internal
+test_method: scenario
+verifies:
+  - REQ-0017
+  - REQ-0018
+  - REQ-0019
+  - SPEC-0017
+depends_on: []
+tags:
+  - strata
+  - high-criticality
+links: []
+---
+## Content
+
+### Objective
+実 docs/ のカタログ統計が内部結合で整合する。
+
+### Preconditions
+テストランナーが利用可能であること。
+
+### Steps
+1. 対象モジュールに入力を与え、契約どおりの出力を取得する。
+2. 期待される属性・件数・状態を検査する。
+
+### Expected Results
+- 各検査項目が契約どおりに満たされること。

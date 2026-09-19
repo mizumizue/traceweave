@@ -53,10 +53,17 @@ export function createPyramidLayerClickHandler(onFilterPhase: (phase: TestLevel)
 interface VisualTestPyramidProps {
   strata: StratumReport[];
   pyramid: PyramidHealthReport;
+  /** Opens the stratum test book section for this level (preferred). */
+  onStratumFocus?: (phase: TestLevel) => void;
   onFilterPhase?: (phase: string) => void;
 }
 
-export function VisualTestPyramid({ strata, pyramid, onFilterPhase }: VisualTestPyramidProps) {
+export function VisualTestPyramid({
+  strata,
+  pyramid,
+  onStratumFocus,
+  onFilterPhase,
+}: VisualTestPyramidProps) {
   // Map strata by level for fast lookup
   const strataMap = new Map<TestLevel, StratumReport>();
   let totalTests = 0;
@@ -67,9 +74,6 @@ export function VisualTestPyramid({ strata, pyramid, onFilterPhase }: VisualTest
 
   // Layers from top of pyramid to base (V-Model descending order)
   const pyramidLayers = PYRAMID_LAYERS;
-  const selectLayer = createPyramidLayerClickHandler((phase: TestLevel) => {
-    onFilterPhase?.(phase);
-  });
 
   const statusConfig = {
     healthy: {
@@ -135,10 +139,12 @@ export function VisualTestPyramid({ strata, pyramid, onFilterPhase }: VisualTest
     },
   };
 
-  const handleLayerClick = (level: string, label: string) => {
-    if (onFilterPhase) {
-      selectLayer(level as TestLevel);
+  const handleLayerClick = (level: TestLevel) => {
+    if (onStratumFocus) {
+      onStratumFocus(level);
+      return;
     }
+    onFilterPhase?.(level);
   };
 
   return (
@@ -180,7 +186,7 @@ export function VisualTestPyramid({ strata, pyramid, onFilterPhase }: VisualTest
               <span>テストピラミッド層別ボリューム & 品質指標</span>
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              単体は関数カバー率、内結〜受入は要件カバー率を表示します。各層をクリックするとマトリクスを絞り込みます。
+              単体は関数カバー率、内結〜受入は要件カバー率を表示します。各層をクリックすると「テスト仕様・結果」タブへ移動します。
             </p>
           </div>
           <span className="text-xs font-mono text-slate-500 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
@@ -210,7 +216,7 @@ export function VisualTestPyramid({ strata, pyramid, onFilterPhase }: VisualTest
               <div
                 key={layer.level}
                 style={{ width: `${layer.widthPercent}%` }}
-                onClick={() => handleLayerClick(layer.level, data.label)}
+                onClick={() => handleLayerClick(layer.level)}
                 className={`group cursor-pointer transition-all duration-300 hover:scale-[1.01] hover:brightness-110 active:scale-[0.99] min-w-[280px] bg-gradient-to-r ${style.bg} border rounded-xl p-3 shadow-md flex items-center justify-between gap-3`}
                 title={`${data.label}: ${data.count}${countUnit} (${testPercent}%) - クリックで絞り込み`}
               >

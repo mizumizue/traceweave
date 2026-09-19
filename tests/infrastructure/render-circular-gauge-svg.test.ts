@@ -7,7 +7,7 @@ import { renderCircularGaugeSvg } from '../../src/core/visualization/renderCircu
  * - 対象: renderCircularGaugeSvg（SVG 円形ゲージ文字列レンダラ）
  * - 条件: 0% と 100% の充足率を指定
  * - 期待結果: stroke-dashoffset が契約どおり変化すること
- * - 関連文書: TC-0012, SPEC-0010
+ * - 関連文書: TC-UT-0003, SPEC-0010
  */
 test('renderCircularGaugeSvg - 0% と 100% で stroke-dashoffset が契約どおり変化すること', () => {
   const zero = renderCircularGaugeSvg({ value: 0, size: 40 });

@@ -1,0 +1,41 @@
+---
+schema_version: 3
+id: TC-ITb-0012
+kind: test_case
+title: リポジトリ依存関係配置とラッパー構成の確認
+status: accepted
+created: '2026-09-12'
+updated: '2026-09-12'
+scope: local
+test_level: integration_external
+test_method: scenario
+verifies:
+  - ADR-0005
+depends_on: []
+tags:
+  - e2e
+  - clean-root
+  - encapsulation
+  - node-modules
+  - dist
+  - bin-wrapper
+links:
+  - DSN-0007
+---
+## Content
+
+### Objective
+本ケースは実行時システム要件ではなく、リポジトリ構成に関する ADR/Chore の確認である。依存関係とラッパー配置が決定事項に沿うことだけを確認する。
+
+### Preconditions
+- `src/` 配下に `package.json` および `tsconfig.json` が配置され、依存関係が解決されていること。
+- `bin/traceweave`（POSIX bash / Windows cmd / ps1）が配置されていること。
+
+### Steps
+1. リポジトリルートで禁止された個別ビルド資材（`dist-web` 等）が存在しないことを検証する。
+2. `src/` 配下に `package.json`, `tsconfig.json` が存在することを確認する。
+3. `bin/` 配下に `traceweave` ラッパースクリプトが存在することを確認する。
+4. `bin/` 配下の POSIX / Windows ラッパーが配置されていることを確認する。
+
+### Expected Results
+- `src/` に依存関係と成果物が配置され、ラッパーが `src/node_modules` を参照する構成であること。

@@ -31,7 +31,7 @@ export function parseTapReportToResults(
     const errMatch = block.match(/error:\s*'?([^'\n]+)'?/);
     const errorMessage = isOk ? undefined : errMatch?.[1] ?? 'Test assertion failed';
 
-    const tcMatches = [...fullTitle.matchAll(/TC-\d{4}/g)].map(m => m[0]);
+    const tcMatches = [...fullTitle.matchAll(/TC-(?:UT|ITa|ITb|ST|UAT)-\d{4}/g)].map(m => m[0]);
     if (tcMatches.length === 0) continue;
 
     if (status === 'passed') passedCount += tcMatches.length;

@@ -10,7 +10,7 @@ import { TestReportLoader } from '../../src/infrastructure/testing/TestReportLoa
  * - 対象: TestReportLoader (テスト結果レポートローダー)
  * - 条件: 構造化されたテストレポートJSONが存在し、該当するTC-IDのノードと未実行のTC-IDのノードをマージ
  * - 期待結果: 該当TC-IDは status/actual_result/evidence_log/durationMs が動的に注入され、未実行TC-IDは pending に維持されること
- * - 関連文書: TC-0008, REQ-0007, SPEC-0006, ADR-0006
+ * - 関連文書: TC-ITb-0005, REQ-0007, SPEC-0006, ADR-0006
  */
 test('TestReportLoader - テスト結果レポートからTCノードへ動的に合否ステータス・実測値・生ログ証跡がマージされること', () => {
   const mockReport: TestResultsReport = {
@@ -20,22 +20,22 @@ test('TestReportLoader - テスト結果レポートからTCノードへ動的�
     failedCount: 1,
     skippedCount: 0,
     results: {
-      'TC-0001': {
-        testCaseId: 'TC-0001',
+      'TC-UT-0001': {
+        testCaseId: 'TC-UT-0001',
         status: 'passed',
         durationMs: 42.5,
-        testTitle: 'TC-0001: TraceGraph - 有向グラフ構築単体テスト',
-        outputLog: 'ok 1 - TC-0001 passed\nduration_ms: 42.5',
+        testTitle: 'TC-UT-0001: TraceGraph - 有向グラフ構築単体テスト',
+        outputLog: 'ok 1 - TC-UT-0001 passed\nduration_ms: 42.5',
         executedAt: new Date().toISOString(),
       },
-      'TC-0002': {
-        testCaseId: 'TC-0002',
+      'TC-UT-0002': {
+        testCaseId: 'TC-UT-0002',
         status: 'failed',
         durationMs: 15.2,
-        testTitle: 'TC-0002: SufficiencyScorer - 充足度計算テスト',
+        testTitle: 'TC-UT-0002: SufficiencyScorer - 充足度計算テスト',
         errorMessage: 'AssertionError: expected 100 to equal 50',
         errorStack: 'AssertionError: expected 100 to equal 50\n  at suff.test.ts:45',
-        outputLog: 'not ok 2 - TC-0002 failed',
+        outputLog: 'not ok 2 - TC-UT-0002 failed',
         executedAt: new Date().toISOString(),
       },
     },
@@ -43,7 +43,7 @@ test('TestReportLoader - テスト結果レポートからTCノードへ動的�
 
   const nodes: DocNode[] = [
     {
-      id: 'TC-0001',
+      id: 'TC-UT-0001',
       kind: 'test_case',
       title: 'TC 1',
       status: 'accepted',
@@ -56,7 +56,7 @@ test('TestReportLoader - テスト結果レポートからTCノードへ動的�
       content: 'test',
     },
     {
-      id: 'TC-0002',
+      id: 'TC-UT-0002',
       kind: 'test_case',
       title: 'TC 2',
       status: 'accepted',
@@ -69,7 +69,7 @@ test('TestReportLoader - テスト結果レポートからTCノードへ動的�
       content: 'test',
     },
     {
-      id: 'TC-0003',
+      id: 'TC-ITb-0001',
       kind: 'test_case',
       title: 'TC 3 (未実行)',
       status: 'accepted',
@@ -85,22 +85,22 @@ test('TestReportLoader - テスト結果レポートからTCノードへ動的�
 
   const merged = TestReportLoader.mergeReportIntoNodes(nodes, mockReport);
 
-  // TC-0001 (passed) の検証
-  const tc1 = merged.find(n => n.id === 'TC-0001')!;
+  // TC-UT-0001 (passed) の検証
+  const tc1 = merged.find(n => n.id === 'TC-UT-0001')!;
   assert.equal(tc1.execution_status, 'passed');
   assert.equal(tc1.execution_duration_ms, 42.5);
-  assert.equal(tc1.actual_result, mockReport.results!['TC-0001'].outputLog);
-  assert.equal(tc1.evidence_log, mockReport.results!['TC-0001'].outputLog);
+  assert.equal(tc1.actual_result, mockReport.results!['TC-UT-0001'].outputLog);
+  assert.equal(tc1.evidence_log, mockReport.results!['TC-UT-0001'].outputLog);
 
-  // TC-0002 (failed) の検証
-  const tc2 = merged.find(n => n.id === 'TC-0002')!;
+  // TC-UT-0002 (failed) の検証
+  const tc2 = merged.find(n => n.id === 'TC-UT-0002')!;
   assert.equal(tc2.execution_status, 'failed');
   assert.equal(tc2.execution_duration_ms, 15.2);
-  assert.equal(tc2.actual_result, mockReport.results!['TC-0002'].outputLog);
-  assert.equal(tc2.evidence_log, mockReport.results!['TC-0002'].outputLog);
+  assert.equal(tc2.actual_result, mockReport.results!['TC-UT-0002'].outputLog);
+  assert.equal(tc2.evidence_log, mockReport.results!['TC-UT-0002'].outputLog);
 
-  // TC-0003 (未実行) の検証
-  const tc3 = merged.find(n => n.id === 'TC-0003')!;
+  // TC-ITb-0001 (未実行) の検証
+  const tc3 = merged.find(n => n.id === 'TC-ITb-0001')!;
   assert.equal(tc3.execution_status, 'pending');
   assert.equal(tc3.actual_result, undefined);
   assert.equal(tc3.evidence_log, undefined);
@@ -112,12 +112,12 @@ test('TestReportLoader - テスト結果レポートからTCノードへ動的�
  * - 対象: TestReportLoader (レポート非存在時のフォールバック)
  * - 条件: report が null の状態で mergeReportIntoNodes を実行
  * - 期待結果: すべての test_case ノードの execution_status が pending となり、偽装値を持たないこと
- * - 関連文書: TC-0008, REQ-0007, ADR-0006
+ * - 関連文書: TC-ITb-0005, REQ-0007, ADR-0006
  */
 test('TestReportLoader - レポート非存在時に全テストケースが pending となり過去の結果で偽装されないこと', () => {
   const nodes: DocNode[] = [
     {
-      id: 'TC-0001',
+      id: 'TC-UT-0001',
       kind: 'test_case',
       title: 'TC 1',
       status: 'accepted',

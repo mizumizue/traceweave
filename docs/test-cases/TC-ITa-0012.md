@@ -1,0 +1,37 @@
+---
+schema_version: 3
+id: TC-ITa-0012
+kind: test_case
+title: ユースケース充足度の派生集計とレポート出力
+status: accepted
+created: '2026-09-19'
+updated: '2026-09-19'
+scope: local
+test_level: integration_internal
+test_method: scenario
+verifies:
+  - REQ-0032
+  - SPEC-0027
+depends_on: []
+tags:
+  - use-case
+  - sufficiency
+  - report
+links: []
+---
+## Content
+
+### Objective
+`UseCaseSufficiencyScorer` および `buildTraceWeaveReport` がユースケース充足度を正しく算出し、レポート JSON に含めることを検証する。
+
+### Preconditions
+テストランナーが利用可能であること。
+
+### Steps
+1. 合成グラフで未割当 UC と参照要件付き UC のスコアを検証する。
+2. 実 `docs/` でレポートを生成し、`useCases` 配列とサマリーフィールドを検査する。
+
+### Expected Results
+- 未割当 UC は `status: unassigned` でスコアを持たないこと。
+- 割当 UC は参照要件充足度の平均が `score` として 0〜100 で返ること。
+- 実ドキュメントレポートに `useCases` が 1 件以上含まれること。
