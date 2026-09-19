@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { repositoryPath } from '../helpers/repo-path.js';
+import { repositoryPath } from '../../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
@@ -11,7 +11,7 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 期待結果: 既存のindex.htmlおよびdata.jsonが存在し、要件定義・テストケース実測値（execution_status/actual_result）および円形ゲージ用スコアが含まれていること
  * - 関連文書: TC-ITb-0004, TC-ITb-0006, REQ-0006, REQ-0007, SPEC-0006, SPEC-0007
  */
-test('TC-ITb-0004 & TC-ITb-0006: Webダッシュボードビルド成果物および実測ペイロード外部契約を検証すること', () => {
+test('support: ITb-0004 / ITb-0006 — Webダッシュボードビルド成果物および実測ペイロード外部契約を検証すること', () => {
   const distWeb = fs.existsSync(repositoryPath('src/web/dist'))
     ? repositoryPath('src/web/dist')
     : repositoryPath('dist/web');

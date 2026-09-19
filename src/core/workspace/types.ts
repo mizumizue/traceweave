@@ -24,6 +24,8 @@ export interface TraceWeaveWorkspaceConfigFile {
   suites?: WorkspaceTestSuiteConfig[];
 }
 
+export type SuiteEvidenceTier = 'formal' | 'supplementary';
+
 export interface WorkspaceTestSuiteConfig {
   id: string;
   label?: string;
@@ -31,6 +33,10 @@ export interface WorkspaceTestSuiteConfig {
   run: string;
   capture?: SuiteCaptureMode;
   fragment?: string;
+  /** formal (default): merges into aggregate test-results. supplementary: harness only (ADR-0011). */
+  evidenceTier?: SuiteEvidenceTier;
+  /** Relative to workspace root; node-test-tap only. Default: tests/ with support/e2e excluded. */
+  testsDir?: string;
 }
 
 export interface ResolvedWorkspace {
@@ -53,4 +59,6 @@ export interface ResolvedTestSuite {
   run: string;
   capture: SuiteCaptureMode;
   fragmentPath: string | null;
+  evidenceTier: SuiteEvidenceTier;
+  testsDir: string | null;
 }

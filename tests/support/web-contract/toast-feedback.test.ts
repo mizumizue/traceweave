@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildTraceWeaveReport } from '../../src/application/build-report.js';
-import { repositoryPath } from '../helpers/repo-path.js';
+import { buildTraceWeaveReport } from '../../../src/application/build-report.js';
+import { repositoryPath } from '../../helpers/repo-path.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const appSource = fs.readFileSync(
-  path.resolve(__dirname, '../../src/web/src/App.tsx'),
+  path.resolve(__dirname, '../../../src/web/src/App.tsx'),
   'utf8'
 );
 
@@ -20,7 +20,7 @@ const appSource = fs.readFileSync(
  * - 期待結果: Toaster がルートに常駐マウントされ、REQ-0012 / SPEC-0012 / TC-ITb-0025 の追跡関係が成立していること
  * - 関連文書: TC-ITb-0025, REQ-0012, SPEC-0012
  */
-test('TC-ITb-0025: トースト基盤 - ルートコンポーネントに Toaster が契約どおりマウントされていること', () => {
+test('support: ITb-0025: トースト基盤 - ルートコンポーネントに Toaster が契約どおりマウントされていること', () => {
   assert.match(appSource, /<Toaster/);
   assert.match(appSource, /position="bottom-right"/);
   assert.match(appSource, /theme="dark"/);
@@ -34,7 +34,7 @@ test('TC-ITb-0025: トースト基盤 - ルートコンポーネントに Toaste
  * - 期待結果: REQ-0012, SPEC-0012, TC-ITb-0025 がグラフに存在し、仕様・検証の依存関係が正しく確立していること
  * - 関連文書: TC-ITb-0025, REQ-0012, SPEC-0012
  */
-test('TC-ITb-0025: トレーサビリティ連鎖 - REQ-0012 から SPEC-0012 および TC-ITb-0025 の追跡関係の検証', () => {
+test('support: ITb-0025: トレーサビリティ連鎖 - REQ-0012 から SPEC-0012 および TC-ITb-0025 の追跡関係の検証', () => {
   const { graph } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
 
   const req0012 = graph.getNode('REQ-0012');

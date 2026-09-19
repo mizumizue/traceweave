@@ -120,13 +120,13 @@ traceweave/
 | 軸 | フィールド / 配置 | 意味 |
 |---|---|---|
 | **工程層（V 字モデル上の検証層）** | TC フロントマターの `test_level`（`unit` / `integration_internal` / `integration_external` / `system` / `acceptance`）および `test_method` | その TC が**どの工程・手法で要件を検証するか**を文書化する。ピラミッド健全性・地層密度の集計はこの軸を使う。 |
-| **実行レイヤ（自動テストの実装配置）** | `tests/core/`, `tests/infrastructure/`, `tests/cli/`, `tests/web/` 等 | Node.js テストスイートの**技術的な実行単位**。同一 TC が `tests/core/` に置かれていても、検証対象が CLI 契約であれば `test_level: integration_external` と記述できます。 |
+| **実行レイヤ（自動テストの実装配置）** | `tests/core/`, `tests/application/`, `tests/cli/`, `tests/e2e/`, `tests/support/` 等 | Node / Playwright の技術配置。`tests/support/` は supplementary（`reports/test-results.json` にマージしない）。`tests/e2e/` はブラウザ formal（ADR-0011）。 |
 
 **運用ルール**
 
 - TC 文書の `test_level` は「テストファイルのフォルダ名」ではなく「検証する工程」を表します。
 - 自動テストの配置は `.cursor/rules/test-writing-guidelines.mdc` および `traceweave-test-fixture` スキルの判定マトリクスに従います。
-- 合否は TC 文書に書かず、`reports/test-results.json`（ADR-0006）のみを正本とします。
+- 合否は TC 文書に書かず、`reports/test-results.json`（ADR-0006）のみを正本とします。形式証跡はタイトル行頭 `TC-xxxx:` と `evidenceTier: formal` スイートのみが更新します（ADR-0011 / `traceweave-verification-tiers` スキル）。
 
 ---
 
@@ -136,8 +136,14 @@ traceweave/
 # ドキュメントスキーマの検証
 ./src/node_modules/.bin/tsx scripts/validate-docs.ts
 
-# 全テストの実行（Web ビルドおよび全テストスイート）
+# 全テストの実行（Web ビルド、Node formal、support ハーネス、E2E、Newman）
 npm --prefix src test
+
+# ブラウザ未導入環境（E2E のみスキップ）
+TW_SKIP_E2E=1 npm --prefix src test
+
+# Playwright 初回セットアップ（src/ で依存インストール後）
+npx --prefix src playwright install chromium
 
 # CLI の実行（ルートから透過実行）
 ./bin/traceweave check

@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTraceWeaveReport } from '../../src/application/build-report.js';
-import { repositoryPath } from '../helpers/repo-path.js';
-import { TraceabilityGraphBuilder } from '../../src/core/graph/TraceabilityGraphBuilder.js';
+import { buildTraceWeaveReport } from '../../../src/application/build-report.js';
+import { repositoryPath } from '../../helpers/repo-path.js';
+import { TraceabilityGraphBuilder } from '../../../src/core/graph/TraceabilityGraphBuilder.js';
 
 /**
  * 【テスト概要】
@@ -11,7 +11,7 @@ import { TraceabilityGraphBuilder } from '../../src/core/graph/TraceabilityGraph
  * - 期待結果: 描画ノードとハイライト状態が契約どおり生成され、NEED-0007からTC-ITb-0014までのトレーサビリティが結合されていること
  * - 関連文書: TC-ITb-0014, REQ-0020, REQ-0021, REQ-0022, SPEC-0018
  */
-test('TC-ITb-0014: トレーサビリティグラフ - レイアウトと選択ノードのハイライト契約検証', () => {
+test('support: ITb-0014: トレーサビリティグラフ - レイアウトと選択ノードのハイライト契約検証', () => {
   const { graph, nodes } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
   const graphData = TraceabilityGraphBuilder.buildGraph(nodes, { selectedNodeId: 'REQ-0020' });
   assert.ok(graphData.nodes.length > 0);

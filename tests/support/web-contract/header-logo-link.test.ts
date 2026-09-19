@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTraceWeaveReport } from '../../src/application/build-report.js';
-import { repositoryPath } from '../helpers/repo-path.js';
-import { getHeaderLinkContract, shouldUseInternalNavigation } from '../../src/web/src/components/Header.js';
-import { getHomeUrlState, parseUrlState, serializeUrlState, DEFAULT_URL_STATE } from '../../src/web/src/utils/urlState.js';
+import { buildTraceWeaveReport } from '../../../src/application/build-report.js';
+import { repositoryPath } from '../../helpers/repo-path.js';
+import { getHeaderLinkContract, shouldUseInternalNavigation } from '../../../src/web/src/components/Header.js';
+import { getHomeUrlState } from '../../../src/web/src/utils/urlState.js';
 
 /**
  * 【テスト概要】
@@ -12,7 +12,7 @@ import { getHomeUrlState, parseUrlState, serializeUrlState, DEFAULT_URL_STATE } 
  * - 期待結果: ルートへの href、アクセシビリティ属性、修飾キー判定が契約どおり返ること
  * - 関連文書: TC-ITb-0016, REQ-0025, SPEC-0020
  */
-test('TC-ITb-0016: Header - ロゴリンク契約がルート先・修飾キー判定・アクセシビリティを満たすこと', () => {
+test('support: ITb-0016: Header - ロゴリンク契約がルート先・修飾キー判定・アクセシビリティを満たすこと', () => {
   assert.deepEqual(getHeaderLinkContract(), {
     href: '/',
     ariaLabel: 'TraceWeave ホームへ戻る',
@@ -29,7 +29,7 @@ test('TC-ITb-0016: Header - ロゴリンク契約がルート先・修飾キー�
  * - 期待結果: タブ・ノード・フィルターが初期状態にリセットされること
  * - 関連文書: TC-ITb-0016, REQ-0025, SPEC-0020
  */
-test('TC-ITb-0016: ホーム状態契約 - ヘッダーロゴ遷移先の初期状態が返ること', () => {
+test('support: ITb-0016: ホーム状態契約 - ヘッダーロゴ遷移先の初期状態が返ること', () => {
   assert.deepEqual(getHomeUrlState(), {
     tab: 'traceability',
     traceabilityView: 'matrix',
@@ -50,28 +50,12 @@ test('TC-ITb-0016: ホーム状態契約 - ヘッダーロゴ遷移先の初期�
 
 /**
  * 【テスト概要】
- * - 対象: urlState の reqclass 双方向同期
- * - 条件: functional / non_functional / 欠落 / 不正値
- * - 期待結果: 正常値は相互変換され、不正値とデフォルトは all になる
- * - 関連文書: TC-UT-0008, REQ-0027, SPEC-0022
- */
-test('TC-UT-0008: urlState - 要件区分フィルター reqclass がパース・シリアライズ・ホーム状態で契約どおりであること', () => {
-  assert.equal(parseUrlState('?reqclass=functional').requirementClassFilter, 'functional');
-  assert.equal(parseUrlState('?reqclass=non_functional').requirementClassFilter, 'non_functional');
-  assert.equal(parseUrlState('?reqclass=quality').requirementClassFilter, 'all');
-  const serialized = serializeUrlState({ ...DEFAULT_URL_STATE, requirementClassFilter: 'functional' });
-  assert.ok(serialized.includes('reqclass=functional'));
-  assert.equal(getHomeUrlState().requirementClassFilter, 'all');
-});
-
-/**
- * 【テスト概要】
  * - 対象: Traceability Graph (REQ-0025, SPEC-0020, TC-ITb-0016)
  * - 条件: docs/ 配下のドキュメント群からトレーサビリティグラフを構築
  * - 期待結果: REQ-0025, SPEC-0020, TC-ITb-0016 がグラフに存在し、仕様・検証の依存関係が正しく確立していること
  * - 関連文書: TC-ITb-0016, REQ-0025, SPEC-0020
  */
-test('TC-ITb-0016: トレーサビリティ連鎖 - REQ-0025 から SPEC-0020 および TC-ITb-0016 の追跡関係の検証', () => {
+test('support: ITb-0016: トレーサビリティ連鎖 - REQ-0025 から SPEC-0020 および TC-ITb-0016 の追跡関係の検証', () => {
   const { graph } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
 
   // 1. REQ-0025

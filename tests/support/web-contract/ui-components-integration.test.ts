@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTraceWeaveReport } from '../../src/application/build-report.js';
-import { repositoryPath } from '../helpers/repo-path.js';
-import { appendModalHistory, moveModalHistory } from '../../src/web/src/components/modalNavigation.js';
-import { createPyramidLayerClickHandler } from '../../src/web/src/components/VisualTestPyramid.js';
-import { filterMatrixRows, serializeMatrixCsv, serializeMatrixJson } from '../../src/web/src/utils/matrixData.js';
+import { buildTraceWeaveReport } from '../../../src/application/build-report.js';
+import { repositoryPath } from '../../helpers/repo-path.js';
+import { appendModalHistory, moveModalHistory } from '../../../src/web/src/components/modalNavigation.js';
+import { createPyramidLayerClickHandler } from '../../../src/web/src/components/VisualTestPyramid.js';
+import { filterMatrixRows, serializeMatrixCsv, serializeMatrixJson } from '../../../src/web/src/utils/matrixData.js';
 
 /**
  * 【テスト概要】
@@ -13,7 +13,7 @@ import { filterMatrixRows, serializeMatrixCsv, serializeMatrixJson } from '../..
  * - 期待結果: ピラミッド層クリックとマトリクス絞り込み、モーダル閲覧履歴遷移、エクスポート出力が一貫して連動すること。通知表示は対象外とする
  * - 関連文書: TC-ITb-0020, REQ-0013, REQ-0014, REQ-0015, SPEC-0013, SPEC-0014, SPEC-0015
  */
-test('TC-ITb-0020: Web UIコンポーネント間連携（モーダル履歴・ピラミッド連動・フィルターエクスポート）の外部結合検証', () => {
+test('support: ITb-0020: Web UIコンポーネント間連携（モーダル履歴・ピラミッド連動・フィルターエクスポート）の外部結合検証', () => {
   const { graph, report } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
   let history = appendModalHistory({ history: ['REQ-0013'], index: 0 }, 'REQ-0014');
   history = moveModalHistory(history, 'back');

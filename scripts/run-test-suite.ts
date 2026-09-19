@@ -53,7 +53,7 @@ async function runTests(): Promise<void> {
   }
 
   const distWebJson = path.join(ROOT, 'src', 'web', 'dist', 'data.json');
-  if (!fs.existsSync(distWebJson) && fs.existsSync(path.dirname(distWebJson))) {
+  if (fs.existsSync(path.dirname(distWebJson))) {
     try {
       syncDashboardArtifacts({
         projectRoot: ROOT,
@@ -69,6 +69,21 @@ async function runTests(): Promise<void> {
   const result = await runWorkspaceTests({
     workspace,
     testCaseFilter,
+    afterSuite: async suite => {
+      if (suite.id !== 'node') return;
+      const distWebJson = path.join(ROOT, 'src', 'web', 'dist', 'data.json');
+      if (!fs.existsSync(path.dirname(distWebJson))) return;
+      try {
+        syncDashboardArtifacts({
+          projectRoot: ROOT,
+          docsDir: workspace.docsDir,
+          testReportPath: workspace.testResultsAggregatePath,
+        });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.warn(`\x1b[33m⚠ Failed to refresh data.json after node suite: ${message}\x1b[0m\n`);
+      }
+    },
   });
 
   console.log(

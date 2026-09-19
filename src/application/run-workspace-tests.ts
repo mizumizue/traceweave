@@ -15,6 +15,7 @@ export interface RunWorkspaceTestsOptions {
   suiteIds?: string[];
   mergeOnly?: boolean;
   testCaseFilter?: string;
+  afterSuite?: (suite: ResolvedTestSuite, exitCode: number) => void | Promise<void>;
 }
 
 export interface RunWorkspaceTestsResult {
@@ -49,6 +50,7 @@ async function runSuite(
     const code = await runNodeTestTapSuite({
       workspaceRoot: workspace.workspaceRoot,
       suiteCwd,
+      testsDir: suite.testsDir ?? undefined,
       outputPath: fragmentPath,
       testCaseFilter,
     });
@@ -88,13 +90,17 @@ export async function runWorkspaceTests(
     for (const suite of suites) {
       const outcome = await runSuite(workspace, suite, options.testCaseFilter);
       suiteOutcomes.push({ id: suite.id, exitCode: outcome.exitCode });
-      if (outcome.reportPath) {
+      if (options.afterSuite) {
+        await options.afterSuite(suite, outcome.exitCode);
+      }
+      if (outcome.reportPath && suite.evidenceTier === 'formal') {
         const report = loadTestResultsReportFile(outcome.reportPath);
         if (report) reports.push(report);
       }
     }
   } else {
     for (const suite of suites) {
+      if (suite.evidenceTier !== 'formal') continue;
       const reportPath =
         suite.capture === 'aggregate'
           ? workspace.testResultsAggregatePath
@@ -106,8 +112,9 @@ export async function runWorkspaceTests(
     }
   }
 
-  if (reports.length > 0) {
-    const merged = mergeTestResultsReports(reports, workspace.mergeStrategy);
+  const formalReports = reports;
+  if (formalReports.length > 0) {
+    const merged = mergeTestResultsReports(formalReports, workspace.mergeStrategy);
     writeTestResultsReportFile(workspace.testResultsAggregatePath, merged);
   }
 

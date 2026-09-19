@@ -17,11 +17,31 @@
   "suites": [
     {
       "id": "node",
-      "label": "TypeScript test suite (Node test runner)",
+      "label": "TypeScript test suite (Node test runner, formal)",
       "cwd": ".",
       "run": "",
       "capture": "node-test-tap",
+      "evidenceTier": "formal",
       "fragment": "reports/suites/node.json"
+    },
+    {
+      "id": "support",
+      "label": "Supplementary harness (web-contract, static analysis)",
+      "cwd": ".",
+      "run": "",
+      "capture": "node-test-tap",
+      "evidenceTier": "supplementary",
+      "testsDir": "tests/support",
+      "fragment": "reports/suites/support.json"
+    },
+    {
+      "id": "e2e",
+      "label": "Browser E2E (Playwright)",
+      "cwd": ".",
+      "run": "node src/node_modules/tsx/dist/cli.mjs scripts/run-e2e-suite.ts",
+      "capture": "fragment",
+      "evidenceTier": "formal",
+      "fragment": "reports/suites/e2e.json"
     },
     {
       "id": "newman-api",
@@ -29,6 +49,7 @@
       "cwd": ".",
       "run": "node src/node_modules/tsx/dist/cli.mjs scripts/run-newman-api-suite.ts",
       "capture": "fragment",
+      "evidenceTier": "formal",
       "fragment": "reports/suites/newman.json"
     }
   ]

@@ -81,6 +81,14 @@ export function extractTestCaseIds(text: string): string[] {
   return [...text.matchAll(TEST_CASE_ID_EXTRACT_PATTERN)].map(m => m[0]);
 }
 
+/** Formal execution evidence: test title must declare TC id at the start (ADR-0011). */
+export function formalTestCaseIdFromTitle(testTitle: string): string | null {
+  const match = testTitle.match(
+    /^(TC-(?:UT|ITa|ITb|ST|UAT)-\d{4}(?:-(?:0[1-9]|[1-9]\d))?):/
+  );
+  return match ? match[1] : null;
+}
+
 export function escapeTestCaseIdForRegExp(testCaseId: string): string {
   return testCaseId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

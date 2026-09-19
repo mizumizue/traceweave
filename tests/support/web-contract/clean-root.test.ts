@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { repositoryPath } from '../helpers/repo-path.js';
+import { repositoryPath } from '../../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
@@ -11,7 +11,7 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 期待結果: ルート直下に禁止資材（node_modules, dist, HTML/CSS設定）が存在せず、実装資材がsrc/に、Web資材がsrc/web/に完全集約されていること
  * - 関連文書: TC-ITb-0010, TC-ITb-0012, ADR-0004, ADR-0005
  */
-test('TC-ITb-0010 & TC-ITb-0012: クリーンルート規約 - ルート直下の禁止資材非存在、src/webへの資材カプセル化、およびbin/ラッパー配置の検証', () => {
+test('support: ITb-0010 / ITb-0012 — クリーンルート規約 - ルート直下の禁止資材非存在、src/webへの資材カプセル化、およびbin/ラッパー配置の検証', () => {
   const rootDir = repositoryPath();
 
   // 1. Prohibited development assets directly in root (clean root)

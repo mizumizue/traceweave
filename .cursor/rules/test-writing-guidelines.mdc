@@ -40,6 +40,7 @@ test('[テスト対象] 条件・入力において期待される結果・振�
 | **宣言行の形** | 行頭（先頭空白のみ許容）から `test(` が始まる 1 行に宣言すること。文字列リテラル内の `test('TC-xxxx:` やコメント内の記述は解決対象にならない。 |
 | **1 TC 1 宣言** | 1 つの `TC-xxxx` に対し、少なくとも 1 本の上記 `test('TC-xxxx:` 宣言を `tests/` 配下に置く。 |
 | **実行コマンド** | リポジトリルートから `npm --prefix src test -- --tc TC-xxxx`（UI のテスト詳細からコピー可能）。 |
+| **形式 vs 補助** | **形式証跡**は行頭 `TC-xxxx:` のみが `reports/test-results.json` に載る（ADR-0011）。`tests/support/**` の補助ハーネスは `support:` で始め、行頭に TC を付けない。ブラウザ E2E は `tests/e2e/` で `TC-xxxx:` 宣言行を置く。 |
 
 ```typescript
 // ✅ GOOD: 機械連携と人間可読性の両立

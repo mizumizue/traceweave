@@ -9,9 +9,9 @@ import {
   AppUrlState,
   getHomeUrlState,
   isOnlySearchQueryChanged,
-} from '../../src/web/src/utils/urlState.js';
-import { buildTraceWeaveReport } from '../../src/application/build-report.js';
-import { repositoryPath } from '../helpers/repo-path.js';
+} from '../../../src/web/src/utils/urlState.js';
+import { buildTraceWeaveReport } from '../../../src/application/build-report.js';
+import { repositoryPath } from '../../helpers/repo-path.js';
 
 /**
  * 【テスト概要】
@@ -20,7 +20,7 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 期待結果: 各種パラメータ（tab, node, q, phase, criticality, score, kind, tag, status, highlight）が正確にパースされ、不正値が安全にフォールバックすること
  * - 関連文書: TC-ITb-0015, REQ-0024, SPEC-0019
  */
-test('TC-ITb-0015: urlState - クエリ文字列からの状態パースと不正値フォールバックが正確に行われること', () => {
+test('support: ITb-0015: urlState - クエリ文字列からの状態パースと不正値フォールバックが正確に行われること', () => {
   // 1. 空・未指定時はデフォルト状態が返ること
   const defaultParsed = parseUrlState('');
   assert.equal(defaultParsed.tab, 'traceability');
@@ -91,7 +91,7 @@ test('TC-ITb-0015: urlState - クエリ文字列からの状態パースと不�
  * - 期待結果: デフォルト値が除外されたクリーンなクエリ文字列が生成され、等価性判定が正確に行われること
  * - 関連文書: TC-ITb-0015, REQ-0024, SPEC-0019
  */
-test('TC-ITb-0015: urlState - 状態オブジェクトからクリーンなクエリ文字列生成および等価性判定が正確に行われること', () => {
+test('support: ITb-0015: urlState - 状態オブジェクトからクリーンなクエリ文字列生成および等価性判定が正確に行われること', () => {
   // 1. デフォルト状態はクリーンな空文字列になること
   const emptyQuery = serializeUrlState(DEFAULT_URL_STATE);
   assert.equal(emptyQuery, '', 'Default state should serialize to clean empty string');
@@ -132,7 +132,7 @@ test('TC-ITb-0015: urlState - 状態オブジェクトからクリーンなク�
  * - 期待結果: URL 状態の初期値と履歴更新分類が契約どおり返ること
  * - 関連文書: TC-ITb-0015, REQ-0023, REQ-0024, SPEC-0019, DSN-0010
  */
-test('TC-ITb-0015: URL状態 - ホーム状態と検索条件変更の履歴更新分類契約', () => {
+test('support: ITb-0015: URL状態 - ホーム状態と検索条件変更の履歴更新分類契約', () => {
   const home = getHomeUrlState();
   assert.deepEqual(home, DEFAULT_URL_STATE);
   assert.equal(
@@ -152,7 +152,7 @@ test('TC-ITb-0015: URL状態 - ホーム状態と検索条件変更の履歴更�
  * - 期待結果: 新設された要求・要件・仕様・テストケースの依存関係が正確に結合されていること
  * - 関連文書: TC-ITb-0015, NEED-0008, REQ-0023, REQ-0024, SPEC-0019
  */
-test('TC-ITb-0015: トレーサビリティ連鎖 - NEED-0008 から REQ-0023, REQ-0024, SPEC-0019, TC-ITb-0015 の双方向追跡の検証', () => {
+test('support: ITb-0015: トレーサビリティ連鎖 - NEED-0008 から REQ-0023, REQ-0024, SPEC-0019, TC-ITb-0015 の双方向追跡の検証', () => {
   const { graph } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
 
   // 1. NEED-0008

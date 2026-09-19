@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTraceWeaveReport } from '../../src/application/build-report.js';
-import { repositoryPath } from '../helpers/repo-path.js';
-import { appendModalHistory, moveModalHistory } from '../../src/web/src/components/modalNavigation.js';
-import { calculatePyramidLayerMetrics, PYRAMID_LAYERS } from '../../src/web/src/components/VisualTestPyramid.js';
-import { filterMatrixRows, serializeMatrixCsv, serializeMatrixJson } from '../../src/web/src/utils/matrixData.js';
+import { buildTraceWeaveReport } from '../../../src/application/build-report.js';
+import { repositoryPath } from '../../helpers/repo-path.js';
+import { appendModalHistory, moveModalHistory } from '../../../src/web/src/components/modalNavigation.js';
+import { calculatePyramidLayerMetrics, PYRAMID_LAYERS } from '../../../src/web/src/components/VisualTestPyramid.js';
+import { filterMatrixRows, serializeMatrixCsv, serializeMatrixJson } from '../../../src/web/src/utils/matrixData.js';
 
 /**
  * 【テスト概要】
@@ -13,7 +13,7 @@ import { filterMatrixRows, serializeMatrixCsv, serializeMatrixJson } from '../..
  * - 期待結果: 公開契約が期待値を返し、REQ-0013/0014/0015およびSPEC-0013/0014/0015の追跡性が確立していること
  * - 関連文書: TC-ST-0001, REQ-0013, REQ-0014, REQ-0015, SPEC-0013, SPEC-0014, SPEC-0015
  */
-test('TC-ST-0001: Web UIインタラクティブ機能（モーダル履歴・立体ピラミッド連動・多軸フィルターエクスポート）の総合検証', () => {
+test('support: ST-0001: Web UIインタラクティブ機能（モーダル履歴・立体ピラミッド連動・多軸フィルターエクスポート）の総合検証', () => {
   const { graph, report } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
   let history = appendModalHistory({ history: ['REQ-0013'], index: 0 }, 'SPEC-0013');
   history = moveModalHistory(history, 'back');

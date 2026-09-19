@@ -17,18 +17,44 @@ import {
 export interface RunNodeTestTapSuiteOptions {
   workspaceRoot: string;
   suiteCwd?: string;
+  /** Absolute path or workspace-relative tests root for this suite. */
   testsDir?: string;
   outputPath: string;
   testCaseFilter?: string;
   argv?: string[];
 }
 
+const FORMAL_EXCLUDE_DIRS = new Set(['support', 'e2e']);
+
+function listTestFilesUnder(rootDir: string, excludeTopLevelDirs?: Set<string>): string[] {
+  const files: string[] = [];
+  if (!fs.existsSync(rootDir)) return files;
+
+  const walk = (dir: string, isTestsRoot: boolean): void => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (isTestsRoot && excludeTopLevelDirs?.has(entry.name)) continue;
+        walk(fullPath, false);
+        continue;
+      }
+      if (entry.name.endsWith('.test.ts')) files.push(fullPath);
+    }
+  };
+
+  walk(rootDir, true);
+  return files.sort();
+}
+
 export async function runNodeTestTapSuite(options: RunNodeTestTapSuiteOptions): Promise<number> {
   const workspaceRoot = path.resolve(options.workspaceRoot);
   const suiteCwd = path.resolve(options.suiteCwd ?? workspaceRoot);
-  const testsDir = options.testsDir
-    ? path.resolve(workspaceRoot, options.testsDir)
-    : path.join(workspaceRoot, 'tests');
+  const testsRoot = path.join(workspaceRoot, 'tests');
+  const suiteTestsDir = options.testsDir
+    ? path.isAbsolute(options.testsDir)
+      ? options.testsDir
+      : path.resolve(workspaceRoot, options.testsDir)
+    : null;
 
   const filter =
     options.testCaseFilter ||
@@ -43,17 +69,25 @@ export async function runNodeTestTapSuite(options: RunNodeTestTapSuiteOptions): 
     return 1;
   }
 
-  const testsPattern = path.join(testsDir, '**', '*.test.ts');
-  let testTargets: string[] = [testsPattern];
+  let testTargets: string[];
 
   if (filter) {
-    testTargets = resolveTestFilesForCase(testsDir, filter);
+    testTargets = resolveTestFilesForCase(testsRoot, filter);
     if (testTargets.length === 0) {
       console.error(
         `\x1b[31m✘ No automated test file declares ${filter}. Add test('${filter}: ...') in tests/.\x1b[0m`
       );
       return 1;
     }
+  } else if (suiteTestsDir) {
+    testTargets = listTestFilesUnder(suiteTestsDir);
+  } else {
+    testTargets = listTestFilesUnder(testsRoot, FORMAL_EXCLUDE_DIRS);
+  }
+
+  if (testTargets.length === 0) {
+    console.error(`\x1b[31m✘ No test files found for suite under ${suiteTestsDir ?? testsRoot}\x1b[0m`);
+    return 1;
   }
 
   const tapFile = path.join(os.tmpdir(), `traceweave-tap-${process.pid}.tap`);

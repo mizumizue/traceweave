@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTraceWeaveReport } from '../../src/application/build-report.js';
-import { repositoryPath } from '../helpers/repo-path.js';
-import { buildActorUseCaseMap } from '../../src/web/src/utils/actorUseCaseMap.js';
+import { buildTraceWeaveReport } from '../../../src/application/build-report.js';
+import { repositoryPath } from '../../helpers/repo-path.js';
+import { buildActorUseCaseMap } from '../../../src/web/src/utils/actorUseCaseMap.js';
 
 /**
  * 【テスト概要】

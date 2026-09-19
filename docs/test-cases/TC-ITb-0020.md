@@ -5,7 +5,7 @@ kind: test_case
 title: Web UIコンポーネント間連携（モーダル履歴・立体ピラミッド連動・フィルターエクスポート）の外部結合テスト
 status: accepted
 created: '2026-09-13'
-updated: '2026-09-13'
+updated: '2026-09-19'
 scope: local
 test_level: integration_external
 test_method: scenario
@@ -30,7 +30,7 @@ links: []
 ## Content
 
 ### Objective
-Web ダッシュボードのモーダル履歴、工程選択、マトリクスフィルター、エクスポートの公開契約が同じレポートデータで連携することを検証する。通知やブラウザ DOM の描画は対象外とする。
+Web ダッシュボードのモーダル履歴、工程選択、マトリクスフィルター、エクスポートの公開契約が同じレポートデータで連携することを検証する。DOM 描画とブラウザ操作の形式証跡は **TC-ST-0003** に委ね、`tests/support/web-contract/` は補助ハーネス（証跡非マージ）とする。
 
 ### Preconditions
 レポートデータと公開された UI 契約関数が利用可能であること。

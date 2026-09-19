@@ -1,0 +1,28 @@
+---
+description: Formal vs supplementary test evidence (ADR-0011). Applies when editing tests or workspace suite config.
+globs: tests/**/*,.traceweave/config.json
+alwaysApply: false
+---
+
+# Verification evidence tiers
+
+## Formal（形式証跡）
+
+- タイトルは **`TC-<STRATUM>-<NNNN>[-SS]:`** で始める（`formalTestCaseIdFromTitle`）。
+- マージ対象: `.traceweave/config.json` で `evidenceTier: formal`（省略時 formal）のスイートのみ → `reports/test-results.json`。
+- ブラウザ DOM のオラクルは **`tests/e2e/`（Playwright）** を正本とする。`tests/support/**` だけで ST/UAT のブラウザ Steps を満たした扱いにしない。
+
+## Supplementary（補助ハーネス）
+
+- 配置: **`tests/support/**`**（旧 `tests/web`）。
+- スイート: `evidenceTier: supplementary`, `testsDir: tests/support`。
+- タイトル: **`support:`** で始める。本文に `TC-` を書いても証跡キーにならない。
+- CI で実行してよいが、TC の `execution_status` / aggregate には載せない。
+
+## Node formal 走査
+
+- 既定 `node` スイートは `tests/support` と `tests/e2e` を列挙除外する（`run-node-test-tap-suite.ts`）。
+
+## 詳細手順
+
+配置判断と完了チェックは **`traceweave-verification-tiers`** スキル（`references/TIER-MATRIX.md`）を参照する。

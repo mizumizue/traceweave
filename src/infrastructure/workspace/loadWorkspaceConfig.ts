@@ -48,6 +48,8 @@ function resolveSuite(
     const rel = suite.fragment ?? path.join(evidenceDir, 'suites', `${id}.json`);
     fragmentPath = path.join(workspaceRoot, rel);
   }
+  const testsDirRel = suite.testsDir?.trim();
+  const testsDir = testsDirRel ? path.join(workspaceRoot, testsDirRel) : null;
   return {
     id,
     label: suite.label?.trim() || id,
@@ -55,6 +57,8 @@ function resolveSuite(
     run: suite.run?.trim() || 'npm test',
     capture,
     fragmentPath,
+    evidenceTier: suite.evidenceTier === 'supplementary' ? 'supplementary' : 'formal',
+    testsDir,
   };
 }
 

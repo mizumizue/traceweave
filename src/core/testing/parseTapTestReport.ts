@@ -1,4 +1,4 @@
-import { TEST_CASE_ID_EXTRACT_PATTERN } from './testCaseId.js';
+import { formalTestCaseIdFromTitle } from './testCaseId.js';
 import { TestCaseExecutionReport, TestExecutionStatus } from '../models/types.js';
 
 export function parseTapReportToResults(
@@ -32,24 +32,22 @@ export function parseTapReportToResults(
     const errMatch = block.match(/error:\s*'?([^'\n]+)'?/);
     const errorMessage = isOk ? undefined : errMatch?.[1] ?? 'Test assertion failed';
 
-    const tcMatches = [...fullTitle.matchAll(TEST_CASE_ID_EXTRACT_PATTERN)].map(m => m[0]);
-    if (tcMatches.length === 0) continue;
+    const tcId = formalTestCaseIdFromTitle(fullTitle);
+    if (!tcId) continue;
 
-    if (status === 'passed') passedCount += tcMatches.length;
-    else if (status === 'failed') failedCount += tcMatches.length;
-    else skippedCount += tcMatches.length;
+    if (status === 'passed') passedCount += 1;
+    else if (status === 'failed') failedCount += 1;
+    else skippedCount += 1;
 
-    for (const tcId of tcMatches) {
-      results[tcId] = {
-        testCaseId: tcId,
-        status,
-        durationMs,
-        testTitle: fullTitle || title,
-        errorMessage,
-        outputLog: `# Subtest: ${title}\n${block.trim()}`,
-        executedAt,
-      };
-    }
+    results[tcId] = {
+      testCaseId: tcId,
+      status,
+      durationMs,
+      testTitle: fullTitle || title,
+      errorMessage,
+      outputLog: `# Subtest: ${title}\n${block.trim()}`,
+      executedAt,
+    };
   }
 
   return { results, passedCount, failedCount, skippedCount };
