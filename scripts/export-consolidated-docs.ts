@@ -261,7 +261,7 @@ function buildDocumentIndex(): string {
     '| UI 操作 | TC-ITb-0011, TC-UT-0004, TC-ST-0001, TC-ITb-0020 |',
     '| グラフ表示 | TC-ITb-0023 |',
     '| URL/履歴 | TC-ITb-0015, TC-ITb-0016 |',
-    '| 要件区分 | TC-UT-0007, TC-ITa-0002, TC-UT-0008 |',
+    '| 要件区分 | TC-UT-0007, TC-ITa-0002-01, TC-UT-0008 |',
     '| トースト | TC-ITb-0025 |',
     '',
     '---',

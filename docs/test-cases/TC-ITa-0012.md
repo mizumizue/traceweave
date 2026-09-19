@@ -2,8 +2,8 @@
 schema_version: 3
 id: TC-ITa-0012
 kind: test_case
-title: ユースケース充足度の派生集計とレポート出力
-status: accepted
+title: （退役）ユースケース充足度の一括内部結合
+status: deprecated
 created: '2026-09-19'
 updated: '2026-09-19'
 scope: local
@@ -15,23 +15,21 @@ verifies:
 depends_on: []
 tags:
   - use-case
-  - sufficiency
-  - report
 links: []
+supersedes:
+  - TC-ITa-0012-01
+  - TC-ITa-0012-02
 ---
 ## Content
 
 ### Objective
-`UseCaseSufficiencyScorer` および `buildTraceWeaveReport` がユースケース充足度を正しく算出し、レポート JSON に含めることを検証する。
+本 ID は ADR-0010 に従い分割退役した。スコアロールアップは `TC-ITa-0012-01`、レポート出力は `TC-ITa-0012-02` を参照する。
 
 ### Preconditions
-テストランナーが利用可能であること。
+該当なし。
 
 ### Steps
-1. 合成グラフで未割当 UC と参照要件付き UC のスコアを検証する。
-2. 実 `docs/` でレポートを生成し、`useCases` 配列とサマリーフィールドを検査する。
+該当なし。
 
 ### Expected Results
-- 未割当 UC は `status: unassigned` でスコアを持たないこと。
-- 割当 UC は参照要件充足度の平均が `score` として 0〜100 で返ること。
-- 実ドキュメントレポートに `useCases` が 1 件以上含まれること。
+該当なし。

@@ -101,7 +101,7 @@ test('TC-ITb-0022: DecisionsCatalogBuilder - 主要種別集約・相互参照�
     'TC-ITb-0016',
     'TC-UT-0006',
     'TC-ITb-0017',
-    'TC-ITa-0002',
+    'TC-ITa-0002-01',
     'TC-ST-0002',
     'TC-ITb-0030-04',
     'UC-0001',

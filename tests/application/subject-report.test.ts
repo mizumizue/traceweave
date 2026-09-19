@@ -9,9 +9,9 @@ import { repositoryPath } from '../helpers/repo-path.js';
  * - 対象: buildTraceWeaveReport と MarkdownReporter
  * - 条件: 実リポジトリ docs/ を入力
  * - 期待結果: report.subject が含まれ、マークダウン先頭に対象名が出ること
- * - 関連文書: TC-ITa-0011, REQ-0030, SPEC-0025
+ * - 関連文書: TC-ITa-0011-01, REQ-0030, SPEC-0025
  */
-test('TC-ITa-0011: buildTraceWeaveReport - subject がレポートとマークダウン出力に反映されること', () => {
+test('TC-ITa-0011-01: buildTraceWeaveReport - subject がレポートとマークダウン出力に反映されること', () => {
   const { report } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
   assert.ok(report.subject);
   assert.ok(report.subject.displayName.length > 0);
@@ -22,7 +22,7 @@ test('TC-ITa-0011: buildTraceWeaveReport - subject がレポートとマーク�
   assert.ok(markdown.startsWith(`# TraceWeave 品質レポート — ${report.subject.displayName}`));
 });
 
-test('TC-ITa-0011: buildTraceWeaveReport - subjectOverride が自動解決より優先されること', () => {
+test('TC-ITa-0011-02: buildTraceWeaveReport - subjectOverride が自動解決より優先されること', () => {
   const { report } = buildTraceWeaveReport({
     docsDir: repositoryPath('docs'),
     useCache: false,

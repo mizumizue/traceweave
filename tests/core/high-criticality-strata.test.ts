@@ -73,27 +73,40 @@ test('TC-UT-0011: DocParser - テストケース文書の詳細セクション�
  * - 対象: buildTraceWeaveReport のノード詳細ペイロード
  * - 条件: 実 docs/ と test-results を用いてレポート生成
  * - 期待結果: 要件・テストケースにセクションと実行結果が含まれること
- * - 関連文書: TC-ITa-0005, REQ-0006, REQ-0007, SPEC-0006, SPEC-0007
+ * - 関連文書: TC-ITa-0005-01, REQ-0006, SPEC-0006
  */
-test('TC-ITa-0005: buildTraceWeaveReport - 文書詳細セクションとテスト実行結果が内部結合で結合されること', () => {
-  const reportPath = repositoryPath('reports/test-results.json');
+test('TC-ITa-0005-01: buildTraceWeaveReport - 文書詳細セクションがノードに内部結合されること', () => {
   const { report } = buildTraceWeaveReport({
     docsDir: repositoryPath('docs'),
     useCache: false,
-    testReportPath: fs.existsSync(reportPath) ? reportPath : undefined,
   });
   const req = report.nodes.find(n => n.id === 'REQ-0007');
   assert.ok(req?.sections?.Statement);
   const tc = report.nodes.find(n => n.id === 'TC-UT-0001');
   assert.ok(tc?.sections?.Objective);
-  if (fs.existsSync(reportPath)) {
-    const raw = JSON.parse(fs.readFileSync(reportPath, 'utf8')) as {
-      results?: Record<string, { status?: string }>;
-    };
-    if (raw.results?.['TC-UT-0001']?.status === 'passed') {
-      assert.equal(tc?.execution_status, 'passed');
-    }
-  }
+});
+
+/**
+ * 【テスト概要】
+ * - 対象: buildTraceWeaveReport と test-results マージ
+ * - 条件: 集約実行レポートが存在し TC-UT-0001 が passed のとき
+ * - 期待結果: ノード execution_status が passed となること
+ * - 関連文書: TC-ITa-0005-02, REQ-0007, SPEC-0007
+ */
+test('TC-ITa-0005-02: buildTraceWeaveReport - テスト実行レポートと execution_status が結合されること', () => {
+  const reportPath = repositoryPath('reports/test-results.json');
+  if (!fs.existsSync(reportPath)) return;
+  const raw = JSON.parse(fs.readFileSync(reportPath, 'utf8')) as {
+    results?: Record<string, { status?: string }>;
+  };
+  if (raw.results?.['TC-UT-0001']?.status !== 'passed') return;
+  const { report } = buildTraceWeaveReport({
+    docsDir: repositoryPath('docs'),
+    useCache: false,
+    testReportPath: reportPath,
+  });
+  const tc = report.nodes.find(n => n.id === 'TC-UT-0001');
+  assert.equal(tc?.execution_status, 'passed');
 });
 
 /**

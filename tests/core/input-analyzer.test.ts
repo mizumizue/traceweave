@@ -164,9 +164,9 @@ test('TestCaseInputAnalyzer - Rule 4: 単純入出力の充足度計算テスト
  * - 対象: TestCaseInputAnalyzer と TestRunnerRegistry の UI 実行除外整合性
  * - 条件: 外部環境依存の TC-ITb-0007（parameter_file）と TC-ITb-0002（scenario）を解析
  * - 期待結果: ui_executable が false かつ TestRunnerRegistry に未登録であること
- * - 関連文書: TC-ITa-0003, REQ-0009, SPEC-0008, ADR-0003
+ * - 関連文書: TC-ITa-0003-01, REQ-0009, SPEC-0008, ADR-0003
  */
-test('TC-ITa-0003: TestCaseInputAnalyzer と TestRunnerRegistry - 外部依存TCがUI実行除外かつレジストリ未登録であること', () => {
+test('TC-ITa-0003-01: TestCaseInputAnalyzer と TestRunnerRegistry - 外部依存TCがUI実行除外かつレジストリ未登録であること', () => {
   const parser = new DocParser();
   const tc10 = parser.parseFile(repositoryPath('docs/test-cases/TC-ITb-0007.md'));
   const tc4 = parser.parseFile(repositoryPath('docs/test-cases/TC-ITb-0002.md'));

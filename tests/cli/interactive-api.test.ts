@@ -156,9 +156,9 @@ test('TC-ITb-0008: CLI serve - 外部HTTP APIが対話型テスト実行結果�
  * - 対象: POST /api/test/run のエラー契約
  * - 条件: 未登録 TC-ID と UI 実行除外 TC-ID を順に呼び出す
  * - 期待結果: 未登録は 404、除外対象は 400 が返ること
- * - 関連文書: TC-ITa-0003, SPEC-0008, REQ-0009
+ * - 関連文書: TC-ITa-0003-02, SPEC-0008, REQ-0009
  */
-test('TC-ITa-0003: CLI serve - /api/test/run が未知TCで404・UI除外TCで400を返すこと', async () => {
+test('TC-ITa-0003-02: CLI serve - /api/test/run が未知TCで404・UI除外TCで400を返すこと', async () => {
   const port = 33000 + Math.floor(Math.random() * 1000);
   const child = spawn(
     process.execPath,

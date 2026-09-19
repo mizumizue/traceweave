@@ -2,10 +2,10 @@
 schema_version: 3
 id: TC-ITa-0011
 kind: test_case
-title: TraceWeaveReport とレポート出力への subject 同梱
-status: accepted
+title: （退役）subject 同梱と override の一括検証
+status: deprecated
 created: '2026-09-14'
-updated: '2026-09-14'
+updated: '2026-09-19'
 scope: local
 test_level: integration_internal
 test_method: api_contract
@@ -15,22 +15,21 @@ verifies:
 depends_on: []
 tags:
   - subject-context
-  - report
-  - markdown
 links: []
+supersedes:
+  - TC-ITa-0011-01
+  - TC-ITa-0011-02
 ---
 ## Content
 
 ### Objective
-レポート生成結果に `subject` が含まれ、マークダウン出力先頭に対象アプリケーション名が反映されることを検証する。
+本 ID は ADR-0010 に従い分割退役した。JSON/マークダウン同梱は `TC-ITa-0011-01`、override 優先は `TC-ITa-0011-02` を参照する。
 
 ### Preconditions
-有効な docs ディレクトリが存在すること。
+該当なし。
 
 ### Steps
-1. レポート統合関数を実行し、返却 JSON の `subject` を検査する。
-2. マークダウンレポーターで出力し、先頭見出しを検査する。
+該当なし。
 
 ### Expected Results
-- `subject.displayName` が空文字でないこと。
-- マークダウン先頭に対象アプリケーション名が含まれること。
+該当なし。

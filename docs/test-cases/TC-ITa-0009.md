@@ -10,8 +10,6 @@ scope: local
 test_level: integration_internal
 test_method: scenario
 verifies:
-  - REQ-0023
-  - REQ-0024
   - SPEC-0019
 depends_on: []
 tags:
@@ -22,7 +20,7 @@ links: []
 ## Content
 
 ### Objective
-統合レポートに存在する要件 ID が URL クエリ状態のシリアライズ／パース往復で失われないことを内部結合で検証する。
+統合レポートに存在する要件 ID が URL クエリ状態（`nodeId`）のシリアライズ／パース往復で失われないことを検証する。ブラウザ History API の振る舞いは ITb-0015 / E2E が正本とする。
 
 ### Preconditions
 実 `docs/` から統合レポートを生成できること。

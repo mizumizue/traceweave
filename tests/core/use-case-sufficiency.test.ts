@@ -38,9 +38,9 @@ function traceabilityTc(id: string, level: TestLevel, verifies: string[]): DocNo
  * - 対象: UseCaseSufficiencyScorer（ユースケース充足度の派生集計）
  * - 条件: requirement_refs が空の UC、および 2 要件の平均スコアを持つ UC をグラフに投入
  * - 期待結果: 未割当 UC は status unassigned、割当 UC は参照要件スコアの平均が score になること
- * - 関連文書: TC-ITa-0012, REQ-0032
+ * - 関連文書: TC-ITa-0012-01, REQ-0032
  */
-test('TC-ITa-0012: UseCaseSufficiencyScorer - requirement_refs のロールアップと未割当判定が正しいこと', () => {
+test('TC-ITa-0012-01: UseCaseSufficiencyScorer - requirement_refs のロールアップと未割当判定が正しいこと', () => {
   const graph = new TraceGraph();
   graph.addNode(baseDoc('REQ-A', 'requirement', { criticality: 'high' }));
   graph.addNode(baseDoc('REQ-B', 'requirement', { criticality: 'medium' }));
@@ -84,9 +84,9 @@ test('TC-ITa-0012: UseCaseSufficiencyScorer - requirement_refs のロールア�
  * - 対象: buildTraceWeaveReport の useCases ペイロード
  * - 条件: リポジトリ実 docs を解析
  * - 期待結果: useCases 配列と summary の useCaseCount が 1 件以上であること
- * - 関連文書: TC-ITa-0012, SPEC-0027
+ * - 関連文書: TC-ITa-0012-02, SPEC-0027
  */
-test('TC-ITa-0012: buildTraceWeaveReport - ユースケース充足度がレポート JSON に含まれること', () => {
+test('TC-ITa-0012-02: buildTraceWeaveReport - ユースケース充足度がレポート JSON に含まれること', () => {
   const { report } = buildTraceWeaveReport({
     docsDir: repositoryPath('docs'),
     useCache: false,

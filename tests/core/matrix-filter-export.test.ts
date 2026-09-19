@@ -42,14 +42,14 @@ test('TC-UT-0006: filterMatrixRows - 重要度・工程・充足度ステータ�
       specs: [{ id: 'SPEC-0003', title: 'スコア仕様' }],
       testCasesByPhase: {
         unit: [{ id: 'TC-UT-0002', title: 'UT2', level: 'unit', method: 'property_based', status: 'passed' }],
-        integration_internal: [{ id: 'TC-ITa-0001', title: 'ITa', level: 'integration_internal', method: 'scenario', status: 'passed' }],
+        integration_internal: [{ id: 'TC-ITa-0001-01', title: 'ITa', level: 'integration_internal', method: 'scenario', status: 'passed' }],
         integration_external: [],
         system: [],
         acceptance: [],
       },
       allTestCases: [
         { id: 'TC-UT-0002', title: 'UT2', level: 'unit', method: 'property_based', status: 'passed' },
-        { id: 'TC-ITa-0001', title: 'ITa', level: 'integration_internal', method: 'scenario', status: 'passed' },
+        { id: 'TC-ITa-0001-01', title: 'ITa', level: 'integration_internal', method: 'scenario', status: 'passed' },
       ],
     },
     {
