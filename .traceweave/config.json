@@ -22,6 +22,14 @@
       "run": "",
       "capture": "node-test-tap",
       "fragment": "reports/suites/node.json"
+    },
+    {
+      "id": "newman-api",
+      "label": "Serve HTTP API (Newman / Postman)",
+      "cwd": ".",
+      "run": "node src/node_modules/tsx/dist/cli.mjs scripts/run-newman-api-suite.ts",
+      "capture": "fragment",
+      "fragment": "reports/suites/newman.json"
     }
   ]
 }

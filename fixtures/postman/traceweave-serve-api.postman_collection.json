@@ -1,0 +1,103 @@
+{
+  "info": {
+    "name": "TraceWeave serve API",
+    "description": "Maps request names to TC-0063 for traceweave-v1 fragment capture.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "TC-0063: GET /api/data returns report payload",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/data"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('body has subject', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.have.property('subject');",
+              "  pm.expect(body.subject).to.have.property('displayName');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC-0063: POST /api/test/run unknown TC returns 404",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"testCaseId\":\"TC-9999\",\"inputs\":{}}"
+        },
+        "url": "{{baseUrl}}/api/test/run"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 404', function () {",
+              "  pm.response.to.have.status(404);",
+              "});",
+              "pm.test('ERR_UNKNOWN_TEST_CASE', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.error).to.eql('ERR_UNKNOWN_TEST_CASE');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC-0063: POST /api/test/run excluded TC returns 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"testCaseId\":\"TC-0010\",\"inputs\":{}}"
+        },
+        "url": "{{baseUrl}}/api/test/run"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 400', function () {",
+              "  pm.response.to.have.status(400);",
+              "});",
+              "pm.test('ERR_NOT_UI_EXECUTABLE', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.error).to.eql('ERR_NOT_UI_EXECUTABLE');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
