@@ -27,9 +27,9 @@ links: []
 実 `docs/` から統合レポートを生成できること。
 
 ### Steps
-1. `buildTraceWeaveReport` で `report.strata` を取得する。
-2. `calculatePyramidLayerMetrics(report.strata)` を実行し、5 層のメトリクス配列を得る。
-3. 各層の `ratioPercent` の合計を検査する。
+1. 統合レポートから工程地層データを取得する。
+2. ピラミッド 5 層の構成比率メトリクスを算出する。
+3. 各層の構成比率（百分率）の合計を検査する。
 
 ### Expected Results
 - メトリクス配列の長さが 5（全工程層）であること。

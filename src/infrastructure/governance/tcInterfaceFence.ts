@@ -42,11 +42,18 @@ function isDocIdBacktick(match: string): boolean {
   return DOC_ID_BACKTICK.test(match);
 }
 
-function findBacktickCodeTokens(sectionText: string): string[] {
+function isExternalMcpToolBacktick(match: string, testLevel: TestLevel): boolean {
+  if (testLevel === 'integration_internal') return false;
+  const inner = match.slice(1, -1);
+  return /^(?:get|check)_[a-z][a-z0-9_]*$/.test(inner);
+}
+
+function findBacktickCodeTokens(sectionText: string, testLevel: TestLevel): string[] {
   const leaks: string[] = [];
   const backtickMatches = sectionText.match(/`[^`]+`/g) ?? [];
   for (const match of backtickMatches) {
     if (isDocIdBacktick(match)) continue;
+    if (isExternalMcpToolBacktick(match, testLevel)) continue;
     const inner = match.slice(1, -1);
     if (TC_BACKTICK_ALLOWLIST.has(inner)) continue;
     if (/^[a-z]+_[a-z0-9_]+$/.test(inner)) {
@@ -64,7 +71,9 @@ function findBacktickCodeTokens(sectionText: string): string[] {
   return leaks;
 }
 
-function findBareCodeIdentifiers(sectionText: string): string[] {
+const BARE_SNAKE_ALLOWLIST = new Set(['non_functional']);
+
+function findBareCodeIdentifiers(sectionText: string, testLevel: TestLevel): string[] {
   const leaks: string[] = [];
   const withoutBackticks = sectionText.replace(/`[^`]+`/g, ' ');
   for (const token of withoutBackticks.match(IMPLEMENTATION_TYPE_SUFFIX) ?? []) {
@@ -75,7 +84,10 @@ function findBareCodeIdentifiers(sectionText: string): string[] {
     leaks.push(`code-like identifier "${token}"`);
   }
   for (const token of withoutBackticks.match(SNAKE_CASE_IDENTIFIER) ?? []) {
-    if (token === 'non_functional') continue;
+    if (BARE_SNAKE_ALLOWLIST.has(token)) continue;
+    if (testLevel !== 'integration_internal' && /^(?:get|check)_[a-z0-9_]+$/.test(token)) {
+      continue;
+    }
     leaks.push(`code-like identifier "${token}"`);
   }
   return leaks;
@@ -98,7 +110,7 @@ export function findTestCaseInterfaceFenceLeaks(
       leaks.push(label);
     }
   }
-  leaks.push(...findBacktickCodeTokens(sectionText));
-  leaks.push(...findBareCodeIdentifiers(sectionText));
+  leaks.push(...findBacktickCodeTokens(sectionText, testLevel));
+  leaks.push(...findBareCodeIdentifiers(sectionText, testLevel));
   return [...new Set(leaks)];
 }

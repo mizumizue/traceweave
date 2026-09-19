@@ -21,7 +21,7 @@ From repository root run:
 npm --prefix src run lint
 ```
 
-Record `[tc-interface-fence]` warnings and lineage errors for files in scope. Do not issue PASS while unresolved **errors** touch scoped TC ids.
+Run lint; record `[tc-interface-fence]` **errors** (ADR-0012 / `tcInterfaceFence.ts`) and lineage errors for files in scope. **PASS is forbidden** while any fence or lineage **error** touches scoped TC ids. Read [INTERFACE-FENCE.md](../skills/traceweave-test-case-review/INTERFACE-FENCE.md) for the mechanical pattern catalog.
 
 ## Deliverable
 

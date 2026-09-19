@@ -67,7 +67,7 @@ links: [] # 非依存の横断参照
 - `derived_from`: 分割元 TC ID（任意。文字列または配列。ADR-0010）
 - `supersedes`: 置換先 TC ID 配列（退役親で必須。ADR-0010）
 ※ `execution_status` および `actual_result` の静的記述・手動更新は廃止（ADR-0006）。テストスクリプト実行レポート（reports/test-results.json）から動的に供給・結合する。
-※ TC 本文は契約観点で記述する（REQ-0034 / SPEC-0029）。外結以上の Steps / Preconditions / Expected に実装・自動化語彙を書かない。
+※ TC 本文は契約観点で記述する（REQ-0034 / SPEC-0029）。**内結以上**の Steps / Preconditions / Expected に実装・自動化語彙を書かない（ADR-0012）。
 
 ### quality_assurance (QA) の記載原則（実装非依存）
 - **実装コード・ファイルパス参照禁止**: `tests/**/*.test.ts` や `src/...` などの具体的ファイルパス、クラス名、関数名を記述してはならない（`scripts/validate-docs.ts` で自動検査）。個別のテスト手順は `TC-` に委ね、`QA-` には集約された品質特性と合否判定基準・証跡を記述する。
@@ -110,8 +110,9 @@ links: [] # 非依存の横断参照
 | **REQ (functional)** | `3秒以内` 等の SLA | SPEC Constraints |
 | **REQ/SPEC** | `src/...`, `tests/...` パス | DSN / TC |
 | **active REQ/SPEC** | `clean-root`, `encapsulation` タグ | ADR |
-| **TC (ITb/ST/UAT)** | Steps 等での `fixtures/` 操作、実装型名、`mock`、テストランナー | 契約手順（SPEC-0029） |
+| **TC (ITa+)** | Steps 等での実装型名・プロパティ名・`fixtures/`・`mock`・ランナー | 契約手順（SPEC-0029 / ADR-0012） |
+| **TC (ITb+ MCP)** | （許可）`` `get_*` `` / `` `check_*` `` ツール名のみ | 外部 MCP 契約 |
 
 - CLI 契約を REQ に書く場合は `links: [SPEC-xxxx]` で SPEC を横断参照する。
-- TC の `[tc-interface-fence]` は現状 warnings。硬化は ADR-0010 / DSN-0024 のフォローで error に昇格可能。
+- TC の `[tc-interface-fence]` は **errors**（`tcInterfaceFence.ts`）。
 - CI では `.github/workflows/docs-governance.yml` が `lint` + `./bin/traceweave check` を実行する。

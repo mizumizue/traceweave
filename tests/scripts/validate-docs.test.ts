@@ -675,9 +675,9 @@ Exit 0.
  * 【テスト概要】
  * - 対象: validateDocs (TC interface fence 警告)
  * - 条件: ITb の Steps に実装型名を含む TC
- * - 期待結果: [tc-interface-fence] 警告が返り lint は passed のままであること
+ * - 期待結果: [tc-interface-fence] エラーが返り passed: false となること
  */
-test('validateDocs - ITb の Steps に実装型名がある場合は tc-interface-fence 警告となること', () => {
+test('validateDocs - ITb の Steps に実装型名がある場合は tc-interface-fence エラーとなること', () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tw-validate-tc-fence-'));
   try {
     const docsDir = path.join(tempDir, 'docs');
@@ -689,10 +689,10 @@ test('validateDocs - ITb の Steps に実装型名がある場合は tc-interfac
     });
 
     const result = validateDocs(docsDir);
-    assert.equal(result.passed, true, `Unexpected errors: ${result.errors.join(', ')}`);
+    assert.equal(result.passed, false, 'Expected fence errors to fail validation');
     assert.ok(
-      result.warnings.some((warn) => warn.includes('[tc-interface-fence]')),
-      `Expected tc-interface-fence warning, got: ${result.warnings.join(', ')}`
+      result.errors.some((err) => err.includes('[tc-interface-fence]')),
+      `Expected tc-interface-fence error, got: ${result.errors.join(', ')}`
     );
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });

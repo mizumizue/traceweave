@@ -28,8 +28,8 @@ Web ダッシュボード用ビルド成果物に要件区分メタデータと�
 
 ### Steps
 1. 生成済みダッシュボードデータ JSON を読み込む。
-2. 代表非機能要件 `REQ-0028` の `requirement_class` を確認する。
-3. 埋め込みカタログの `requirementClassCounts.functional` を確認する。
+2. 代表非機能要件 `REQ-0028` の要件区分を確認する。
+3. 埋め込みカタログの機能要件件数を確認する。
 
 ### Expected Results
 - `REQ-0028` の区分が `non_functional` であること。

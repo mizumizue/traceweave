@@ -29,9 +29,9 @@ links: []
 実 `docs/` から統合レポートを生成できること。
 
 ### Steps
-1. `buildTraceWeaveReport` を実行し、`report.catalog` と `report.nodes` を取得する。
-2. `catalog.totalCount` と `nodes.length` の一致を確認する。
-3. `kindCounts.requirement` および `requirementClassCounts`（機能・非機能・未区分）の合計が要件件数以上であることを確認する。
+1. 統合レポートを生成し、カタログ集計と全ノード一覧を取得する。
+2. カタログ総件数とノード総件数の一致を確認する。
+3. 要件種別件数および区分別件数（機能・非機能・未区分）の合計が要件件数以上であることを確認する。
 
 ### Expected Results
 - カタログ総件数がパース済み全ノード件数と一致すること。

@@ -33,8 +33,8 @@ HTTP スモーク用の Postman コレクションがワークスペースに登
 
 ### Steps
 1. ローカルで `serve` を起動し、`GET /api/data` を実行する。
-2. `POST /api/test/run` に未知の `testCaseId` を送る。
-3. `POST /api/test/run` に UI 実行除外の `testCaseId`（TC-ITb-0007）を送る。
+2. テスト実行 API に未知のテストケース ID を送る。
+3. テスト実行 API に UI 実行除外のテストケース ID（TC-ITb-0007）を送る。
 
 ### Expected Results
 - `GET /api/data` は HTTP 200 で `subject` を含む JSON を返す。

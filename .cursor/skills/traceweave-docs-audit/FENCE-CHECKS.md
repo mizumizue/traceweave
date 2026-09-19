@@ -61,9 +61,9 @@ Quality criteria and evidence strategy only; concrete steps live in `TC-`.
 
 ## 9. Test case contract (TC)
 
-Active `test_case` documents follow SPEC-0029 / ADR-0010.
+Active `test_case` documents follow SPEC-0029 / ADR-0010 / ADR-0012.
 
-- **Interface fence (ITb, ST, UAT)**: Preconditions, Steps, and Expected Results use external observables only. No implementation class names, `src/` / `tests/` paths, fixture load steps, or runner/mock vocabulary in those sections.
+- **Interface fence (ITa+)**: Preconditions, Steps, and Expected Results use contract observables only. No implementation types, code property names, `src/` / `tests/` paths, fixture load steps, or runner/mock vocabulary. Mechanical gate: `[tc-interface-fence]` errors (`tcInterfaceFence.ts`). Pattern catalog: `traceweave-test-case-review/INTERFACE-FENCE.md`.
 - **Atomicity**: One independent oracle per TC id. Multiple disjoint scenarios require split with new stratum serial ids.
 - **Lineage**: Retired parents declare `supersedes`. Split children use `TC-<STRATUM>-<NNNN>-<SS>` (01..99). `derived_from` points at the retired base id.
 - **Automation separation**: Execution outcomes stay in reports (ADR-0006). TC prose is not a test script.

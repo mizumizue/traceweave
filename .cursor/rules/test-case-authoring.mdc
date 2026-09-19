@@ -21,14 +21,17 @@ alwaysApply: false
 | `test_level` | Preconditions / Steps / Expected で書くこと |
 |---|---|
 | `integration_external` 以上 | CLI・HTTP・UI・生成物など **観測可能な外部振る舞い** |
-| `integration_internal` | コンポーネント境界・設定・契約 API |
+| `integration_internal` | コンポーネント境界・設定・契約 API（**自然言語**。実装識別子は Objective のみ） |
 | `unit` | 公開 API / CLI の入出力（実装名は Objective に限り可） |
 
-**外結以上で Steps / Preconditions / Expected に書かないこと**
+**内結以上で Preconditions / Steps / Expected に書かないこと**
 
-- 実装クラス名（`BalanceAnalyzer` 等）
+- 実装クラス名・関数名・`Class.method` 形式の呼び出し
+- JSON/オブジェクトのプロパティ名（camelCase・snake_case をバッククォートで書く行為を含む）
 - `src/` / `tests/` パス、fixtures を「読み込む」操作の主語
 - `mock`、テストランナー名、`npm test` 系の手順
+
+**外結の例外**: MCP 外部契約として `` `get_*` `` / `` `check_*` `` ツール名のみ backtick 可（ADR-0012）。
 
 `parameter_file` はフロントマターで宣言する。データの意味は Objective または期待結果で述べ、パスを手順の中心にしない。
 
@@ -39,4 +42,4 @@ alwaysApply: false
 
 ## 4. レビュー
 
-意味監査は `traceweave-test-case-review` スキル、または Subagent `traceweave-test-case-reviewer` を使う。機械検査は `validateDocs` の `[tc-interface-fence]` 警告（SPEC-0029 / DSN-0024）。
+意味監査は `traceweave-test-case-review` スキル、または Subagent `traceweave-test-case-reviewer` を使う。機械検査は `npm --prefix src run lint` の `[tc-interface-fence]` **errors**（`tcInterfaceFence.ts` / ADR-0012）。sweep 未通過でマージしない。

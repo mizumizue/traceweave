@@ -27,10 +27,10 @@ links: []
 実 `docs/` から統合レポートを生成できること。
 
 ### Steps
-1. `buildTraceWeaveReport` の `report.nodes` から `kind === 'requirement'` のみを抽出する。
-2. `partitionByRequirementClass` を適用し、`functional` と `non_functional` 群を得る。
-3. 各群の `requirement_class` フィールドを検査する。
+1. 統合レポートのノード一覧から要件種別のノードのみを抽出する。
+2. 機能要件と非機能要件の 2 群に区分分割する。
+3. 各群の要件区分ラベルが混在していないことを検査する。
 
 ### Expected Results
 - 機能要件群が 20 件以上、非機能要件群が 2 件以上であること。
-- 機能群の全ノードが `functional`、非機能群の全ノードが `non_functional` であること。
+- 機能群はすべて機能区分、非機能群はすべて非機能区分であること。

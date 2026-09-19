@@ -5,7 +5,7 @@ description: Audit test cases (TC) for oracle validity, interface-style prose, a
 
 # Test Case Review
 
-Audit `docs/test-cases/TC-*.md` and linked automation against upstream `REQ-` / `SPEC-`. Contract rules: SPEC-0029, ADR-0010, `.cursor/rules/test-case-authoring.mdc`.
+Audit `docs/test-cases/TC-*.md` and linked automation against upstream `REQ-` / `SPEC-`. Contract rules: SPEC-0029, ADR-0010, ADR-0012, `.cursor/rules/test-case-authoring.mdc`.
 
 **Subagent:** spawn `traceweave-test-case-reviewer` for read-only batch audits. Parent applies fixes.
 
@@ -16,7 +16,7 @@ Audit `docs/test-cases/TC-*.md` and linked automation against upstream `REQ-` / 
 **soundness** — Given-When-Then has no logical contradictions.
 **tautology** — Mocks are not echo chambers; tests do not re-implement production logic for expected values.
 **stratum-fit** — Scenario matches `test_level` and `test_method`.
-**contract-surface** — Preconditions, Steps, and Expected describe external observables (CLI, HTTP, UI, artifacts), not classes, fixtures-as-steps, or runner jargon (ITb+).
+**contract-surface** — Preconditions, Steps, and Expected describe observables (CLI, HTTP, UI, artifacts, internal contract outcomes), not classes, property names, fixtures-as-steps, or runner jargon (ITa+). Mechanical patterns: [INTERFACE-FENCE.md](INTERFACE-FENCE.md).
 **atomic-oracle** — One TC document, one independent pass/fail verdict; multiple verdicts imply **SPLIT** (ADR-0010).
 **split-lineage** — Split children use `TC-<STRATUM>-<NNNN>-<SS>` on the parent base; parent `supersedes`; child `derived_from`; new stratum serial only for non-split cases.
 
@@ -38,9 +38,9 @@ Read the target `TC-*.md` and every `verifies` document.
 npm --prefix src run lint
 ```
 
-Capture `[tc-interface-fence]` warnings and lineage errors for the target TC ids.
+Capture `[tc-interface-fence]` **errors** and lineage errors for the target TC ids. Lint must exit 0 before **PASS**.
 
-**Completion criterion:** Lineage errors are noted; warnings are inputs to contract-surface, not ignored.
+**Completion criterion:** Zero fence errors on scoped ids; lineage errors noted; residual semantic contract-surface gaps listed for **REVISE**.
 
 ### 3. scrutinize (Semantic audit)
 

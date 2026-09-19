@@ -1,13 +1,13 @@
 # Test Case Semantic Checks
 
-Apply with `traceweave-test-case-review` step **scrutinize**. Mechanical gates live in `validateDocs` (`[tc-interface-fence]`, lineage errors). Reference: SPEC-0029, ADR-0010, `.cursor/rules/test-case-authoring.mdc`.
+Apply with `traceweave-test-case-review` step **scrutinize**. Mechanical gates: `tcInterfaceFence.ts` → `[tc-interface-fence]` errors (ADR-0012). Pattern catalog: [INTERFACE-FENCE.md](INTERFACE-FENCE.md). Reference: SPEC-0029, ADR-0010, `.cursor/rules/test-case-authoring.mdc`.
 
 ## 1. contract-surface
 
 Preconditions, Steps, and Expected Results describe **who acts on which boundary** and **what is observable** (exit code, response body fields, UI text, artifact files).
 
-- **PASS**: ITb+ steps read like a manual or API test script without opening `src/`.
-- **FAIL**: Steps center on loading fixtures, calling internal classes, or configuring mocks.
+- **PASS**: ITa+ executable sections read like a manual or contract test without opening `src/`; lint fence errors are zero.
+- **FAIL**: Steps center on class names, JSON field names, fixtures paths, mocks, or runner commands.
 
 Objective may name the capability under test; fence applies to the three executable sections.
 

@@ -159,12 +159,6 @@ function findRequirementFenceLeaks(body: string, requirementClass: string | unde
   return leaks;
 }
 
-const EXTERNAL_INTERFACE_TEST_LEVELS: TestLevel[] = [
-  'integration_external',
-  'system',
-  'acceptance',
-];
-
 function extractTestCaseSection(content: string, sectionTitle: string): string {
   const re = new RegExp(`^### ${sectionTitle}\\s*[\\r\\n]+([\\s\\S]*?)(?=^### |\\z)`, 'm');
   const match = content.match(re);
@@ -378,8 +372,8 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): {
           }
         }
         for (const leak of fenceLeaks) {
-          warnings.push(
-            `${filePath}: [tc-interface-fence] ${leak} in Preconditions/Steps/Expected (SPEC-0029)`
+          errors.push(
+            `${filePath}: [tc-interface-fence] ${leak} in Preconditions/Steps/Expected (SPEC-0029 / ADR-0012)`
           );
         }
       }

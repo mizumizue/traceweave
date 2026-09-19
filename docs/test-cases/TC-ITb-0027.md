@@ -29,7 +29,7 @@ links: []
 
 ### Steps
 1. リポジトリルートからカタログコマンドを JSON 形式で実行する。
-2. 標準出力を JSON として解析し、`requirementClassCounts` を取得する。
+2. 標準出力を JSON として解析し、要件区分別件数を取得する。
 
 ### Expected Results
 - `functional` が 20 以上、`non_functional` が 2 以上であること。
