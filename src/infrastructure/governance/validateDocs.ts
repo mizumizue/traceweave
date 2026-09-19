@@ -5,6 +5,7 @@ import { isRetiredDocStatus } from '../../core/models/docStatus.js';
 import { TEST_CASE_ID_PATTERN, testCaseIdMatchesTestLevel } from '../../core/testing/testCaseId.js';
 import type { TestLevel } from '../../core/models/types.js';
 import { resolveRepoRoot } from '../system/resolveRepoRoot.js';
+import { findTestCaseInterfaceFenceLeaks } from './tcInterfaceFence.js';
 
 const DEFAULT_DOCS_DIR = path.join(resolveRepoRoot(import.meta.url), 'docs');
 
@@ -183,41 +184,7 @@ function normalizeTestCaseIdList(value: unknown): string[] {
   return [];
 }
 
-const TC_INTERFACE_BANNED: { label: string; re: RegExp }[] = [
-  { label: 'implementation or test file path', re: /(?:tests?|src)\/[a-zA-Z0-9_\-/]+\.(?:ts|js|tsx|jsx)/ },
-  { label: 'fixtures path as an operation', re: /fixtures\/[a-zA-Z0-9_\-/]+/ },
-  { label: 'test runner name', re: /\b(?:jest|vitest|mocha|pytest)\b/i },
-  { label: 'mocking directive', re: /\bmock(?:s|ed|ing)?\b/i },
-  { label: 'npm test invocation', re: /\bnpm\s+--prefix\s+src\s+test\b/i },
-];
-
-export function findTestCaseInterfaceFenceLeaks(
-  sectionText: string,
-  testLevel: TestLevel
-): string[] {
-  if (!EXTERNAL_INTERFACE_TEST_LEVELS.includes(testLevel)) {
-    return [];
-  }
-  const leaks: string[] = [];
-  for (const { label, re } of TC_INTERFACE_BANNED) {
-    if (re.test(sectionText)) {
-      leaks.push(label);
-    }
-  }
-  const implTypes =
-    sectionText.match(/\b[A-Z][a-zA-Z0-9]{2,}(?:Analyzer|Builder|Registry|Scorer|Parser|Loader)\b/g) ??
-    [];
-  for (const token of implTypes) {
-    leaks.push(`implementation type "${token}"`);
-  }
-  for (const leak of findBacktickImplementationLeaks(sectionText)) {
-    const inner = leak.slice(1, -1);
-    if (/^[A-Z]/.test(inner)) {
-      leaks.push(`implementation identifier ${leak}`);
-    }
-  }
-  return [...new Set(leaks)];
-}
+export { findTestCaseInterfaceFenceLeaks } from './tcInterfaceFence.js';
 
 export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): {
   passed: boolean;
@@ -367,7 +334,7 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): {
       const isUnitLevel = meta.test_level === 'unit';
       if (!Array.isArray(meta.verifies)) {
         errors.push(`${filePath}: test_case verifies must be an array of IDs`);
-      } else if (!isUnitLevel && meta.verifies.length === 0) {
+      } else if (!isUnitLevel && meta.verifies.length === 0 && !isRetiredDocStatus(meta.status)) {
         errors.push(`${filePath}: test_case verifies must be a non-empty array of IDs`);
       } else {
         for (const vid of meta.verifies) {

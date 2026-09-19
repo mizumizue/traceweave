@@ -1,3 +1,4 @@
+import { isActiveTestCase } from '../models/docStatus.js';
 import {
   DocNode,
   RequirementSufficiency,
@@ -126,7 +127,7 @@ export function buildTestStratumCatalog(
     requirementSufficiencies.map(s => [s.requirementId, s] as const)
   );
   const traceIndexes = buildTestStratumTraceIndexes(nodes);
-  const testCases = nodes.filter(n => n.kind === 'test_case');
+  const testCases = nodes.filter(isActiveTestCase);
   const byLevel = new Map<TestLevel, DocNode[]>();
   const unassigned: DocNode[] = [];
 

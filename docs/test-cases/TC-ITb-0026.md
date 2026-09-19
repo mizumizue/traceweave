@@ -9,9 +9,7 @@ updated: '2026-09-19'
 scope: local
 test_level: integration_external
 test_method: api_contract
-verifies:
-  - REQ-0029
-  - SPEC-0023
+verifies: []
 depends_on: []
 tags:
   - mcp

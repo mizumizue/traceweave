@@ -580,6 +580,99 @@ test('validateDocs - 退役 test_case に supersedes が無い場合はエラー
 
 /**
  * 【テスト概要】
+ * - 対象: validateDocs (退役 TC の verifies 空配列)
+ * - 条件: deprecated かつ supersedes ありで verifies が空の ITb TC
+ * - 期待結果: 検証が通過すること（ADR-0010 分割親はオラクルとして参照しない）
+ */
+test('validateDocs - 退役 test_case は verifies 空でも検証を通過すること', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tw-validate-tc-retired-verifies-'));
+  try {
+    const docsDir = path.join(tempDir, 'docs');
+    writeMinimalRequirement(docsDir);
+    writeMinimalSpecification(docsDir);
+    writeMinimalDesign(docsDir);
+    const tcDir = path.join(docsDir, 'test-cases');
+    fs.mkdirSync(tcDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(tcDir, 'TC-ITb-0001.md'),
+      `---
+schema_version: 3
+id: TC-ITb-0001
+kind: test_case
+title: Retired parent
+status: deprecated
+created: "2026-09-12"
+updated: "2026-09-12"
+scope: local
+test_level: integration_external
+test_method: api_contract
+verifies: []
+depends_on: []
+tags: []
+links: []
+supersedes: [TC-ITb-0001-01]
+---
+## Content
+
+### Objective
+Retired.
+
+### Preconditions
+N/A.
+
+### Steps
+N/A.
+
+### Expected Results
+N/A.
+`,
+      'utf8'
+    );
+    fs.writeFileSync(
+      path.join(tcDir, 'TC-ITb-0001-01.md'),
+      `---
+schema_version: 3
+id: TC-ITb-0001-01
+kind: test_case
+title: Child
+status: accepted
+created: "2026-09-12"
+updated: "2026-09-12"
+scope: local
+test_level: integration_external
+test_method: api_contract
+verifies: [REQ-0001]
+depends_on: []
+tags: []
+links: []
+derived_from: TC-ITb-0001
+---
+## Content
+
+### Objective
+Child oracle.
+
+### Preconditions
+N/A.
+
+### Steps
+1. Run CLI.
+
+### Expected Results
+Exit 0.
+`,
+      'utf8'
+    );
+
+    const result = validateDocs(docsDir);
+    assert.equal(result.passed, true, `Validation failed: ${result.errors.join(', ')}`);
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+/**
+ * 【テスト概要】
  * - 対象: validateDocs (TC interface fence 警告)
  * - 条件: ITb の Steps に実装型名を含む TC
  * - 期待結果: [tc-interface-fence] 警告が返り lint は passed のままであること

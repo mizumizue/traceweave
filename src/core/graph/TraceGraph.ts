@@ -1,3 +1,4 @@
+import { isActiveTestCase } from '../models/docStatus.js';
 import { DocKind, DocNode } from '../models/types.js';
 
 export class TraceGraph {
@@ -22,8 +23,8 @@ export class TraceGraph {
       this.downstreams.get(depId)!.add(node.id);
     }
 
-    // Record verifies if this is a test_case
-    if (node.kind === 'test_case' && node.verifies) {
+    // Record verifies for active test cases only (retired split parents are not oracles)
+    if (node.kind === 'test_case' && node.verifies && isActiveTestCase(node)) {
       for (const targetId of node.verifies) {
         this.testVerifies.get(node.id)!.add(targetId);
         if (!this.verifiedByMap.has(targetId)) this.verifiedByMap.set(targetId, new Set());

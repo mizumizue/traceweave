@@ -1,4 +1,5 @@
 import { TraceGraph } from '../graph/TraceGraph.js';
+import { isActiveTestCase } from '../models/docStatus.js';
 import {
   Criticality,
   DocNode,
@@ -17,7 +18,10 @@ export const TRACEABILITY_TEST_LEVELS: TestLevel[] = [
 ];
 
 export function isTraceabilityTestCase(tc: DocNode): boolean {
-  return Boolean(tc.test_level && TRACEABILITY_TEST_LEVELS.includes(tc.test_level));
+  return (
+    isActiveTestCase(tc) &&
+    Boolean(tc.test_level && TRACEABILITY_TEST_LEVELS.includes(tc.test_level))
+  );
 }
 
 export function emptyPhaseCounts(): PhaseCount {

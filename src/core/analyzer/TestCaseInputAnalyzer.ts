@@ -1,3 +1,4 @@
+import { isActiveTestCase } from '../models/docStatus.js';
 import {
   DocNode,
   TestCaseInputAnalysis,
@@ -153,9 +154,7 @@ export class TestCaseInputAnalyzer {
    * Analyzes all test cases in the given list of DocNodes.
    */
   public static analyzeAll(nodes: DocNode[]): TestCaseInputAnalysis[] {
-    return nodes
-      .filter(n => n.kind === 'test_case')
-      .map(n => this.analyze(n));
+    return nodes.filter(isActiveTestCase).map(n => this.analyze(n));
   }
 
   /**

@@ -9,9 +9,7 @@ updated: '2026-09-19'
 scope: local
 test_level: integration_internal
 test_method: scenario
-verifies:
-  - REQ-0032
-  - SPEC-0027
+verifies: []
 depends_on: []
 tags:
   - use-case

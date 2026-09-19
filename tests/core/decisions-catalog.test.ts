@@ -4,6 +4,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { DocNode } from '../../src/core/models/types.js';
 import { DecisionsCatalogBuilder } from '../../src/core/decisions/DecisionsCatalogBuilder.js';
+import { isActiveTestCase } from '../../src/core/models/docStatus.js';
 import { DocParser } from '../../src/infrastructure/parser/DocParser.js';
 
 /**
@@ -213,7 +214,8 @@ test('TC-ITb-0013-02: DecisionsCatalogBuilder - 実際のdocsディレクトリ�
   assert.ok(nodes.length > 70, `Expected >70 nodes, got ${nodes.length}`);
 
   const catalog = DecisionsCatalogBuilder.build(nodes);
-  assert.equal(catalog.totalCount, nodes.length);
+  const dashboardNodes = nodes.filter(n => n.kind !== 'test_case' || isActiveTestCase(n));
+  assert.equal(catalog.totalCount, dashboardNodes.length);
   assert.ok(catalog.kindCounts.need > 0);
   assert.ok(catalog.kindCounts.actor > 0);
   assert.ok(catalog.kindCounts.use_case > 0);

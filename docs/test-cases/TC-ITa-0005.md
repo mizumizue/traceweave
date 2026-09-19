@@ -9,11 +9,7 @@ updated: '2026-09-19'
 scope: local
 test_level: integration_internal
 test_method: scenario
-verifies:
-  - REQ-0006
-  - REQ-0007
-  - SPEC-0006
-  - SPEC-0007
+verifies: []
 depends_on: []
 tags:
   - strata

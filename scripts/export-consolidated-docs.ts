@@ -256,7 +256,7 @@ function buildDocumentIndex(): string {
     '| 領域 | 代表 TC |',
     '|---|---|',
     '| グラフ・パーサー | TC-UT-0001, TC-ITb-0002 |',
-    '| CLI・CI | TC-ITb-0003, TC-UAT-0001, TC-ITb-0024 |',
+    '| CLI・CI | TC-ITb-0003-01, TC-ITb-0003-02, TC-UAT-0001, TC-ITb-0024 |',
     '| 対話型テスト | TC-ITb-0005, TC-ITb-0006 |',
     '| UI 操作 | TC-ITb-0011, TC-UT-0004, TC-ST-0001, TC-ITb-0020 |',
     '| グラフ表示 | TC-ITb-0023 |',

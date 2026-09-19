@@ -1,5 +1,5 @@
 import { TraceGraph } from '../graph/TraceGraph.js';
-import { isActiveRequirement } from '../models/docStatus.js';
+import { isActiveRequirement, isActiveTestCase } from '../models/docStatus.js';
 import { isTraceabilityTestCase } from '../sufficiency/SufficiencyScorer.js';
 import { UseCaseSufficiencyScorer } from '../sufficiency/UseCaseSufficiencyScorer.js';
 import { buildTestStratumCatalog } from '../testing/buildTestStratumCatalog.js';
@@ -106,7 +106,7 @@ export class MatrixBuilder {
     const totalNeeds = graph.getNodesByKind('need').length;
     const totalRequirements = graph.getRequirements().length;
     const totalSpecifications = graph.getSpecifications().length;
-    const totalTestCases = graph.getNodesByKind('test_case').length;
+    const totalTestCases = graph.getNodesByKind('test_case').filter(isActiveTestCase).length;
 
     const avgScore =
       sufficiencies.length > 0
@@ -141,13 +141,15 @@ export class MatrixBuilder {
       }
     }
 
-    const allTestCases = graph.getTestCases();
+    const allTestCases = graph.getTestCases().filter(isActiveTestCase);
     const passedTestCaseCount = allTestCases.filter(tc => tc.execution_status === 'passed').length;
     const failedTestCaseCount = allTestCases.filter(tc => tc.execution_status === 'failed').length;
     const pendingTestCaseCount = allTestCases.length - passedTestCaseCount - failedTestCaseCount;
     const inputAnalyses = TestCaseInputAnalyzer.analyzeAll(allTestCases);
     const inputModifiability = TestCaseInputAnalyzer.summarize(inputAnalyses);
-    const allNodes = graph.getAllNodes();
+    const allNodes = graph
+      .getAllNodes()
+      .filter(n => n.kind !== 'test_case' || isActiveTestCase(n));
     const catalog = DecisionsCatalogBuilder.build(allNodes);
     const visualGraph = TraceabilityGraphBuilder.buildGraph(allNodes);
     const useCaseScorer = new UseCaseSufficiencyScorer();

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { DocParser } from '../../src/infrastructure/parser/DocParser.js';
 import { TraceabilityGraphBuilder, GRAPH_RANKS } from '../../src/core/graph/TraceabilityGraphBuilder.js';
+import { isRetiredDocStatus } from '../../src/core/models/docStatus.js';
 import { DocNode } from '../../src/core/models/types.js';
 import { repositoryPath } from '../helpers/repo-path.js';
 
@@ -408,7 +409,10 @@ test('TC-ITb-0014: TraceabilityGraphBuilder - 実際のdocsディレクトリを
 
   const graph = TraceabilityGraphBuilder.buildGraph(nodes);
 
-  assert.equal(graph.nodes.length, nodes.length);
+  const visibleDocNodes = nodes.filter(
+    n => n.kind !== 'test_case' || !isRetiredDocStatus(n.status)
+  );
+  assert.equal(graph.nodes.length, visibleDocNodes.length);
   assert.ok(graph.edges.length > 50);
   assert.ok(graph.bounds.width > 1000);
   assert.ok(graph.bounds.height > 500);

@@ -9,9 +9,7 @@ updated: '2026-09-19'
 scope: local
 test_level: integration_internal
 test_method: api_contract
-verifies:
-  - REQ-0030
-  - SPEC-0025
+verifies: []
 depends_on: []
 tags:
   - subject-context

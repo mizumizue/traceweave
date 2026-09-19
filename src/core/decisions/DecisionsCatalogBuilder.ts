@@ -1,3 +1,4 @@
+import { isActiveTestCase } from '../models/docStatus.js';
 import {
   DocNode,
   DocKind,
@@ -50,6 +51,9 @@ export class DecisionsCatalogBuilder {
     };
 
     for (const node of nodes) {
+      if (node.kind === 'test_case' && !isActiveTestCase(node)) {
+        continue;
+      }
       if (node.kind in kindCounts) {
         kindCounts[node.kind as keyof Omit<DecisionsKindCounts, 'total'>]++;
       }
@@ -88,8 +92,8 @@ export class DecisionsCatalogBuilder {
         }
       }
 
-      // Index verifies
-      if (node.verifies && Array.isArray(node.verifies)) {
+      // Index verifies (retired split parents are not traceability oracles)
+      if (isActiveTestCase(node) && node.verifies && Array.isArray(node.verifies)) {
         for (const targetId of node.verifies) {
           if (!verifiedByMap.has(targetId)) {
             verifiedByMap.set(targetId, []);
@@ -118,7 +122,9 @@ export class DecisionsCatalogBuilder {
       level: node.test_level,
     });
 
-    const items: DecisionsCatalogItem[] = nodes.map(node => {
+    const items: DecisionsCatalogItem[] = nodes
+      .filter(node => node.kind !== 'test_case' || isActiveTestCase(node))
+      .map(node => {
       const relatedActorsMap = new Map<string, DecisionsReferenceItem>();
       const relatedUseCasesMap = new Map<string, DecisionsReferenceItem>();
       const relatedNeedsMap = new Map<string, DecisionsReferenceItem>();

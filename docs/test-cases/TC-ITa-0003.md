@@ -9,9 +9,7 @@ updated: '2026-09-19'
 scope: local
 test_level: integration_internal
 test_method: unit_contract
-verifies:
-  - REQ-0009
-  - SPEC-0008
+verifies: []
 depends_on: []
 tags:
   - input-analyzer

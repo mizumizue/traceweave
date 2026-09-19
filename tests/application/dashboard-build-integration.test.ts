@@ -63,7 +63,8 @@ test('TC-ITb-0017: buildTraceWeaveReport - レポート統合・静的データ�
   // 4. Validate graph and nodes synchronization
   const graphReqs = graph.getRequirements();
   assert.equal(graphReqs.length, report.requirements.length);
-  assert.equal(nodes.length, report.catalog?.totalCount || nodes.length);
+  assert.equal(report.nodes!.length, report.catalog?.totalCount);
+  assert.ok(!report.nodes!.some(n => n.id === 'TC-ITa-0001'));
 
   const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'traceweave-build-'));
   try {

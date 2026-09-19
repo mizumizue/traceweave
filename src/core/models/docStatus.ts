@@ -13,3 +13,8 @@ export function isActiveDocStatus(status: DocStatus | undefined): boolean {
 export function isActiveRequirement(node: DocNode | undefined): boolean {
   return node?.kind === 'requirement' && isActiveDocStatus(node.status);
 }
+
+/** Active test_case docs participate in matrix, catalog, and graph (ADR-0010 split parents are excluded). */
+export function isActiveTestCase(node: DocNode | undefined): boolean {
+  return node?.kind === 'test_case' && !isRetiredDocStatus(node.status);
+}

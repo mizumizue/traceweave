@@ -1,3 +1,4 @@
+import { isRetiredDocStatus } from '../models/docStatus.js';
 import {
   DocKind,
   DocNode,
@@ -109,7 +110,7 @@ export class TraceabilityGraphBuilder {
       }
 
       // test_case verifies: target is verified target (upstream), test is downstream
-      if (node.kind === 'test_case' && node.verifies) {
+      if (node.kind === 'test_case' && node.verifies && !isRetiredDocStatus(node.status)) {
         for (const targetId of node.verifies) {
           addEdge(targetId, node.id, 'verifies', 'verifies');
         }
@@ -152,6 +153,9 @@ export class TraceabilityGraphBuilder {
 
     const visibleNodeIds = new Set<string>();
     for (const node of nodes) {
+      if (node.kind === 'test_case' && isRetiredDocStatus(node.status)) {
+        continue;
+      }
       if (excludedKindSet && excludedKindSet.has(node.kind)) {
         continue;
       }

@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { buildTraceWeaveReport } from './build-report.js';
+import { isRetiredDocStatus } from '../core/models/docStatus.js';
 import { TraceWeaveReport } from '../core/models/types.js';
 import { validateDocs } from '../infrastructure/governance/validateDocs.js';
 import { resolveRepoRoot } from '../infrastructure/system/resolveRepoRoot.js';
@@ -81,7 +82,11 @@ export function checkDocs(options: CheckOptions = {}): CheckResult {
           errors.push(`[${node.id}] test_method "${node.test_method}" is invalid`);
         }
         const isUnit = node.test_level === 'unit';
-        if (!isUnit && (!node.verifies || node.verifies.length === 0)) {
+        if (
+          !isUnit &&
+          (!node.verifies || node.verifies.length === 0) &&
+          !isRetiredDocStatus(node.status)
+        ) {
           errors.push(`[${node.id}] test_case verifies must be non-empty`);
         }
         if (isUnit && node.verifies) {
