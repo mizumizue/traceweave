@@ -1,7 +1,7 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import { SubjectContext, SubjectSource } from '../core/models/types.js';
 import { resolvePackageDisplayName } from './resolve-package-display-name.js';
+import { readWorkspaceConfigFile } from '../infrastructure/workspace/loadWorkspaceConfig.js';
 
 export interface ResolveSubjectContextOptions {
   repoRoot: string;
@@ -26,16 +26,9 @@ export function resolveSubjectContext(options: ResolveSubjectContextOptions): Su
   const envName = nonEmpty(process.env.TRACEWEAVE_SUBJECT);
   if (envName) return fromSource(envName, 'env');
 
-  const configPath = path.join(repoRoot, '.traceweave', 'config.json');
-  if (fs.existsSync(configPath)) {
-    try {
-      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as { displayName?: string };
-      const configName = nonEmpty(config.displayName);
-      if (configName) return fromSource(configName, 'config');
-    } catch {
-      // skip invalid config and fall through
-    }
-  }
+  const config = readWorkspaceConfigFile(repoRoot);
+  const configName = nonEmpty(config?.displayName);
+  if (configName) return fromSource(configName, 'config');
 
   const packageName = resolvePackageDisplayName(repoRoot);
   if (packageName) return fromSource(packageName, 'package_json');

@@ -13,6 +13,7 @@ import { TraceGraph } from '../core/graph/TraceGraph.js';
 import { TraceWeaveReport, DocNode } from '../core/models/types.js';
 import { enrichDocNodes } from './enrich-doc-nodes.js';
 import { resolveSubjectContext } from './resolve-subject-context.js';
+import { resolveWorkspace } from './workspace/resolveWorkspace.js';
 
 export interface BuildReportOptions {
   docsDir?: string;
@@ -71,10 +72,18 @@ export function buildTraceWeaveReport(options: BuildReportOptions = {}): {
   const scorer = new SufficiencyScorer();
   const sufficiencies = scorer.calculateAll(graph);
 
+  let coverageReportPath = resolveCoverageReportPath(projectRoot);
+  try {
+    const workspace = resolveWorkspace({ workspaceRoot: projectRoot });
+    coverageReportPath = workspace.coverageSummaryPath;
+  } catch {
+    // legacy default path
+  }
+
   const unitCoverageAnalyzer = new UnitCoverageAnalyzer();
   const unitCoverage = unitCoverageAnalyzer.analyze({
     projectRoot,
-    coverageReportPath: resolveCoverageReportPath(projectRoot),
+    coverageReportPath,
   });
 
   const analyzer = new BalanceAnalyzer();

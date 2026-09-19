@@ -1,6 +1,7 @@
 import { TraceGraph } from '../graph/TraceGraph.js';
 import { isActiveRequirement } from '../models/docStatus.js';
 import { isTraceabilityTestCase } from '../sufficiency/SufficiencyScorer.js';
+import { UseCaseSufficiencyScorer } from '../sufficiency/UseCaseSufficiencyScorer.js';
 import {
   DocNode,
   MatrixRow,
@@ -148,6 +149,17 @@ export class MatrixBuilder {
     const allNodes = graph.getAllNodes();
     const catalog = DecisionsCatalogBuilder.build(allNodes);
     const visualGraph = TraceabilityGraphBuilder.buildGraph(allNodes);
+    const useCaseScorer = new UseCaseSufficiencyScorer();
+    const useCases = useCaseScorer.calculateAll(graph, sufficiencies);
+    const scoredUseCases = useCases.filter(uc => uc.status === 'scored');
+    const useCaseCount = useCases.length;
+    const useCaseAssignedCount = scoredUseCases.length;
+    const averageUseCaseSufficiencyScore =
+      scoredUseCases.length > 0
+        ? Math.round(
+            scoredUseCases.reduce((acc, uc) => acc + (uc.score ?? 0), 0) / scoredUseCases.length
+          )
+        : 0;
 
     return {
       generatedAt: new Date().toISOString(),
@@ -164,6 +176,9 @@ export class MatrixBuilder {
         highCriticalityCoverage,
         functionalRequirementCount,
         nonFunctionalRequirementCount,
+        useCaseCount,
+        useCaseAssignedCount,
+        averageUseCaseSufficiencyScore,
         qualityAxes: {
           traceability: {
             overallScore: avgScore,
@@ -180,6 +195,7 @@ export class MatrixBuilder {
       unitCoverage,
       pyramid,
       requirements: sufficiencies,
+      useCases,
       matrix,
       gaps: {
         untestedRequirements,

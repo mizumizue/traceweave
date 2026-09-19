@@ -20,6 +20,8 @@ import {
   type AdoptionMode,
 } from '../application/adopt-project/index.js';
 import { buildWebDashboard } from '../application/build-web-dashboard.js';
+import { runWorkspaceTests } from '../application/run-workspace-tests.js';
+import { resolveWorkspace } from '../application/workspace/resolveWorkspace.js';
 
 ensureDependenciesInstalled();
 
@@ -41,7 +43,15 @@ program
   .name('traceweave')
   .description('TraceWeave - V-Model Traceability Matrix & Test Stratum Sufficiency Analyzer')
   .version('0.1.0')
+  .option('-w, --workspace <dir>', 'Workspace root containing .traceweave/config.json')
   .option('--subject <name>', 'Override target application display name for reports and dashboard');
+
+program.hook('preAction', () => {
+  const opts = program.opts<{ workspace?: string }>();
+  if (opts.workspace?.trim()) {
+    process.env.TRACEWEAVE_WORKSPACE = opts.workspace.trim();
+  }
+});
 
 // Command: check
 program
@@ -329,7 +339,7 @@ program
     try {
       distWeb = buildWebDashboard({
         docsDir,
-        skipViteIfPresent: false,
+        skipViteIfPresent: true,
         subjectOverride: reportOptions.subjectOverride,
       });
     } catch (err) {
@@ -436,6 +446,39 @@ program
     } catch (err: any) {
       console.error(`\x1b[31mAdoption failed: ${err.message}\x1b[0m`);
       process.exit(1);
+    }
+  });
+
+// Command: test
+program
+  .command('test')
+  .description('Run configured test suites and merge results into the workspace aggregate report')
+  .option('--suite <id>', 'Run only the suite with this id (repeatable)', (value: string, prev: string[]) => {
+    prev.push(value);
+    return prev;
+  }, [] as string[])
+  .option('--merge-only', 'Merge existing suite fragments without executing commands', false)
+  .action(async (options: { suite: string[]; mergeOnly: boolean }) => {
+    try {
+      const workspace = resolveWorkspace();
+      const suiteIds = options.suite?.length ? options.suite : undefined;
+      const result = await runWorkspaceTests({
+        workspace,
+        suiteIds,
+        mergeOnly: options.mergeOnly,
+      });
+      console.log(
+        `\n\x1b[32m✔ Aggregate test report: ${result.aggregatePath}\x1b[0m`
+      );
+      if (result.suiteOutcomes.length > 0) {
+        for (const outcome of result.suiteOutcomes) {
+          const color = outcome.exitCode === 0 ? '\x1b[32m' : '\x1b[31m';
+          console.log(`  ${color}- ${outcome.id}: exit ${outcome.exitCode}\x1b[0m`);
+        }
+      }
+      process.exit(result.exitCode);
+    } catch (err) {
+      exitOnError(err);
     }
   });
 

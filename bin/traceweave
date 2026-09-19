@@ -4,14 +4,16 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 export NODE_PATH="$ROOT/src/node_modules${NODE_PATH:+:$NODE_PATH}"
 
-if [[ "${1:-}" == "serve" ]] && [[ -f "$ROOT/src/dist/cli/index.js" ]]; then
-  echo ""
-  echo "⚙ Building CLI before serve..."
-  npm run build:cli --prefix "$ROOT/src"
-fi
+CLI_SRC="$ROOT/src/cli/index.ts"
+CLI_DIST="$ROOT/src/dist/cli/index.js"
 
-if [[ -f "$ROOT/src/dist/cli/index.js" ]]; then
-  exec node "$ROOT/src/dist/cli/index.js" "$@"
+if [[ -f "$CLI_DIST" ]]; then
+  if [[ ! -f "$CLI_SRC" ]] || [[ "$CLI_SRC" -nt "$CLI_DIST" ]]; then
+    echo ""
+    echo "⚙ Building CLI (source newer than dist)..."
+    npm run build:cli --prefix "$ROOT/src"
+  fi
+  exec node "$CLI_DIST" "$@"
 else
-  exec "$ROOT/src/node_modules/.bin/tsx" "$ROOT/src/cli/index.ts" "$@"
+  exec "$ROOT/src/node_modules/.bin/tsx" "$CLI_SRC" "$@"
 fi

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "displayName": "TraceWeave",
+  "docsDir": "docs",
+  "evidenceDir": "reports",
+  "testResults": {
+    "aggregate": "reports/test-results.json",
+    "format": "traceweave-v1"
+  },
+  "coverage": {
+    "lcov": "reports/lcov.info",
+    "summary": "reports/coverage-summary.json"
+  },
+  "merge": {
+    "onConflict": "fail-wins"
+  },
+  "suites": [
+    {
+      "id": "node",
+      "label": "TypeScript test suite (Node test runner)",
+      "cwd": ".",
+      "run": "",
+      "capture": "node-test-tap",
+      "fragment": "reports/suites/node.json"
+    }
+  ]
+}

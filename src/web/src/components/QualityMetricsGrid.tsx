@@ -38,6 +38,10 @@ export function QualityMetricsGrid({
             <div className="text-[10px] text-slate-500 mt-0.5">
               High {summary.qualityAxes.traceability.highCriticalityCoverage}%
             </div>
+            <div className="text-[10px] text-indigo-300/90 mt-1">
+              UC 平均 {summary.averageUseCaseSufficiencyScore}%（{summary.useCaseAssignedCount}/
+              {summary.useCaseCount} 割当）
+            </div>
           </div>
         </div>
 

@@ -31,7 +31,8 @@ test('TC-0058: buildTraceWeaveReport - subject がレポートとマークダウ
   const { report } = buildTraceWeaveReport({ docsDir: repositoryPath('docs'), useCache: false });
   assert.ok(report.subject);
   assert.ok(report.subject.displayName.length > 0);
-  assert.equal(report.subject.source, 'package_json');
+  assert.equal(report.subject.source, 'config');
+  assert.equal(report.subject.displayName, 'TraceWeave');
 
   const markdown = MarkdownReporter.generateMarkdown(report);
   assert.ok(markdown.startsWith(`# TraceWeave 品質レポート — ${report.subject.displayName}`));

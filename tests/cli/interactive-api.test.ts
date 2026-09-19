@@ -2,11 +2,37 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import http from 'node:http';
-import { spawn } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
 import { enrichDocNodes } from '../../src/application/enrich-doc-nodes.js';
 import { DocParser } from '../../src/infrastructure/parser/DocParser.js';
 import { TestRunnerRegistry } from '../../src/core/testing/TestRunnerRegistry.js';
 import { repositoryPath } from '../helpers/repo-path.js';
+
+async function waitForServeReady(
+  port: number,
+  child: ChildProcess,
+  timeoutMs = 45_000
+): Promise<void> {
+  const started = Date.now();
+  let stderr = '';
+  child.stderr?.on('data', chunk => {
+    stderr += String(chunk);
+  });
+
+  while (Date.now() - started < timeoutMs) {
+    if (child.exitCode !== null) {
+      throw new Error(`serve exited with code ${child.exitCode}\n${stderr}`);
+    }
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/api/data`);
+      if (response.ok) return;
+    } catch {
+      // not listening yet
+    }
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  throw new Error(`serve did not start within ${timeoutMs}ms\n${stderr}`);
+}
 
 /**
  * 【テスト概要】
@@ -104,25 +130,7 @@ test('TC-0011: CLI serve - 外部HTTP APIが対話型テスト実行結果を返
   );
 
   try {
-    await new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('serve did not start')), 10_000);
-      child.stdout.on('data', chunk => {
-        if (String(chunk).includes('is running at')) {
-          clearTimeout(timeout);
-          resolve();
-        }
-      });
-      child.once('error', error => {
-        clearTimeout(timeout);
-        reject(error);
-      });
-      child.once('exit', code => {
-        if (code !== null && code !== 0) {
-          clearTimeout(timeout);
-          reject(new Error(`serve exited with code ${code}`));
-        }
-      });
-    });
+    await waitForServeReady(port, child);
 
     const response = await fetch(`http://127.0.0.1:${port}/api/test/run`, {
       method: 'POST',
@@ -167,19 +175,7 @@ test('TC-0040: CLI serve - /api/test/run が未知TCで404・UI除外TCで400を
   );
 
   try {
-    await new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('serve did not start')), 10_000);
-      child.stdout.on('data', chunk => {
-        if (String(chunk).includes('is running at')) {
-          clearTimeout(timeout);
-          resolve();
-        }
-      });
-      child.once('error', error => {
-        clearTimeout(timeout);
-        reject(error);
-      });
-    });
+    await waitForServeReady(port, child);
 
     const unknown = await fetch(`http://127.0.0.1:${port}/api/test/run`, {
       method: 'POST',
@@ -226,19 +222,7 @@ test('CLI serve - パストラバーサル要求を 403 で拒否すること', 
   );
 
   try {
-    await new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('serve did not start')), 10_000);
-      child.stdout.on('data', chunk => {
-        if (String(chunk).includes('is running at')) {
-          clearTimeout(timeout);
-          resolve();
-        }
-      });
-      child.once('error', error => {
-        clearTimeout(timeout);
-        reject(error);
-      });
-    });
+    await waitForServeReady(port, child);
 
     const { statusCode, body } = await requestRawPath(port, '/../package.json');
     assert.equal(statusCode, 403);

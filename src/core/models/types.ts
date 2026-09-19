@@ -182,6 +182,22 @@ export interface MethodCount {
   exploratory_manual: number;
 }
 
+export type UseCaseSufficiencyStatus = 'unassigned' | 'scored';
+
+export interface UseCaseSufficiency {
+  useCaseId: string;
+  title: string;
+  status: UseCaseSufficiencyStatus;
+  /** Present when status is scored; average of linked requirement scores (missing refs count as 0). */
+  score?: number;
+  isFullySatisfied?: boolean;
+  requirementRefCount: number;
+  satisfiedRequirementCount: number;
+  requirementIds: string[];
+  unsatisfiedRequirementIds: string[];
+  unknownRequirementIds: string[];
+}
+
 export interface RequirementSufficiency {
   requirementId: string;
   title: string;
@@ -398,12 +414,16 @@ export interface TraceWeaveReport {
     highCriticalityCoverage: number;
     functionalRequirementCount: number;
     nonFunctionalRequirementCount: number;
+    useCaseCount: number;
+    useCaseAssignedCount: number;
+    averageUseCaseSufficiencyScore: number;
     qualityAxes: QualityAxesSummary;
   };
   strata: StratumReport[];
   unitCoverage: UnitCoverageReport;
   pyramid: PyramidHealthReport;
   requirements: RequirementSufficiency[];
+  useCases: UseCaseSufficiency[];
   matrix: MatrixRow[];
   gaps: {
     untestedRequirements: string[];

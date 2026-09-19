@@ -20,6 +20,7 @@ const ALLOWED_DIRECTORIES = new Set([
   '.git',
   '.github',
   '.traceweave-backup',
+  '.traceweave',
 ]);
 
 // ルート直下に配置を許可するファイル（Allowlist）

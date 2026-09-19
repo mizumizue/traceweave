@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { resolveWorkspace } from './workspace/resolveWorkspace.js';
 
 const CLI_DIR = path.dirname(fileURLToPath(import.meta.url));
 
@@ -11,6 +12,12 @@ export function resolveDocsDir(requestedPath?: string): string {
       throw new Error(`Docs directory not found: ${resolved}`);
     }
     return resolved;
+  }
+
+  try {
+    return resolveWorkspace().docsDir;
+  } catch {
+    // fall through
   }
 
   const candidateDirs = [

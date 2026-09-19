@@ -503,6 +503,7 @@ export default function App() {
         {activeTab === 'decisions' && (
           <DecisionsBrowser
             catalog={catalogData}
+            useCaseSufficiencies={report.useCases}
             onSelectNode={id => setSelectedNodeId(id)}
             selectedKind={catalogKind as any}
             onKindChange={kind => setCatalogKind(kind)}
@@ -543,6 +544,7 @@ export default function App() {
           nodeMap={nodeMap}
           catalog={catalogData}
           requirements={report.requirements}
+          useCases={report.useCases}
           onSelectNode={id => setSelectedNodeId(id)}
           onClose={() => setSelectedNodeId(null)}
           onBack={handleBack}

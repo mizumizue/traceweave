@@ -29,6 +29,7 @@ export function loadCoverageSummary(reportPath?: string): CoverageSummary | null
   }
 }
 
-export function resolveCoverageReportPath(projectRoot: string): string {
+export function resolveCoverageReportPath(projectRoot: string, summaryPath?: string): string {
+  if (summaryPath) return summaryPath;
   return path.join(projectRoot, 'reports', 'coverage-summary.json');
 }

@@ -1,39 +1,25 @@
-import fs from 'node:fs';
 import path from 'node:path';
-import { DocNode, TestResultsReport, TestCaseExecutionReport } from '../../core/models/types.js';
-import { resolveRepoRoot } from '../system/resolveRepoRoot.js';
-
-const PROJECT_ROOT = resolveRepoRoot(import.meta.url);
+import { DocNode, TestResultsReport } from '../../core/models/types.js';
+import { loadWorkspaceConfig } from '../workspace/loadWorkspaceConfig.js';
+import { resolveWorkspaceRoot } from '../workspace/resolveWorkspaceRoot.js';
+import { loadTestResultsReportFile } from './loadTestResultsReport.js';
 
 export class TestReportLoader {
   /**
    * テスト結果レポートファイル（JSON）を読み込む
    */
   public static loadReport(customPath?: string): TestResultsReport | null {
-    const candidates = customPath
-      ? [path.resolve(customPath)]
-      : [
-          path.resolve(PROJECT_ROOT, 'reports/test-results.json'),
-          path.resolve(process.cwd(), 'reports/test-results.json'),
-          path.resolve(process.cwd(), '../reports/test-results.json'),
-          path.resolve(process.cwd(), 'src/../reports/test-results.json'),
-        ];
-
-    const reportFile = candidates.find(p => fs.existsSync(p));
-    if (!reportFile) {
-      return null;
+    if (customPath) {
+      return loadTestResultsReportFile(path.resolve(customPath));
     }
 
     try {
-      const raw = fs.readFileSync(reportFile, 'utf-8');
-      const data = JSON.parse(raw);
-      if (data && typeof data === 'object' && data.results) {
-        return data as TestResultsReport;
-      }
+      const workspaceRoot = resolveWorkspaceRoot({ startDir: process.cwd() });
+      const workspace = loadWorkspaceConfig(workspaceRoot);
+      return loadTestResultsReportFile(workspace.testResultsAggregatePath);
     } catch {
-      // 読み込み失敗時は null を返す
+      return null;
     }
-    return null;
   }
 
   /**

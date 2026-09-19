@@ -16,6 +16,8 @@ export class ConsoleReporter {
     console.log(`  - 機能要件 (FR):            ${summary.functionalRequirementCount}`);
     console.log(`  - 非機能要件 (NFR):         ${summary.nonFunctionalRequirementCount}`);
     console.log(`  - 総詳細仕様数 (SPEC):      ${summary.totalSpecifications}`);
+    console.log(`  - ユースケース (UC):        ${summary.useCaseCount} （割当 ${summary.useCaseAssignedCount}）`);
+    console.log(`  - UC 平均充足度:            ${summary.averageUseCaseSufficiencyScore}%`);
     console.log(`  - 総テストケース数 (TC):    ${summary.totalTestCases}`);
     console.log(`  - 実行合格 / 未実行 / 失敗:  ${summary.passedTestCaseCount} / ${summary.pendingTestCaseCount} / ${summary.failedTestCaseCount}`);
     console.log(`  - 契約充足度 (ITa〜UAT):     \x1b[1m\x1b[32m${summary.qualityAxes.traceability.overallScore}%\x1b[0m`);

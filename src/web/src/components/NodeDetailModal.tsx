@@ -3,6 +3,7 @@ import {
   DocNode,
   DecisionsCatalog,
   RequirementSufficiency,
+  UseCaseSufficiency,
   TestRunResult,
 } from '../../../core/models/types.js';
 import { buildFullUrl } from '../utils/urlState.js';
@@ -40,6 +41,7 @@ export interface NodeDetailModalProps {
   nodeMap: Map<string, DocNode>;
   catalog?: DecisionsCatalog;
   requirements?: RequirementSufficiency[];
+  useCases?: UseCaseSufficiency[];
   onSelectNode: (id: string) => void;
   onClose: () => void;
   onBack?: () => void;
@@ -51,6 +53,7 @@ export function NodeDetailModal({
   nodeMap,
   catalog,
   requirements,
+  useCases,
   onSelectNode,
   onClose,
   onBack,
@@ -58,7 +61,10 @@ export function NodeDetailModal({
 }: NodeDetailModalProps) {
   const isTestCase = node.kind === 'test_case';
   const isRequirement = node.kind === 'requirement';
+  const isUseCase = node.kind === 'use_case';
   const reqSufficiency = isRequirement && requirements ? requirements.find(r => r.requirementId === node.id) : null;
+  const useCaseSufficiency =
+    isUseCase && useCases ? useCases.find(uc => uc.useCaseId === node.id) : null;
   const catalogItem = catalog?.items.find(i => i.id === node.id);
   const [liveRunResult, setLiveRunResult] = useState<TestRunResult | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -249,6 +255,27 @@ export function NodeDetailModal({
                 </div>
               </div>
             )}
+            {useCaseSufficiency && useCaseSufficiency.status === 'scored' && (
+              <div className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl shadow-inner">
+                <CircularGauge
+                  value={useCaseSufficiency.score ?? 0}
+                  size={42}
+                  strokeWidth={4}
+                  label="UC充足率"
+                />
+                <div className="text-right">
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">シナリオ充足度</div>
+                  <div className="text-xs font-bold text-slate-200">
+                    {useCaseSufficiency.satisfiedRequirementCount}/{useCaseSufficiency.requirementRefCount} REQ
+                  </div>
+                </div>
+              </div>
+            )}
+            {useCaseSufficiency && useCaseSufficiency.status === 'unassigned' && (
+              <span className="text-xs font-semibold text-amber-300 bg-amber-950/50 border border-amber-800/60 rounded-xl px-3 py-2">
+                requirement_refs 未設定
+              </span>
+            )}
 
             <button
               onClick={() => {
@@ -346,6 +373,23 @@ export function NodeDetailModal({
                   ))}
                 </div>
               )}
+              {useCaseSufficiency &&
+                useCaseSufficiency.status === 'scored' &&
+                useCaseSufficiency.unsatisfiedRequirementIds.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-lg border border-rose-900/60">
+                    <span className="text-rose-400">未充足 REQ:</span>
+                    {useCaseSufficiency.unsatisfiedRequirementIds.map(reqId => (
+                      <button
+                        key={reqId}
+                        onClick={() => handleNavigate(reqId)}
+                        className="text-rose-300 hover:underline font-mono font-bold hover:text-rose-200 transition"
+                        title="要件の詳細へ"
+                      >
+                        {reqId}
+                      </button>
+                    ))}
+                  </div>
+                )}
               {/* Related Actors */}
               {catalogItem?.relatedActors && catalogItem.relatedActors.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-lg border border-violet-900/60">

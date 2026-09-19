@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { resolveCoverageReportPath } from '../core/coverage/CoverageReportLoader.js';
 import { resolveProjectLayout } from '../infrastructure/system/resolveRepoRoot.js';
+import { resolveWorkspace } from './workspace/resolveWorkspace.js';
 
 export type EnsureUnitCoverageResult = 'present' | 'missing';
 
@@ -14,7 +15,12 @@ export function ensureUnitCoverageReport(options: {
     docsDir: options.docsDir,
     moduleUrl: import.meta.url,
   });
-  const coveragePath = resolveCoverageReportPath(projectRoot);
+  let coveragePath = resolveCoverageReportPath(projectRoot);
+  try {
+    coveragePath = resolveWorkspace({ workspaceRoot: projectRoot }).coverageSummaryPath;
+  } catch {
+    // keep default
+  }
   if (fs.existsSync(coveragePath)) {
     return 'present';
   }

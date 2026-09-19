@@ -5,7 +5,9 @@ import {
   DocKind,
   DocStatus,
   DecisionsReferenceItem,
+  UseCaseSufficiency,
 } from '../../../core/models/types.js';
+import { CircularGauge } from './CircularGauge.js';
 import { matchesRequirementClassFilter, partitionByRequirementClass, REQUIREMENT_CLASS_META } from '../../../core/models/requirementClass.js';
 import { RequirementClassBadge } from './RequirementClassBadge.js';
 import {
@@ -44,6 +46,7 @@ import {
 
 interface DecisionsBrowserProps {
   catalog: DecisionsCatalog;
+  useCaseSufficiencies?: UseCaseSufficiency[];
   onSelectNode: (id: string) => void;
   selectedKind?: DocKind | 'all';
   onKindChange?: (kind: DocKind | 'all') => void;
@@ -143,8 +146,27 @@ export const KIND_META: Record<
   },
 };
 
+function renderUseCaseSufficiencyBadge(sufficiency: UseCaseSufficiency | undefined) {
+  if (!sufficiency || sufficiency.status === 'unassigned') {
+    return (
+      <span className="text-[10px] font-semibold text-amber-300 bg-amber-950/40 border border-amber-800/50 rounded-lg px-2 py-0.5">
+        要件未割当
+      </span>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2">
+      <CircularGauge value={sufficiency.score ?? 0} size={36} strokeWidth={3} />
+      <span className="text-[10px] text-slate-400">
+        {sufficiency.satisfiedRequirementCount}/{sufficiency.requirementRefCount} REQ
+      </span>
+    </div>
+  );
+}
+
 export function DecisionsBrowser({
   catalog,
+  useCaseSufficiencies = [],
   onSelectNode,
   selectedKind: selectedKindProp,
   onKindChange,
@@ -235,6 +257,14 @@ export function DecisionsBrowser({
   }, [catalog.items, selectedKind, selectedStatus, selectedTag, selectedRequirementClass, searchQuery]);
 
   const groupedItems = useMemo(() => partitionByRequirementClass(filteredItems), [filteredItems]);
+
+  const useCaseSufficiencyById = useMemo(() => {
+    const map = new Map<string, UseCaseSufficiency>();
+    for (const entry of useCaseSufficiencies) {
+      map.set(entry.useCaseId, entry);
+    }
+    return map;
+  }, [useCaseSufficiencies]);
 
   const actorUseCaseMap = useMemo(
     () =>
@@ -766,6 +796,7 @@ export function DecisionsBrowser({
                 {actorUseCaseMap.byUseCase.map(row => {
                   const meta = KIND_META.use_case;
                   const isOrphan = row.actors.length === 0;
+                  const ucSufficiency = useCaseSufficiencyById.get(row.useCase.id);
                   return (
                     <div
                       key={row.useCase.id}
@@ -778,7 +809,8 @@ export function DecisionsBrowser({
                         onClick={() => onSelectNode(row.useCase.id)}
                         className="w-full text-left space-y-2 group"
                       >
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border flex items-center gap-1 ${meta.badgeBg}`}
                           >
@@ -788,6 +820,8 @@ export function DecisionsBrowser({
                           <span className="font-mono text-xs font-bold text-slate-200 group-hover:text-indigo-200 transition">
                             {row.useCase.id}
                           </span>
+                          </div>
+                          <div className="shrink-0">{renderUseCaseSufficiencyBadge(ucSufficiency)}</div>
                         </div>
                         <h3 className="text-sm font-bold text-slate-100 group-hover:text-indigo-200 transition">
                           {row.useCase.title}

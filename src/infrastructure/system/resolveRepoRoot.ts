@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadWorkspaceConfig } from '../workspace/loadWorkspaceConfig.js';
+import { resolveWorkspaceRoot } from '../workspace/resolveWorkspaceRoot.js';
 
 export interface ResolveProjectLayoutOptions {
   docsDir?: string;
@@ -30,6 +32,17 @@ export function resolveProjectLayout(
       options.projectRoot ??
       (path.basename(docsDir) === 'docs' ? path.dirname(docsDir) : resolveRepoRoot(moduleUrl));
     return { projectRoot: path.resolve(projectRoot), docsDir };
+  }
+
+  try {
+    const workspaceRoot = resolveWorkspaceRoot({
+      workspaceRoot: options.projectRoot,
+      startDir: process.cwd(),
+    });
+    const workspace = loadWorkspaceConfig(workspaceRoot);
+    return { projectRoot: workspace.workspaceRoot, docsDir: workspace.docsDir };
+  } catch {
+    // fall through to legacy resolution
   }
 
   const cwdDocs = path.join(process.cwd(), 'docs');
