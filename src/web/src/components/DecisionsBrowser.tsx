@@ -9,6 +9,16 @@ import {
 } from '../../../core/models/types.js';
 import { CircularGauge } from './CircularGauge.js';
 import { matchesRequirementClassFilter, partitionByRequirementClass, REQUIREMENT_CLASS_META } from '../../../core/models/requirementClass.js';
+import {
+  GENERAL_GLOSSARY_DOMAINS,
+  GLOSSARY_DOMAIN_META,
+  GLOSSARY_SCOPES,
+  GLOSSARY_SCOPE_META,
+  matchesGlossaryDomainFilter,
+  matchesGlossaryScopeFilter,
+} from '../../../core/models/glossaryTaxonomy.js';
+import type { GlossaryScope } from '../../../core/models/types.js';
+import { GlossaryTaxonomyBadge } from './GlossaryTaxonomyBadge.js';
 import { RequirementClassBadge } from './RequirementClassBadge.js';
 import {
   Search,
@@ -58,6 +68,10 @@ interface DecisionsBrowserProps {
   onRequirementClassChange?: (requirementClass: string) => void;
   searchQuery?: string;
   onSearchQueryChange?: (query: string) => void;
+  selectedGlossaryScope?: string;
+  onGlossaryScopeChange?: (scope: string) => void;
+  selectedGlossaryDomain?: string;
+  onGlossaryDomainChange?: (domain: string) => void;
 }
 
 export const KIND_META: Record<
@@ -178,6 +192,10 @@ export function DecisionsBrowser({
   onRequirementClassChange,
   searchQuery: searchQueryProp,
   onSearchQueryChange,
+  selectedGlossaryScope: selectedGlossaryScopeProp = 'all',
+  onGlossaryScopeChange,
+  selectedGlossaryDomain: selectedGlossaryDomainProp = 'all',
+  onGlossaryDomainChange,
 }: DecisionsBrowserProps) {
   const [internalKind, setInternalKind] = useState<DocKind | 'all'>(selectedKindProp ?? 'all');
   const [internalTag, setInternalTag] = useState<string | null>(selectedTagProp ?? null);
@@ -194,6 +212,8 @@ export function DecisionsBrowser({
   const selectedRequirementClass =
     selectedRequirementClassProp !== undefined ? selectedRequirementClassProp : internalRequirementClass;
   const searchQuery = searchQueryProp !== undefined ? searchQueryProp : internalSearchQuery;
+  const selectedGlossaryScope = selectedGlossaryScopeProp;
+  const selectedGlossaryDomain = selectedGlossaryDomainProp;
 
   const handleSearchQueryChange = (query: string) => {
     setInternalSearchQuery(query);
@@ -220,6 +240,17 @@ export function DecisionsBrowser({
     onRequirementClassChange?.(requirementClass);
   };
 
+  const handleGlossaryScopeSelect = (scope: string) => {
+    onGlossaryScopeChange?.(scope);
+    if (scope === 'platform') {
+      onGlossaryDomainChange?.('all');
+    }
+  };
+
+  const handleGlossaryDomainSelect = (domain: string) => {
+    onGlossaryDomainChange?.(domain);
+  };
+
   const handleCopyId = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     navigator.clipboard.writeText(id);
@@ -236,6 +267,8 @@ export function DecisionsBrowser({
       if (selectedStatus !== 'all' && item.status !== selectedStatus) return false;
       if (selectedTag && !item.tags.includes(selectedTag)) return false;
       if (!matchesRequirementClassFilter(item, selectedRequirementClass)) return false;
+      if (!matchesGlossaryScopeFilter(item, selectedGlossaryScope)) return false;
+      if (!matchesGlossaryDomainFilter(item, selectedGlossaryDomain)) return false;
 
       if (query) {
         const inId = item.id.toLowerCase().includes(query);
@@ -254,7 +287,16 @@ export function DecisionsBrowser({
 
       return true;
     });
-  }, [catalog.items, selectedKind, selectedStatus, selectedTag, selectedRequirementClass, searchQuery]);
+  }, [
+    catalog.items,
+    selectedKind,
+    selectedStatus,
+    selectedTag,
+    selectedRequirementClass,
+    selectedGlossaryScope,
+    selectedGlossaryDomain,
+    searchQuery,
+  ]);
 
   const groupedItems = useMemo(() => partitionByRequirementClass(filteredItems), [filteredItems]);
 
@@ -290,15 +332,23 @@ export function DecisionsBrowser({
     handleTagSelect(null);
     handleStatusSelect('all');
     handleRequirementClassSelect('all');
+    handleGlossaryScopeSelect('all');
+    handleGlossaryDomainSelect('all');
     handleSearchQueryChange('');
     toast.info('決め事カタログのフィルターをリセットしました');
   };
+
+  const glossaryCounts = catalog.glossaryTaxonomyCounts;
+  const showGlossaryTaxonomyFilters =
+    selectedKind === 'glossary' || selectedKind === 'all';
 
   const isFilterActive =
     selectedKind !== 'all' ||
     selectedTag !== null ||
     selectedStatus !== 'all' ||
     selectedRequirementClass !== 'all' ||
+    selectedGlossaryScope !== 'all' ||
+    selectedGlossaryDomain !== 'all' ||
     searchQuery.trim() !== '';
 
   const renderRefBadge = (ref: DecisionsReferenceItem, prefixIcon?: string) => {
@@ -460,6 +510,100 @@ export function DecisionsBrowser({
             <span className="ml-1.5 font-mono">{catalog.requirementClassCounts?.non_functional ?? 0}</span>
           </button>
         </div>
+
+        {showGlossaryTaxonomyFilters && (catalog.kindCounts.glossary || 0) > 0 && (
+          <div className="mt-4 pt-4 border-t border-indigo-900/30 space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
+                用語の境界:
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  handleKindSelect('glossary');
+                  handleGlossaryScopeSelect('all');
+                }}
+                className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition ${
+                  selectedGlossaryScope === 'all'
+                    ? 'bg-orange-950/80 text-orange-200 border-orange-600/60'
+                    : 'bg-slate-950/70 text-slate-300 border-slate-800 hover:border-orange-700/60'
+                }`}
+              >
+                用語 すべて
+                <span className="ml-1.5 font-mono">{catalog.kindCounts.glossary || 0}</span>
+              </button>
+              {(GLOSSARY_SCOPES as readonly GlossaryScope[]).map(scope => {
+                const meta = GLOSSARY_SCOPE_META[scope];
+                const count = glossaryCounts?.byScope[scope] ?? 0;
+                const active = selectedGlossaryScope === scope;
+                return (
+                  <button
+                    key={scope}
+                    type="button"
+                    onClick={() => {
+                      handleKindSelect('glossary');
+                      handleGlossaryScopeSelect(active ? 'all' : scope);
+                    }}
+                    className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition ${
+                      active
+                        ? 'bg-orange-950/80 text-orange-200 border-orange-600/60'
+                        : 'bg-slate-950/70 text-slate-300 border-slate-800 hover:border-orange-700/60'
+                    }`}
+                  >
+                    {meta.label}
+                    <span className="ml-1.5 font-mono">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {selectedGlossaryScope !== 'platform' && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
+                  一般用語の文脈:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleGlossaryDomainSelect('all')}
+                  className={`px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition ${
+                    selectedGlossaryDomain === 'all'
+                      ? 'bg-indigo-950 text-indigo-200 border-indigo-600'
+                      : 'bg-slate-950/70 text-slate-400 border-slate-800 hover:border-indigo-700'
+                  }`}
+                >
+                  すべて
+                </button>
+                {GENERAL_GLOSSARY_DOMAINS.map(domain => {
+                  const meta = GLOSSARY_DOMAIN_META[domain];
+                  const count = glossaryCounts?.byDomain[domain] ?? 0;
+                  if (count === 0) return null;
+                  const active = selectedGlossaryDomain === domain;
+                  return (
+                    <button
+                      key={domain}
+                      type="button"
+                      onClick={() => {
+                        handleKindSelect('glossary');
+                        handleGlossaryScopeSelect(
+                          selectedGlossaryScope === 'platform' ? 'general' : selectedGlossaryScope
+                        );
+                        handleGlossaryDomainSelect(active ? 'all' : domain);
+                      }}
+                      className={`px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition ${
+                        active
+                          ? 'bg-indigo-950 text-indigo-200 border-indigo-600'
+                          : 'bg-slate-950/70 text-slate-400 border-slate-800 hover:border-indigo-700'
+                      }`}
+                    >
+                      {meta.label}
+                      <span className="ml-1 font-mono text-[10px]">{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Filter and Search Bar */}
@@ -941,6 +1085,13 @@ export function DecisionsBrowser({
                       </span>
                       {item.kind === 'requirement' && (
                         <RequirementClassBadge value={item.requirement_class} />
+                      )}
+                      {item.kind === 'glossary' && (
+                        <GlossaryTaxonomyBadge
+                          scope={item.glossary_scope}
+                          domain={item.glossary_domain}
+                          compact
+                        />
                       )}
                       <button
                         onClick={e => handleCopyId(e, item.id)}

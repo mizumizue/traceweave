@@ -2,6 +2,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import matter from 'gray-matter';
 import { isRetiredDocStatus } from '../../core/models/docStatus.js';
+import {
+  isGlossaryDomain,
+  isGlossaryScope,
+  isValidGlossaryTaxonomyPair,
+} from '../../core/models/glossaryTaxonomy.js';
 import { TEST_CASE_ID_PATTERN, testCaseIdMatchesTestLevel } from '../../core/testing/testCaseId.js';
 import type { TestLevel } from '../../core/models/types.js';
 import { resolveRepoRoot } from '../system/resolveRepoRoot.js';
@@ -291,6 +296,30 @@ export function validateDocs(docsDir: string = DEFAULT_DOCS_DIR): {
       } else if (!['functional', 'non_functional'].includes(meta.requirement_class)) {
         errors.push(
           `${filePath}: requirement requirement_class must be functional or non_functional (got ${meta.requirement_class})`
+        );
+      }
+    }
+
+    if (kind === 'glossary') {
+      if (!meta.glossary_scope) {
+        errors.push(`${filePath}: glossary must declare glossary_scope (platform or general)`);
+      } else if (!isGlossaryScope(meta.glossary_scope)) {
+        errors.push(
+          `${filePath}: glossary glossary_scope must be platform or general (got ${meta.glossary_scope})`
+        );
+      }
+      if (!meta.glossary_domain) {
+        errors.push(`${filePath}: glossary must declare glossary_domain`);
+      } else if (!isGlossaryDomain(meta.glossary_domain)) {
+        errors.push(`${filePath}: glossary glossary_domain is invalid (got ${meta.glossary_domain})`);
+      }
+      if (
+        isGlossaryScope(meta.glossary_scope) &&
+        isGlossaryDomain(meta.glossary_domain) &&
+        !isValidGlossaryTaxonomyPair(meta.glossary_scope, meta.glossary_domain)
+      ) {
+        errors.push(
+          `${filePath}: glossary_scope "${meta.glossary_scope}" is incompatible with glossary_domain "${meta.glossary_domain}"`
         );
       }
     }

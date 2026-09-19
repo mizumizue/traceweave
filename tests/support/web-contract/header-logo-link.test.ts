@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { buildTraceWeaveReport } from '../../../src/application/build-report.js';
 import { repositoryPath } from '../../helpers/repo-path.js';
 import { getHeaderLinkContract, shouldUseInternalNavigation } from '../../../src/web/src/components/Header.js';
-import { getHomeUrlState } from '../../../src/web/src/utils/urlState.js';
+import { DEFAULT_URL_STATE, getHomeUrlState } from '../../../src/web/src/utils/urlState.js';
 
 /**
  * 【テスト概要】
@@ -30,22 +30,7 @@ test('support: ITb-0016: Header - ロゴリンク契約がルート先・修飾�
  * - 関連文書: TC-ITb-0016, REQ-0025, SPEC-0020
  */
 test('support: ITb-0016: ホーム状態契約 - ヘッダーロゴ遷移先の初期状態が返ること', () => {
-  assert.deepEqual(getHomeUrlState(), {
-    tab: 'traceability',
-    traceabilityView: 'matrix',
-    nodeId: null,
-    unitCoverageFile: null,
-    searchQuery: '',
-    phaseFilter: 'all',
-    criticalityFilter: 'all',
-    requirementClassFilter: 'all',
-    scoreFilter: 'all',
-    catalogKind: 'all',
-    catalogTag: null,
-    catalogStatus: 'all',
-    graphHighlight: 'all',
-    testBookLevel: null,
-  });
+  assert.deepEqual(getHomeUrlState(), DEFAULT_URL_STATE);
 });
 
 /**

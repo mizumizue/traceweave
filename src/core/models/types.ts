@@ -34,6 +34,24 @@ export type Criticality = 'high' | 'medium' | 'low';
 
 export type RequirementClass = 'functional' | 'non_functional';
 
+/** TraceWeave product concepts vs industry-wide software engineering terms */
+export type GlossaryScope = 'platform' | 'general';
+
+/**
+ * Subject area for glossary entries. `platform` is only valid when glossary_scope is platform.
+ */
+export type GlossaryDomain =
+  | 'platform'
+  | 'project_management'
+  | 'requirements_engineering'
+  | 'testing'
+  | 'programming'
+  | 'architecture'
+  | 'operations'
+  | 'security'
+  | 'data'
+  | 'quality';
+
 export type TestExecutionStatus = 'passed' | 'failed' | 'pending' | 'skipped';
 
 export type DocStatus =
@@ -147,6 +165,8 @@ export interface DocNode {
   requirement_refs?: string[];
   tags: string[];
   links: string[];
+  glossary_scope?: GlossaryScope;
+  glossary_domain?: GlossaryDomain;
   filePath?: string;
   content: string;
   sections?: Record<string, string>;
@@ -399,6 +419,8 @@ export interface DecisionsCatalogItem {
   requirement_class?: RequirementClass;
   test_level?: TestLevel;
   test_method?: TestMethod;
+  glossary_scope?: GlossaryScope;
+  glossary_domain?: GlossaryDomain;
   // Resolved cross references
   relatedNeeds?: DecisionsReferenceItem[];
   relatedActors?: DecisionsReferenceItem[];
@@ -432,11 +454,19 @@ export interface RequirementClassCounts {
   unclassified: number;
 }
 
+export interface GlossaryTaxonomyCounts {
+  byScope: Record<GlossaryScope, number>;
+  byDomain: Record<GlossaryDomain, number>;
+  unclassified: number;
+}
+
 export interface DecisionsFilterOptions {
   kind?: DocKind | 'all';
   tag?: string;
   status?: DocStatus | 'all';
   requirementClass?: RequirementClass | 'all';
+  glossaryScope?: GlossaryScope | 'all';
+  glossaryDomain?: GlossaryDomain | 'all';
   query?: string;
 }
 
@@ -444,6 +474,7 @@ export interface DecisionsCatalog {
   items: DecisionsCatalogItem[];
   kindCounts: DecisionsKindCounts;
   requirementClassCounts: RequirementClassCounts;
+  glossaryTaxonomyCounts: GlossaryTaxonomyCounts;
   allTags: { tag: string; count: number }[];
   totalCount: number;
 }

@@ -9,6 +9,7 @@ import {
 import { buildFullUrl } from '../utils/urlState.js';
 import { CircularGauge } from './CircularGauge.js';
 import { InteractiveTestRunner } from './InteractiveTestRunner.js';
+import { GlossaryTaxonomyBadge } from './GlossaryTaxonomyBadge.js';
 import { RequirementClassBadge } from './RequirementClassBadge.js';
 import { KIND_META } from './DecisionsBrowser.js';
 import {
@@ -627,9 +628,13 @@ export function NodeDetailModal({
             </div>
           ) : node.kind === 'glossary' ? (
             <div className="space-y-4">
-              <div className="text-xs font-bold text-orange-300 uppercase tracking-wider flex items-center gap-1.5">
+              <div className="text-xs font-bold text-orange-300 uppercase tracking-wider flex items-center gap-1.5 flex-wrap">
                 <FileText className="w-3.5 h-3.5 text-orange-400" />
                 用語定義 (Glossary Entry)
+                <GlossaryTaxonomyBadge
+                  scope={node.glossary_scope}
+                  domain={node.glossary_domain}
+                />
               </div>
               {node.sections && Object.keys(node.sections).length > 0 ? (
                 Object.entries(node.sections).map(([title, content]) => (

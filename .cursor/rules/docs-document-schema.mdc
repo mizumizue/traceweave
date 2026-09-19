@@ -78,6 +78,9 @@ links: [] # 非依存の横断参照
 - `actor`: `### Role`, `### Responsibilities`, `### Interactions`
 - `use_case`: `### Goal`, `### Trigger`, `### Preconditions`, `### Main Flow`, `### Alternative Flows`, `### Postconditions`
 - `glossary`: `### Definition`, `### Context`, `### Synonyms`, `### Related Terms`
+- `glossary` 拡張メタデータ（必須）
+  - `glossary_scope`: `platform`（TraceWeave 固有）| `general`（一般的なシステム開発用語）
+  - `glossary_domain`: `platform`（scope=platform のときのみ）| `project_management` | `requirements_engineering` | `testing` | `programming` | `architecture` | `operations` | `security` | `data` | `quality`（scope=general のとき。`platform` は不可）
 - `requirement`: `### Statement`, `### Acceptance Criteria`（各 AC は `- AC-xxx: Given ... When ... Then ...` 形式）
 - `specification`: `### Contract`, `### Inputs`, `### Outputs`, `### Errors`, `### Constraints`（外部IF時は `tags: [interface, external, <対象名>]`）
 - `design`: `### Decision`, `### Structure`, `### Data Flow`, `### Trade-offs`

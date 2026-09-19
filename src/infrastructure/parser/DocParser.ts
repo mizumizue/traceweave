@@ -183,6 +183,8 @@ export class DocParser {
         requirement_refs: Array.isArray(data.requirement_refs) ? data.requirement_refs : undefined,
         tags: Array.isArray(data.tags) ? data.tags : [],
         links: Array.isArray(data.links) ? data.links : [],
+        glossary_scope: data.glossary_scope,
+        glossary_domain: data.glossary_domain,
         filePath: DocParser.toPortablePath(filePath),
         content: parsed.content,
         sections,

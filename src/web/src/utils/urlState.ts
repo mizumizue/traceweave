@@ -6,6 +6,7 @@
  */
 
 import type { TestLevel } from '../../../core/models/types.js';
+import { GLOSSARY_DOMAINS, GLOSSARY_SCOPES } from '../../../core/models/glossaryTaxonomy.js';
 
 export type TraceabilityView = 'matrix' | 'graph';
 export type AppTab = 'traceability' | 'stratum' | 'testbooks' | 'decisions' | 'gaps';
@@ -28,6 +29,8 @@ export interface AppUrlState {
   catalogKind: string;
   catalogTag: string | null;
   catalogStatus: string;
+  glossaryScopeFilter: string;
+  glossaryDomainFilter: string;
   graphHighlight: GraphHighlightMode;
   /** Active stratum when tab=testbooks (query: book=) */
   testBookLevel: TestBookLevel | null;
@@ -55,14 +58,24 @@ export const VALID_GRAPH_HIGHLIGHTS: readonly GraphHighlightMode[] = ['all', 'up
 export const VALID_CRITICALITIES = ['all', 'high', 'medium', 'low'] as const;
 export const VALID_REQUIREMENT_CLASSES = ['all', 'functional', 'non_functional'] as const;
 export const VALID_SCORES = ['all', 'satisfied', 'partial', 'unsatisfied'] as const;
-export const VALID_PHASES = [
+/** Matrix phase filter values (contract traceability: ITa–UAT only; UT uses test-books / code coverage). */
+export const VALID_MATRIX_PHASE_FILTERS = [
   'all',
-  'unit',
   'integration_internal',
   'integration_external',
   'system',
   'acceptance',
 ] as const;
+
+/** @deprecated Use VALID_MATRIX_PHASE_FILTERS */
+export const VALID_PHASES = VALID_MATRIX_PHASE_FILTERS;
+
+export function normalizeMatrixPhaseFilter(raw: string | null | undefined): string {
+  if (!raw || raw === 'all' || raw === 'unit') {
+    return 'all';
+  }
+  return (VALID_MATRIX_PHASE_FILTERS as readonly string[]).includes(raw) ? raw : 'all';
+}
 export const VALID_KINDS = [
   'all',
   'need',
@@ -77,6 +90,8 @@ export const VALID_KINDS = [
   'test_case',
 ] as const;
 export const VALID_STATUSES = ['all', 'draft', 'accepted', 'deprecated', 'superseded'] as const;
+export const VALID_GLOSSARY_SCOPE_FILTERS = ['all', ...GLOSSARY_SCOPES] as const;
+export const VALID_GLOSSARY_DOMAIN_FILTERS = ['all', ...GLOSSARY_DOMAINS] as const;
 
 export const DEFAULT_URL_STATE: AppUrlState = {
   tab: 'traceability',
@@ -91,6 +106,8 @@ export const DEFAULT_URL_STATE: AppUrlState = {
   catalogKind: 'all',
   catalogTag: null,
   catalogStatus: 'all',
+  glossaryScopeFilter: 'all',
+  glossaryDomainFilter: 'all',
   graphHighlight: 'all',
   testBookLevel: null,
 };
@@ -148,8 +165,7 @@ export function parseUrlState(queryOrUrl?: string): AppUrlState {
 
   const searchQuery = params.get('q') || '';
 
-  const rawPhase = params.get('phase');
-  const phaseFilter = rawPhase && (VALID_PHASES as readonly string[]).includes(rawPhase) ? rawPhase : 'all';
+  const phaseFilter = normalizeMatrixPhaseFilter(params.get('phase'));
 
   const rawCriticality = params.get('criticality');
   const criticalityFilter =
@@ -175,6 +191,18 @@ export function parseUrlState(queryOrUrl?: string): AppUrlState {
   const rawStatus = params.get('status');
   const catalogStatus =
     rawStatus && (VALID_STATUSES as readonly string[]).includes(rawStatus) ? rawStatus : 'all';
+
+  const rawGloScope = params.get('gloscope');
+  const glossaryScopeFilter =
+    rawGloScope && (VALID_GLOSSARY_SCOPE_FILTERS as readonly string[]).includes(rawGloScope)
+      ? rawGloScope
+      : 'all';
+
+  const rawGloDomain = params.get('glodomain');
+  const glossaryDomainFilter =
+    rawGloDomain && (VALID_GLOSSARY_DOMAIN_FILTERS as readonly string[]).includes(rawGloDomain)
+      ? rawGloDomain
+      : 'all';
 
   const rawHighlight = params.get('highlight') as GraphHighlightMode | null;
   const graphHighlight: GraphHighlightMode =
@@ -205,6 +233,8 @@ export function parseUrlState(queryOrUrl?: string): AppUrlState {
     catalogKind,
     catalogTag,
     catalogStatus,
+    glossaryScopeFilter,
+    glossaryDomainFilter,
     graphHighlight,
     testBookLevel,
   };
@@ -264,6 +294,14 @@ export function serializeUrlState(state: Partial<AppUrlState>): string {
 
   if (merged.catalogStatus && merged.catalogStatus !== 'all') {
     params.set('status', merged.catalogStatus);
+  }
+
+  if (merged.glossaryScopeFilter && merged.glossaryScopeFilter !== 'all') {
+    params.set('gloscope', merged.glossaryScopeFilter);
+  }
+
+  if (merged.glossaryDomainFilter && merged.glossaryDomainFilter !== 'all') {
+    params.set('glodomain', merged.glossaryDomainFilter);
   }
 
   if (merged.graphHighlight && merged.graphHighlight !== 'all') {

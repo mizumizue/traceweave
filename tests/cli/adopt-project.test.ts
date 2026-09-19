@@ -89,7 +89,14 @@ test.describe('TraceWeave Adoption Engine (adopt-project)', () => {
     const glossaryFiles = fs
       .readdirSync(path.join(tempBaseDir, 'docs', 'glossary'))
       .filter(f => f.startsWith('GLO-') && f.endsWith('.md'));
-    assert.equal(glossaryFiles.length, 14, 'adopt should ship all TraceWeave platform glossary terms');
+    const sourceGlossaryCount = fs
+      .readdirSync(path.join(process.cwd(), 'docs', 'glossary'))
+      .filter(f => f.startsWith('GLO-') && f.endsWith('.md')).length;
+    assert.equal(
+      glossaryFiles.length,
+      sourceGlossaryCount,
+      'adopt should ship all glossary terms from the platform docs/glossary'
+    );
     assert.ok(fs.existsSync(path.join(tempBaseDir, 'docs', 'glossary', 'GLO-0001.md')));
     const glo1 = fs.readFileSync(path.join(tempBaseDir, 'docs', 'glossary', 'GLO-0001.md'), 'utf-8');
     assert.ok(glo1.includes('title: トレーサビリティ'), 'GLO-0001 should be the platform term, not project name');

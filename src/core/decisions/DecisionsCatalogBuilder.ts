@@ -8,6 +8,11 @@ import {
   DecisionsFilterOptions,
   DecisionsReferenceItem,
 } from '../models/types.js';
+import {
+  countGlossaryTaxonomy,
+  matchesGlossaryDomainFilter,
+  matchesGlossaryScopeFilter,
+} from '../models/glossaryTaxonomy.js';
 import { countRequirementClasses, matchesRequirementClassFilter } from '../models/requirementClass.js';
 
 export class DecisionsCatalogBuilder {
@@ -233,6 +238,8 @@ export class DecisionsCatalogBuilder {
         requirement_class: node.requirement_class,
         test_level: node.test_level,
         test_method: node.test_method,
+        glossary_scope: node.glossary_scope,
+        glossary_domain: node.glossary_domain,
         relatedNeeds: Array.from(relatedNeedsMap.values()),
         relatedActors: Array.from(relatedActorsMap.values()),
         relatedUseCases: Array.from(relatedUseCasesMap.values()),
@@ -254,6 +261,7 @@ export class DecisionsCatalogBuilder {
       items,
       kindCounts,
       requirementClassCounts: countRequirementClasses(items),
+      glossaryTaxonomyCounts: countGlossaryTaxonomy(items),
       allTags,
       totalCount: items.length,
     };
@@ -266,7 +274,15 @@ export class DecisionsCatalogBuilder {
     catalog: DecisionsCatalog,
     options: DecisionsFilterOptions = {}
   ): DecisionsCatalogItem[] {
-    const { kind = 'all', tag, status = 'all', requirementClass = 'all', query = '' } = options;
+    const {
+      kind = 'all',
+      tag,
+      status = 'all',
+      requirementClass = 'all',
+      glossaryScope = 'all',
+      glossaryDomain = 'all',
+      query = '',
+    } = options;
     const cleanQuery = query.trim().toLowerCase();
 
     return catalog.items.filter(item => {
@@ -276,6 +292,14 @@ export class DecisionsCatalogBuilder {
       }
 
       if (!matchesRequirementClassFilter(item, requirementClass)) {
+        return false;
+      }
+
+      if (!matchesGlossaryScopeFilter(item, glossaryScope)) {
+        return false;
+      }
+
+      if (!matchesGlossaryDomainFilter(item, glossaryDomain)) {
         return false;
       }
 

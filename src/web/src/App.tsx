@@ -60,6 +60,22 @@ const EMPTY_CATALOG: DecisionsCatalog = {
     non_functional: 0,
     unclassified: 0,
   },
+  glossaryTaxonomyCounts: {
+    byScope: { platform: 0, general: 0 },
+    byDomain: {
+      platform: 0,
+      project_management: 0,
+      requirements_engineering: 0,
+      testing: 0,
+      programming: 0,
+      architecture: 0,
+      operations: 0,
+      security: 0,
+      data: 0,
+      quality: 0,
+    },
+    unclassified: 0,
+  },
   allTags: [],
   totalCount: 0,
 };
@@ -80,6 +96,12 @@ export default function App() {
   const [catalogKind, setCatalogKind] = useState<string>(initialUrlState.catalogKind);
   const [catalogTag, setCatalogTag] = useState<string | null>(initialUrlState.catalogTag);
   const [catalogStatus, setCatalogStatus] = useState<string>(initialUrlState.catalogStatus);
+  const [glossaryScopeFilter, setGlossaryScopeFilter] = useState<string>(
+    initialUrlState.glossaryScopeFilter
+  );
+  const [glossaryDomainFilter, setGlossaryDomainFilter] = useState<string>(
+    initialUrlState.glossaryDomainFilter
+  );
   const [graphHighlight, setGraphHighlight] = useState<GraphHighlightMode>(initialUrlState.graphHighlight);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialUrlState.nodeId);
   const [unitCoverageFile, setUnitCoverageFile] = useState<string | null>(initialUrlState.unitCoverageFile);
@@ -161,6 +183,8 @@ export default function App() {
       setCatalogKind(parsed.catalogKind);
       setCatalogTag(parsed.catalogTag);
       setCatalogStatus(parsed.catalogStatus);
+      setGlossaryScopeFilter(parsed.glossaryScopeFilter);
+      setGlossaryDomainFilter(parsed.glossaryDomainFilter);
       setGraphHighlight(parsed.graphHighlight);
       setUnitCoverageFile(parsed.unitCoverageFile);
       setTestBookLevel(parsed.testBookLevel);
@@ -227,6 +251,8 @@ export default function App() {
       catalogKind,
       catalogTag,
       catalogStatus,
+      glossaryScopeFilter,
+      glossaryDomainFilter,
       graphHighlight,
       testBookLevel,
     }),
@@ -243,6 +269,8 @@ export default function App() {
       catalogKind,
       catalogTag,
       catalogStatus,
+      glossaryScopeFilter,
+      glossaryDomainFilter,
       graphHighlight,
       testBookLevel,
     ]
@@ -283,6 +311,8 @@ export default function App() {
     setCatalogKind('all');
     setCatalogTag(null);
     setCatalogStatus('all');
+    setGlossaryScopeFilter('all');
+    setGlossaryDomainFilter('all');
     setGraphHighlight('all');
     toast.info('すべてのフィルターを解除しました');
   };
@@ -301,6 +331,8 @@ export default function App() {
     setCatalogKind(home.catalogKind);
     setCatalogTag(home.catalogTag);
     setCatalogStatus(home.catalogStatus);
+    setGlossaryScopeFilter(home.glossaryScopeFilter);
+    setGlossaryDomainFilter(home.glossaryDomainFilter);
     setGraphHighlight(home.graphHighlight);
     setTestBookLevel(home.testBookLevel);
   };
@@ -314,6 +346,8 @@ export default function App() {
     catalogKind !== 'all' ||
     catalogTag !== null ||
     catalogStatus !== 'all' ||
+    glossaryScopeFilter !== 'all' ||
+    glossaryDomainFilter !== 'all' ||
     graphHighlight !== 'all';
 
   // Copy shareable URL (Toolbar: URL共有)
@@ -498,16 +532,6 @@ export default function App() {
             strata={report.strata}
             pyramid={report.pyramid}
             onOpenTestBooks={openStratumLayer}
-            onFilterPhase={phase => {
-              const next = phaseFilter === phase ? 'all' : phase;
-              setPhaseFilter(next);
-              setActiveTab('traceability');
-              setTraceabilityView('matrix');
-              if (next !== 'all') {
-                const layer = PYRAMID_LAYERS.find(item => item.level === phase);
-                if (layer) toast.info(`マトリクスを "${layer.name}" で絞り込みました`);
-              }
-            }}
           />
         )}
 
@@ -523,6 +547,9 @@ export default function App() {
             unitCoverageFile={unitCoverageFile}
             onSelectUnitCoverageFile={setUnitCoverageFile}
             onFilterMatrix={level => {
+              if (level === 'unit') {
+                return;
+              }
               setPhaseFilter(level);
               setActiveTab('traceability');
               setTraceabilityView('matrix');
@@ -548,6 +575,10 @@ export default function App() {
             onRequirementClassChange={setRequirementClassFilter}
             searchQuery={searchQuery}
             onSearchQueryChange={setSearchQuery}
+            selectedGlossaryScope={glossaryScopeFilter}
+            onGlossaryScopeChange={setGlossaryScopeFilter}
+            selectedGlossaryDomain={glossaryDomainFilter}
+            onGlossaryDomainChange={setGlossaryDomainFilter}
           />
         )}
 
