@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { validateDocs } from '../src/infrastructure/governance/validateDocs.js';
 import { validateNoLocalPaths } from './validate-no-local-paths.js';
 import { validateCleanRoot } from './validate-clean-root.js';
+import { checkTcIdCatalog } from './generate-tc-id-catalog.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,12 +21,14 @@ export interface GovernanceLintResult {
   };
   localPaths: { passed: boolean; findingCount: number; findings: string[] };
   cleanRoot: { passed: boolean; violationCount: number; violations: string[] };
+  tcCatalog: { passed: boolean; message?: string };
 }
 
 export function runGovernanceLint(rootDir: string = ROOT): GovernanceLintResult {
   const docsResult = validateDocs(path.join(rootDir, 'docs'));
   const localPathsResult = validateNoLocalPaths(rootDir);
   const cleanRootResult = validateCleanRoot(rootDir);
+  const tcCatalogResult = checkTcIdCatalog(rootDir);
 
   const docs = {
     passed: docsResult.passed,
@@ -52,9 +55,14 @@ export function runGovernanceLint(rootDir: string = ROOT): GovernanceLintResult 
     ),
   };
 
-  const passed = docs.passed && localPaths.passed && cleanRoot.passed;
+  const tcCatalog = {
+    passed: tcCatalogResult.ok,
+    message: tcCatalogResult.message,
+  };
 
-  return { passed, docs, localPaths, cleanRoot };
+  const passed = docs.passed && localPaths.passed && cleanRoot.passed && tcCatalog.passed;
+
+  return { passed, docs, localPaths, cleanRoot, tcCatalog };
 }
 
 function printResult(result: GovernanceLintResult): void {
@@ -99,6 +107,12 @@ function printResult(result: GovernanceLintResult): void {
     for (const violation of cleanRoot.violations) {
       console.error(`  - ${violation}`);
     }
+  }
+
+  if (result.tcCatalog.passed) {
+    console.log(`\x1b[32mPASS: TC ID catalog\x1b[0m`);
+  } else {
+    console.error(`\x1b[31mFAIL: ${result.tcCatalog.message}\x1b[0m`);
   }
 
   if (result.passed) {

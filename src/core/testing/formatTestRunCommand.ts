@@ -5,6 +5,7 @@ import {
   escapeTestCaseIdForRegExp,
   TEST_CASE_ID_PATTERN,
 } from './testCaseId.js';
+import { testCaseIdToCatalogKey } from './tcIdCatalog.js';
 
 export { assertTestCaseId, TEST_CASE_ID_PATTERN };
 
@@ -40,10 +41,20 @@ export function testNamePatternForCase(testCaseId: string): string {
 
 export function testFileDeclaresCase(fileContent: string, testCaseId: string): boolean {
   assertTestCaseId(testCaseId);
-  const linePattern = new RegExp(
-    `^\\s*test\\s*\\(\\s*[\`'"]${escapeTestCaseIdForRegExp(testCaseId)}:`
-  );
-  return fileContent.split('\n').some(line => linePattern.test(line));
+  const escapedId = escapeTestCaseIdForRegExp(testCaseId);
+  const linePattern = new RegExp(`^\\s*test\\s*\\(\\s*[\`'"]${escapedId}:`);
+  if (fileContent.split('\n').some(line => linePattern.test(line))) {
+    return true;
+  }
+
+  const catalogKey = testCaseIdToCatalogKey(testCaseId);
+  const formalPatterns = [
+    new RegExp(
+      `test\\s*\\(\\s*formalTestTitle\\(\\s*[\`'"]${escapedId}[\`'"]`
+    ),
+    new RegExp(`test\\s*\\(\\s*formalTestTitle\\(\\s*TC_IDS\\.${catalogKey}\\b`),
+  ];
+  return formalPatterns.some(pattern => pattern.test(fileContent));
 }
 
 export function resolveTestFilesForCase(testsDir: string, testCaseId: string): string[] {

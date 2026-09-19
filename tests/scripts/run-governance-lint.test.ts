@@ -20,4 +20,5 @@ test('runGovernanceLint - 現行リポジトリが統合ガバナンス lint を
   assert.equal(result.docs.passed, true);
   assert.equal(result.localPaths.passed, true);
   assert.equal(result.cleanRoot.passed, true);
+  assert.equal(result.tcCatalog.passed, true);
 });

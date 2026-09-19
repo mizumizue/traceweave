@@ -16,6 +16,7 @@
     "test:ci": "npm run build:web && tsx ../scripts/run-test-suite.ts",
     "analyze:inputs": "tsx ../scripts/analyze-test-inputs.ts",
     "typecheck": "tsc --noEmit",
+    "generate:tc-catalog": "tsx ../scripts/generate-tc-id-catalog.ts",
     "lint": "tsx ../scripts/run-governance-lint.ts",
     "install-skills": "tsx ../scripts/install-cursor-skills.ts",
     "export-docs": "tsx ../scripts/export-consolidated-docs.ts"
