@@ -5,7 +5,7 @@ kind: test_case
 title: CLI catalog 要件区分統計の外部結合検証
 status: accepted
 created: '2026-09-14'
-updated: '2026-09-14'
+updated: '2026-09-19'
 scope: local
 test_level: integration_external
 test_method: api_contract
@@ -22,14 +22,14 @@ links: []
 ## Content
 
 ### Objective
-CLI catalog が要件区分統計を JSON で返す。
+決め事カタログ CLI が JSON 形式で要件区分（機能・非機能）の件数統計を返すことを検証する。
 
 ### Preconditions
-テストランナーが利用可能であること。
+リポジトリに TraceWeave 文書ディレクトリが存在すること。
 
 ### Steps
-1. 対象モジュールに入力を与え、契約どおりの出力を取得する。
-2. 期待される属性・件数・状態を検査する。
+1. リポジトリルートからカタログコマンドを JSON 形式で実行する。
+2. 標準出力を JSON として解析し、`requirementClassCounts` を取得する。
 
 ### Expected Results
-- 各検査項目が契約どおりに満たされること。
+- `functional` が 20 以上、`non_functional` が 2 以上であること。

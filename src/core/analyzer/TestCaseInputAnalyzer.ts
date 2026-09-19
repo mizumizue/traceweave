@@ -82,6 +82,25 @@ export class TestCaseInputAnalyzer {
     // Rule 3: Pure Test Handler Not Registered
     // Pure calculation handler must be registered in TestRunnerRegistry to safely evaluate in-memory.
     if (!TestRunnerRegistry.has(node.id)) {
+      const needsExternalRuntime = testMethod === 'api_contract';
+      if (needsExternalRuntime) {
+        return {
+          testCaseId: node.id,
+          title: node.title,
+          testLevel,
+          testMethod,
+          modifiability: 'unmodifiable',
+          isModifiable: false,
+          classification: 'UI入力変更不可 (外部環境依存)',
+          reasonCode: 'external_environment_dependency',
+          reasonDescription: `検証手法 "${testMethod}"（工程: ${testLevel}）は、ファイルシステム、CLIサブプロセス、またはブラウザ等の外部実行環境を要するため、UI上の単純な入力変更・実行対象から除外されます。`,
+          analysisRule: 'Rule-1: External Environment / Non-Pure Test Excluded',
+          parameterFilePath: node.parameter_file,
+          patternsCount: patterns.length,
+          fields: [],
+          analyzedAt,
+        };
+      }
       return {
         testCaseId: node.id,
         title: node.title,

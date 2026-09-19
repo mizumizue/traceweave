@@ -83,7 +83,15 @@ export class TestRunnerRegistry {
         logs,
       };
     };
-    this.register('TC-ITb-0001', pyramidHandler);
+    for (const splitId of [
+      'TC-ITb-0001-01',
+      'TC-ITb-0001-02',
+      'TC-ITb-0001-03',
+      'TC-ITb-0001-04',
+      'TC-ITb-0001-05',
+    ]) {
+      this.register(splitId, pyramidHandler);
+    }
     this.register('TC-ITb-0008', pyramidHandler);
   }
 

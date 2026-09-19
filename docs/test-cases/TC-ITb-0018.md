@@ -2,10 +2,10 @@
 schema_version: 3
 id: TC-ITb-0018
 kind: test_case
-title: ドキュメントパーサーとSQLiteキャッシュによる仕様セクション抽出および pending 状態永続化の内部結合テスト
+title: 文書パースとキャッシュ経由の仕様セクション抽出の外部結合検証
 status: accepted
 created: '2026-09-13'
-updated: '2026-09-14'
+updated: '2026-09-19'
 scope: local
 test_level: integration_external
 test_method: scenario
@@ -20,25 +20,23 @@ tags:
   - integration
   - parser
   - cache
-  - sections
-  - observation
 links: []
 ---
 ## Content
 
 ### Objective
-一時ファイルと SQLite キャッシュを介して、ADR-0006 準拠の Markdown 仕様セクション（4 セクション）および `pending` 既定の実行ステータスを抽出・保存・再取得できることを外部境界テストとして検証する。実行結果の動的注入は `TestReportLoader` または `buildTraceWeaveReport` 経由で行う。
+文書整合性検証およびレポート生成の結果として、テストケース文書の仕様セクションが抽出され、実行ステータスは未実行（pending）が既定となることを検証する。実行合格は別途証跡レポートで上書きされる。
 
 ### Preconditions
-`DocParser`, `SQLiteCache` モジュールおよびテンポラリディレクトリが利用可能であること。
+リポジトリに標準形式のテストケース文書が存在すること。
 
 ### Steps
-1. ADR-0006 準拠のテストケース（TC）サンプルドキュメントを作成し、`DocParser.parseFile` を実行して抽出されたプロパティを検査する。
-2. 抽出結果において `sections` オブジェクトに 4 仕様セクションの見出し名がキーとして含まれ、`execution_status` が `pending` 既定値、`actual_result` が未設定であることを確認する。
-3. `SQLiteCache` を有効化した状態で初回パースを行い、キャッシュ DB に保存されたデータを検査する。
-4. 同一ドキュメントを再パースし、キャッシュヒットによりディスク読み込みをスキップして同一の構造化データ（sections および `pending` ステータス）が復元されることを確認する。
+1. 文書整合性検証コマンドを実行し、テストケース文書がエラーなくパースされることを確認する。
+2. ダッシュボード用データビルドを実行し、代表テストケースの Objective / Steps / Expected Results がノード詳細に含まれることを確認する。
+3. 証跡レポート未結合時、当該ノードの実行ステータスが未実行であることを確認する。
+4. 同一文書を再ビルドし、キャッシュ有効時も同一の仕様セクションが得られることを確認する。
 
 ### Expected Results
-- ステップ 1 および 2 で、4 仕様セクションが厳格にパースされ、`execution_status` は `pending`、`actual_result` は未設定であること。
-- ステップ 3 および 4 で、SQLite キャッシュを介して sections と `pending` ステータスが欠損なく完全に復元されること。
-- （レポート結合検証時）`TestReportLoader.mergeReportIntoNodes()` または `buildTraceWeaveReport` 経由で、テスト実行レポート存在時にのみ `execution_status` および `actual_result` が動的注入されること。
+- 四つの仕様見出しが欠落なく抽出されること。
+- 静的文書のみでは実行結果フィールドが本文に書かれていないこと。
+- 再ビルドで仕様内容が決定論的に一致すること。

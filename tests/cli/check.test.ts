@@ -12,7 +12,7 @@ import { validateDocs } from '../../scripts/validate-docs.js';
  * - 期待結果: CLI が正常終了し、検証結果に PASS が含まれること
  * - 関連文書: TC-ITb-0003, REQ-0005
  */
-test('TC-ITb-0003: checkDocs - 正常なドキュメント群に対してPASS判定を返すこと', () => {
+test('TC-ITb-0003-01: checkDocs - 正常なドキュメント群に対してPASS判定を返すこと', () => {
   const output = execFileSync(
     process.execPath,
     [
@@ -41,7 +41,7 @@ test('TC-ITb-0003: checkDocs - 正常なドキュメント群に対してPASS判
  * - 期待結果: 欠落リンクを検出し、終了コード1で不合格となること
  * - 関連文書: TC-ITb-0003, REQ-0005
  */
-test('TC-ITb-0003: checkDocs - strictモードにおいて欠落リンクを検出し不合格と判定すること', () => {
+test('TC-ITb-0003-02: checkDocs - strictモードにおいて欠落リンクを検出し不合格と判定すること', () => {
   const invalidFixtureDocs = repositoryPath('tests/fixtures/docs/invalid-missing-link');
 
   assert.throws(

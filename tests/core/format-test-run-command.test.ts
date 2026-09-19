@@ -33,7 +33,7 @@ test('formatTestRunCommand - 全件実行と個別 TC 実行の CLI コマンド
  */
 test('parseTestCaseFilter - --tc および --test-case フラグから TC ID を解析できること', () => {
   assert.equal(parseTestCaseFilter(['--tc', 'TC-UT-0001']), 'TC-UT-0001');
-  assert.equal(parseTestCaseFilter(['node', 'script.ts', '--test-case', 'TC-ITb-0026']), 'TC-ITb-0026');
+  assert.equal(parseTestCaseFilter(['node', 'script.ts', '--test-case', 'TC-ITb-0026-01']), 'TC-ITb-0026-01');
   assert.equal(parseTestCaseFilter(['--verbose']), undefined);
 
   assert.throws(() => parseTestCaseFilter(['--tc']), /requires a test case id/);

@@ -20,15 +20,16 @@ tags:
   - postman
 links:
   - DSN-0023
+parameter_file: fixtures/postman/traceweave-serve-api.postman_collection.json
 ---
 ## Content
 
 ### Objective
-`traceweave serve` が公開する読み取り API と対話型テスト実行 API の基本契約（成功応答・未知 TC の 404・UI 実行除外 TC の 400）を、Postman コレクションと Newman ランナーで検証する。
+`traceweave serve` が公開する読み取り API と対話型テスト実行 API の基本契約を HTTP クライアントスイートで検証する。
 
 ### Preconditions
-- Web ダッシュボード用 `src/web/dist` がビルド済みであること。
-- Newman スイートは `fixtures/postman/traceweave-serve-api.postman_collection.json` を使用する。
+Web ダッシュボード用配布物がビルド済みであること。
+HTTP スモーク用の Postman コレクションがワークスペースに登録されていること。
 
 ### Steps
 1. ローカルで `serve` を起動し、`GET /api/data` を実行する。

@@ -2,10 +2,10 @@
 schema_version: 3
 id: TC-ITb-0026
 kind: test_case
-title: MCP ツールハンドラの契約検証
-status: accepted
+title: （退役）MCP ツールハンドラの契約検証
+status: deprecated
 created: '2026-09-14'
-updated: '2026-09-15'
+updated: '2026-09-19'
 scope: local
 test_level: integration_external
 test_method: api_contract
@@ -18,23 +18,22 @@ tags:
   - api-contract
 links:
   - ADR-0002
+supersedes:
+  - TC-ITb-0026-01
+  - TC-ITb-0026-02
+  - TC-ITb-0026-03
+  - TC-ITb-0026-04
 ---
 ## Content
 
 ### Objective
-`traceweave mcp` が公開する 7 ツールの一覧・正常応答・要件未検出エラー・品質ギャップ検証が決定論的に動作することを検証する。
+分割退役。子ケース `TC-ITb-0026-01` … `TC-ITb-0026-04` を参照する。
 
 ### Preconditions
-- リポジトリの `docs/` が有効であること。
+該当なし。
 
 ### Steps
-1. `listMcpTools()` を呼び出し、ツール名一覧を取得する。
-2. `get_traceability_summary` を実行し、サマリ JSON を検証する。
-3. 存在しない要件 ID で `get_requirement_status` を実行する。
-4. `check_quality_gaps` を `strict: false` で実行する。
+該当なし。
 
 ### Expected Results
-- 7 ツール名が公開されること。
-- サマリに `totalRequirements > 0` が含まれること。
-- 未検出要件は `isError: true` かつ `ERR_REQUIREMENT_NOT_FOUND` であること。
-- `check_quality_gaps` は `passed` フィールドを返すこと。
+該当なし。

@@ -5,7 +5,7 @@ kind: test_case
 title: カタログ FR/NFR 群分割の内部結合検証
 status: accepted
 created: '2026-09-14'
-updated: '2026-09-14'
+updated: '2026-09-19'
 scope: local
 test_level: integration_internal
 test_method: scenario
@@ -21,14 +21,16 @@ links: []
 ## Content
 
 ### Objective
-要件が FR/NFR 群に内部結合で分割される。
+統合レポートの要件ノード群が機能要件（FR）と非機能要件（NFR）に内部結合で分割され、区分ラベルが混入しないことを検証する。
 
 ### Preconditions
-テストランナーが利用可能であること。
+実 `docs/` から統合レポートを生成できること。
 
 ### Steps
-1. 対象モジュールに入力を与え、契約どおりの出力を取得する。
-2. 期待される属性・件数・状態を検査する。
+1. `buildTraceWeaveReport` の `report.nodes` から `kind === 'requirement'` のみを抽出する。
+2. `partitionByRequirementClass` を適用し、`functional` と `non_functional` 群を得る。
+3. 各群の `requirement_class` フィールドを検査する。
 
 ### Expected Results
-- 各検査項目が契約どおりに満たされること。
+- 機能要件群が 20 件以上、非機能要件群が 2 件以上であること。
+- 機能群の全ノードが `functional`、非機能群の全ノードが `non_functional` であること。

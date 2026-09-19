@@ -290,7 +290,7 @@ test('TC-ITb-0027: CLI catalog - 要件区分統計が外部結合で JSON に�
       '--format',
       'json',
     ],
-    { cwd: repositoryPath(), encoding: 'utf8' }
+    { cwd: repositoryPath(), encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }
   );
   const catalog = JSON.parse(output);
   assert.ok(catalog.requirementClassCounts.functional >= 20);

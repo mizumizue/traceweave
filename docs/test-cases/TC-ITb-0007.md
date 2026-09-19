@@ -2,10 +2,10 @@
 schema_version: 3
 id: TC-ITb-0007
 kind: test_case
-title: 外部パラメータファイルからのデータ駆動テストバッチ実行テスト
+title: 対話型 API によるパラメータ化テストパターンの一括実行
 status: accepted
 created: '2026-09-12'
-updated: '2026-09-12'
+updated: '2026-09-19'
 scope: local
 verifies:
   - REQ-0008
@@ -15,27 +15,25 @@ tags:
   - integration
   - data-driven
   - parameterized
-  - test-runner
 links: []
 test_level: integration_external
-test_method: scenario
+test_method: api_contract
 criticality: high
 parameter_file: fixtures/test-cases/TC-ITb-0007.json
 ---
 ## Content
 
 ### Objective
-`TestRunnerRegistry` が外部ファイル `fixtures/test-cases/TC-ITb-0007.json` から複数パターンのテストデータ（正常系、境界値、異常値）を読み込み、同一のテストロジックに対して一括ループ実行し、実測値・期待値の合否を正確に判定できることを検証する。
+フロントマターで宣言したパラメータパターンを対話型テスト実行 API に投入し、各パターンの合否と実測値が期待と一致することを検証する。
 
 ### Preconditions
-- `fixtures/test-cases/TC-ITb-0007.json` が配置されており、5パターンの入力セットが定義されていること。
+テスト実行エンドポイントが起動可能であること。
 
 ### Steps
-1. `fixtures/test-cases/TC-ITb-0007.json` を JSON データセットとして読み込む。
-2. `TestRunnerRegistry.runDataset()` にデータセットを渡し、全パターンを実行する。
-3. 全パターンの実測結果が期待値と合致し、`passed` となることをアサートする。
+1. テスト実行エンドポイントを起動する。
+2. 本テストケース ID とパターン入力を含む実行要求を送信する。
+3. 返却 JSON の合否と実測値を確認する。
 
 ### Expected Results
-- 全パターンの実行がエラーなく完了すること。
-- 各パターンの `status` が `'passed'` であること。
-- 不一致パターンを注入した場合は即座に `'failed'` と判定されること。
+- 全パターンがエラーなく完了すること。
+- 各パターンのステータスが `passed` であること。

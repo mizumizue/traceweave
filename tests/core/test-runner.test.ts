@@ -104,11 +104,11 @@ test('TC-ITb-0007: TestRunnerRegistry - 外部環境依存テスト（非単純I
   assert.equal(TestRunnerRegistry.has('TC-ITb-0007'), false, 'TC-ITb-0007 has external parameter_file and is excluded from UI');
   assert.equal(TestRunnerRegistry.has('TC-ITb-0008'), true);
   assert.equal(TestRunnerRegistry.has('TC-UT-0002'), true);
-  assert.equal(TestRunnerRegistry.has('TC-ITb-0001'), true);
+  assert.equal(TestRunnerRegistry.has('TC-ITb-0001-01'), true);
 
   // 2. Integration / E2E / CLI tests requiring external env are excluded from UI execution
   assert.equal(TestRunnerRegistry.has('TC-ITb-0002'), false, 'Storage test must be excluded from UI execution');
-  assert.equal(TestRunnerRegistry.has('TC-ITb-0003'), false, 'CLI test must be excluded from UI execution');
+  assert.equal(TestRunnerRegistry.has('TC-ITb-0003-01'), false, 'CLI test must be excluded from UI execution');
   assert.equal(TestRunnerRegistry.has('TC-ITb-0004'), false, 'Build test must be excluded from UI execution');
   assert.equal(TestRunnerRegistry.has('TC-UAT-0001'), false, 'Dogfooding test must be excluded from UI execution');
   assert.equal(TestRunnerRegistry.has('UNKNOWN-TC'), false);

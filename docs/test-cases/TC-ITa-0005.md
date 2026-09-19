@@ -5,7 +5,7 @@ kind: test_case
 title: 文書詳細とテスト実行結果の内部結合検証
 status: accepted
 created: '2026-09-14'
-updated: '2026-09-14'
+updated: '2026-09-19'
 scope: local
 test_level: integration_internal
 test_method: scenario
@@ -23,14 +23,17 @@ links: []
 ## Content
 
 ### Objective
-buildTraceWeaveReport がセクションと実行結果を内部結合で結合する。
+統合レポート生成が文書詳細セクションとテスト実行結果を同一ノードペイロードに内部結合することを検証する。
 
 ### Preconditions
-テストランナーが利用可能であること。
+実 `docs/` と（存在する場合）テスト実行レポートが利用可能であること。
 
 ### Steps
-1. 対象モジュールに入力を与え、契約どおりの出力を取得する。
-2. 期待される属性・件数・状態を検査する。
+1. `buildTraceWeaveReport` を実 `docs/` 向けに実行し、`report.nodes` を取得する。
+2. 代表要件 `REQ-0007` の `sections.Statement` の存在を確認する。
+3. 代表テストケース `TC-UT-0001` の `sections.Objective` の存在を確認する。
+4. テスト実行レポートに `TC-UT-0001` が passed の場合、当該ノードの `execution_status` が passed であることを確認する。
 
 ### Expected Results
-- 各検査項目が契約どおりに満たされること。
+- 要件・テストケースノードに Markdown 由来の詳細セクションが付与されていること。
+- 実行レポートと整合する場合、合格テストの `execution_status` が passed となること。

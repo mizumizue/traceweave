@@ -2,10 +2,10 @@
 schema_version: 3
 id: TC-ITb-0030
 kind: test_case
-title: MCP リソース・プロンプト・拡張ツール・adopt 連携の契約検証
-status: accepted
+title: （退役）MCP リソース・プロンプト・拡張ツールの契約検証
+status: deprecated
 created: '2026-09-15'
-updated: '2026-09-15'
+updated: '2026-09-19'
 scope: local
 test_level: integration_external
 test_method: api_contract
@@ -18,28 +18,27 @@ tags:
   - api-contract
   - resources
   - prompts
-  - adoption
 links:
   - ADR-0002
-  - TC-ITb-0026
+  - TC-ITb-0026-01
+supersedes:
+  - TC-ITb-0030-01
+  - TC-ITb-0030-02
+  - TC-ITb-0030-03
+  - TC-ITb-0030-04
+  - TC-ITb-0030-05
+  - TC-ITb-0030-06
 ---
 ## Content
 
 ### Objective
-MCP サーバーがリソース・プロンプト・拡張ツール（matrix / catalog / decisions）を公開し、adopt 時に `.cursor/mcp.json` を配備することを検証する。
+分割退役。子ケース `TC-ITb-0030-01` … `TC-ITb-0030-06` を参照する。
 
 ### Preconditions
-- リポジトリの `docs/` が有効であること。
-- adopt overlay 用フィクスチャが利用可能であること。
+該当なし。
 
 ### Steps
-1. `listDocResources` で `traceweave-doc://` リソース一覧を取得し、`needs/NEED-0001.md` を読み取る。
-2. `listMcpPrompts` で 3 プロンプトを取得し、`traceability_review` を実行する。
-3. `get_traceability_matrix` / `get_catalog` / `get_decisions` を呼び出す。
-4. adopt overlay 実行後、`.cursor/mcp.json` の存在と `traceweave` サーバー定義を確認する。
+該当なし。
 
 ### Expected Results
-- ドキュメントリソースが列挙され、本文が読み取れること。
-- プロンプトが 3 件公開され、メッセージ本文が非空であること。
-- 拡張ツールが matrix / catalog / decisions の JSON を返すこと。
-- adopt 後に `.cursor/mcp.json` が生成され、`mcpServers.traceweave` が定義されること。
+該当なし。

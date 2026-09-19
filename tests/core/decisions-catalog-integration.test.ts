@@ -101,10 +101,9 @@ test('TC-ITb-0022: DecisionsCatalogBuilder - 主要種別集約・相互参照�
     'TC-ITb-0016',
     'TC-UT-0006',
     'TC-ITb-0017',
-    'TC-ITb-0022',
     'TC-ITa-0002',
     'TC-ST-0002',
-    'TC-ITb-0030',
+    'TC-ITb-0030-04',
     'UC-0001',
     'UC-0003',
   ].sort());
@@ -140,7 +139,7 @@ test('TC-ITb-0022: DecisionsCatalogBuilder - 主要種別集約・相互参照�
       '--kind',
       'decision',
     ],
-    { cwd: repositoryPath(), encoding: 'utf8' }
+    { cwd: repositoryPath(), encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }
   );
   const cliCatalog = JSON.parse(cliOutput);
   assert.equal(cliCatalog.filteredCount, catalog.kindCounts.decision);

@@ -69,7 +69,7 @@ test('TestReportLoader - テスト結果レポートからTCノードへ動的�
       content: 'test',
     },
     {
-      id: 'TC-ITb-0001',
+      id: 'TC-ITb-0001-07',
       kind: 'test_case',
       title: 'TC 3 (未実行)',
       status: 'accepted',
@@ -100,7 +100,7 @@ test('TestReportLoader - テスト結果レポートからTCノードへ動的�
   assert.equal(tc2.evidence_log, mockReport.results!['TC-UT-0002'].outputLog);
 
   // TC-ITb-0001 (未実行) の検証
-  const tc3 = merged.find(n => n.id === 'TC-ITb-0001')!;
+  const tc3 = merged.find(n => n.id === 'TC-ITb-0001-07')!;
   assert.equal(tc3.execution_status, 'pending');
   assert.equal(tc3.actual_result, undefined);
   assert.equal(tc3.evidence_log, undefined);

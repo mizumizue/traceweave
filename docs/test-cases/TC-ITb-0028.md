@@ -5,7 +5,7 @@ kind: test_case
 title: Web data.json 要件区分メタデータの外部結合検証
 status: accepted
 created: '2026-09-14'
-updated: '2026-09-14'
+updated: '2026-09-19'
 scope: local
 test_level: integration_external
 test_method: scenario
@@ -21,14 +21,16 @@ links: []
 ## Content
 
 ### Objective
-data.json に requirement_class と区分統計が含まれる。
+Web ダッシュボード用ビルド成果物に要件区分メタデータとカタログ統計が含まれることを検証する。
 
 ### Preconditions
-テストランナーが利用可能であること。
+ダッシュボード用データのビルドが完了し、配布用 JSON が生成されていること。
 
 ### Steps
-1. 対象モジュールに入力を与え、契約どおりの出力を取得する。
-2. 期待される属性・件数・状態を検査する。
+1. 生成済みダッシュボードデータ JSON を読み込む。
+2. 代表非機能要件 `REQ-0028` の `requirement_class` を確認する。
+3. 埋め込みカタログの `requirementClassCounts.functional` を確認する。
 
 ### Expected Results
-- 各検査項目が契約どおりに満たされること。
+- `REQ-0028` の区分が `non_functional` であること。
+- 機能要件カウントが 20 以上であること。

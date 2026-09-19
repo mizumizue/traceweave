@@ -5,7 +5,7 @@ kind: test_case
 title: トレーサビリティグラフの実ドキュメント内部結合探索検証
 status: accepted
 created: '2026-09-14'
-updated: '2026-09-14'
+updated: '2026-09-19'
 scope: local
 test_level: integration_internal
 test_method: scenario
@@ -21,14 +21,17 @@ links: []
 ## Content
 
 ### Objective
-DocParser と TraceGraph の内部結合で REQ-0001 依存連鎖を解決する。
+実文書ツリーをパースして構築したトレーサビリティグラフ上で、REQ-0001 の上流要求・下流仕様・検証テストケースが内部結合で解決されることを検証する。
 
 ### Preconditions
-テストランナーが利用可能であること。
+`DocParser` と `TraceGraph` が利用可能であること。
 
 ### Steps
-1. 対象モジュールに入力を与え、契約どおりの出力を取得する。
-2. 期待される属性・件数・状態を検査する。
+1. 実 `docs/` ディレクトリを `DocParser.parseDirectory` で全ノード化し、`TraceGraph` に登録する。
+2. `REQ-0001` ノードの存在を確認し、`getUpstream('REQ-0001')` で上流ノード一覧を取得する。
+3. `getSpecsForRequirement('REQ-0001')` と `getAllTestCasesForRequirement('REQ-0001')` を実行する。
 
 ### Expected Results
-- 各検査項目が契約どおりに満たされること。
+- `REQ-0001` がグラフ上に存在すること。
+- 上流に `NEED-0001` が含まれること。
+- 紐づく仕様が 2 件以上、テストケースが 3 件以上解決されること。

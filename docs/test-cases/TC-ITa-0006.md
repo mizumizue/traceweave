@@ -5,7 +5,7 @@ kind: test_case
 title: 工程地層ピラミッド比率の内部結合検証
 status: accepted
 created: '2026-09-14'
-updated: '2026-09-14'
+updated: '2026-09-19'
 scope: local
 test_level: integration_internal
 test_method: scenario
@@ -21,14 +21,16 @@ links: []
 ## Content
 
 ### Objective
-実レポート地層から VisualTestPyramid メトリクスが算出される。
+統合レポートの工程地層データからピラミッド各層の構成比率が内部結合で算出されることを検証する。
 
 ### Preconditions
-テストランナーが利用可能であること。
+実 `docs/` から統合レポートを生成できること。
 
 ### Steps
-1. 対象モジュールに入力を与え、契約どおりの出力を取得する。
-2. 期待される属性・件数・状態を検査する。
+1. `buildTraceWeaveReport` で `report.strata` を取得する。
+2. `calculatePyramidLayerMetrics(report.strata)` を実行し、5 層のメトリクス配列を得る。
+3. 各層の `ratioPercent` の合計を検査する。
 
 ### Expected Results
-- 各検査項目が契約どおりに満たされること。
+- メトリクス配列の長さが 5（全工程層）であること。
+- 各層比率の合計が 99〜101% の範囲に収まること。

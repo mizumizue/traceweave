@@ -2,10 +2,10 @@
 schema_version: 3
 id: TC-ITb-0022
 kind: test_case
-title: 全決め事カタログ集約・相互参照（ACT-UC/DSN-ADR/REQ-SPEC）解決およびCLI探索コマンドの内部結合テスト
+title: 決め事カタログ CLI の集約・相互参照・フィルタ契約
 status: accepted
 created: '2026-09-13'
-updated: '2026-09-13'
+updated: '2026-09-19'
 scope: local
 test_level: integration_external
 test_method: api_contract
@@ -16,31 +16,26 @@ verifies:
   - SPEC-0017
 depends_on: []
 tags:
-  - test
   - integration
   - catalog
-  - decisions
-  - relationships
   - cli
 links: []
 ---
 ## Content
 
 ### Objective
-実ドキュメント群からカタログを構築し、主要種別の集約、相互参照、フィルタリング、および CLI `catalog --format json` の外部契約を検証する。ブラウザ表示は対象外とする。
+決め事カタログ CLI が種別集計、相互参照、フィルタ・検索を JSON で返す契約を満たすことを検証する。
 
 ### Preconditions
-`DocParser`, `DecisionsCatalogBuilder`, および `docs/` 配下の実ドキュメント群が利用可能であること。
+リポジトリに TraceWeave 文書が配置されていること。
 
 ### Steps
-1. `DocParser.parseDirectory` により `docs/` 配下の全ドキュメントノードをパースする。
-2. `DecisionsCatalogBuilder.build(nodes)` を実行し、主要種別の文書件数カウント（`kindCounts`）と総件数（`totalCount`）が集約されていることを検査する。
-3. カタログ内のアクターノードおよびユースケースノードを検査し、`relatedUseCases` および `relatedActors` が双方向に解決されていることを確認する。
-4. 設計（DSN）および意思決定（ADR）ノードを検査し、相互のリンク関係が関連付けられていることを確認する。
-5. 種別フィルター（`kind: 'decision'`）およびキーワード検索（`query: 'matrix'`）を適用し、意図したドキュメントのみが厳格にフィルタリングされることを確認する。
-6. CLI の `catalog --format json --kind decision` を実行し、JSON の `filteredCount` と項目種別を検証する。
+1. リポジトリルートでカタログを JSON 形式で取得する。
+2. 種別別件数と総件数が文書件数と整合することを確認する。
+3. アクター・ユースケース、設計・ADR の相互参照が JSON 内で解決されていることを確認する。
+4. 種別フィルタおよびキーワード検索を指定し、返却件数と項目が期待と一致することを確認する。
 
 ### Expected Results
-- 主要種別の決め事ドキュメントが集約され、逆引き参照関係が正確に構築されること。
-- フィルタリングおよび検索結果が期待通りのドキュメント集合を返すこと。
-- CLI の JSON 出力が意思決定種別だけを含み、カタログ件数と一致すること。
+- 主要種別が集約され、相互参照が正確であること。
+- フィルタおよび検索が決定論的に動作すること。
+- CLI 終了コードが 0 で JSON がパース可能であること。

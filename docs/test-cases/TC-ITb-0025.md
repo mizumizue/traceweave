@@ -5,7 +5,7 @@ kind: test_case
 title: Webダッシュボード トースト通知基盤のマウント契約およびトレーサビリティ連鎖の検証
 status: accepted
 created: '2026-09-13'
-updated: '2026-09-13'
+updated: '2026-09-19'
 scope: local
 test_level: integration_external
 test_method: unit_contract
@@ -32,7 +32,7 @@ Web ダッシュボードのルートコンポーネントがトースト通知�
 
 ### Steps
 1. ルートコンポーネントソースから Toaster のマウント宣言（position, theme, closeButton 等）を検査する。
-2. `buildTraceWeaveReport` により REQ-0012、SPEC-0012、TC-ITb-0025 のノード存在と依存・検証関係を検査する。
+2. 文書グラフ上で REQ-0012、SPEC-0012、本テストケース ID の存在と depends_on / verifies 連鎖を検査する。
 
 ### Expected Results
 - ルートコンポーネントに `<Toaster` が宣言され、画面右下・ダークテーマ・クローズボタン付きの設定が含まれること。

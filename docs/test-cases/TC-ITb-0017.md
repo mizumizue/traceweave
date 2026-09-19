@@ -5,7 +5,7 @@ kind: test_case
 title: 静的Webダッシュボードビルド・レポート生成およびデータペイロード供給の外部結合テスト
 status: accepted
 created: '2026-09-13'
-updated: '2026-09-13'
+updated: '2026-09-19'
 scope: local
 test_level: integration_external
 test_method: scenario
@@ -25,17 +25,17 @@ links: []
 ## Content
 
 ### Objective
-レポート生成サービスと CLI の静的ビルドを連携し、静的ダッシュボード用の `data.json` と `index.html` を指定出力先へ生成できることを検証する。未ビルド時のフォールバック HTML 配信は本ケースの対象外とする。
+CLI のビルドコマンドにより静的ダッシュボード用の `data.json` と `index.html` を指定出力先へ生成できることを検証する。
 
 ### Preconditions
-`buildTraceWeaveReport` モジュールおよび実ドキュメント群（`docs/`）が参照可能であること。
+リポジトリに検証対象の文書が存在すること。
 
 ### Steps
-1. リポジトリの実ドキュメントディレクトリを明示して `buildTraceWeaveReport` を実行し、生成された `TraceWeaveReport` の構造（summary, strata, pyramid, matrix, gaps, catalog）を検証する。
-2. レポートの `matrix` 配列において、全要件行のタイトル、重要度、スコア、関連仕様、および紐づくテストケース情報が欠落なく統合されていることを検査する。
-3. `data.json` 形式にシリアライズしたペイロードが JSON パース可能であり、Web ダッシュボードが必要とする全プロパティを保持していることを検査する。
-4. CLI の `build --out <一時ディレクトリ>` を実行し、生成された `data.json` と `index.html` を読み込む。
+1. リポジトリルートでレポート生成および静的ビルドを実行し、出力先ディレクトリを指定する。
+2. 生成された JSON の summary、strata、pyramid、matrix、gaps、catalog セクションが存在することを確認する。
+3. マトリクス配列の各行に要件タイトル、重要度、スコア、関連仕様が欠落なく含まれることを確認する。
+4. 出力先に `data.json` と `index.html` が存在し、JSON がパース可能であることを確認する。
 
 ### Expected Results
-- ステップ1および2で、全要件・詳細仕様・テストケースが正しく集約され、マトリクス行が完全に生成されること。
-- ステップ3および4で、JSON ペイロードがパース可能で、指定出力先に `data.json` と `index.html` が存在すること。
+- マトリクス行が完全に生成され、要件・仕様・テストの集約が欠落しないこと。
+- 指定出力先に静的配布物が生成されること。

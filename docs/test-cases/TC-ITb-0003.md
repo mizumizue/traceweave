@@ -2,10 +2,10 @@
 schema_version: 3
 id: TC-ITb-0003
 kind: test_case
-title: CLI check コマンドによる不備検出と exit code 制御の内部結合テスト
-status: accepted
+title: （退役）CLI check による文書整合性検証
+status: deprecated
 created: '2026-09-12'
-updated: '2026-09-12'
+updated: '2026-09-19'
 scope: local
 test_level: integration_external
 test_method: scenario
@@ -18,19 +18,20 @@ tags:
   - integration
   - cli
 links: []
+supersedes:
+  - TC-ITb-0003-01
+  - TC-ITb-0003-02
 ---
 ## Content
 
 ### Objective
-CLI の `check` コマンドを実プロセスとして起動し、正常な docs に対して exit code 0、リンク切れを含む docs に対して exit code 1 を返すことを検証する。
+分割退役。子ケース `TC-ITb-0003-01` / `TC-ITb-0003-02` を参照する。
 
 ### Preconditions
-CLI コマンドがサブプロセスとして実行可能であること。
+該当なし。
 
 ### Steps
-1. リポジトリの docs に対して CLI の `check` を実プロセスとして実行する。
-2. 欠落リンクを含む一時 docs フィクスチャに対して `check --strict` を実行する。
+該当なし。
 
 ### Expected Results
-- ステップ1は exit code 0 で終了し、「PASS」が出力されること。
-- ステップ2は exit code 1 で終了し、リンク切れエラーが出力されること。
+該当なし。

@@ -5,7 +5,7 @@ kind: test_case
 title: 実ドキュメントグラフレイアウトの内部結合検証
 status: accepted
 created: '2026-09-14'
-updated: '2026-09-14'
+updated: '2026-09-19'
 scope: local
 test_level: integration_internal
 test_method: scenario
@@ -23,14 +23,17 @@ links: []
 ## Content
 
 ### Objective
-実 docs/ でレイアウトと種別除外が内部結合で動作する。
+実文書全体を入力としたトレーサビリティグラフ構築で、選択ノードのハイライトと種別除外が内部結合で決定論的に動作することを検証する。
 
 ### Preconditions
-テストランナーが利用可能であること。
+`DocParser`、`TraceGraph`、`TraceabilityGraphBuilder` が利用可能であること。
 
 ### Steps
-1. 対象モジュールに入力を与え、契約どおりの出力を取得する。
-2. 期待される属性・件数・状態を検査する。
+1. 実 `docs/` をパースし `TraceGraph` を構築する。
+2. 選択ノード `REQ-0020` を指定して `TraceabilityGraphBuilder.buildGraph` を実行する。
+3. `excludedKinds` に `test_case` を指定して再度グラフを構築する。
+4. 両結果のノード件数と `REQ-0020` のハイライトフラグを比較する。
 
 ### Expected Results
-- 各検査項目が契約どおりに満たされること。
+- 種別除外なしのグラフのノード数が、テストケース除外時より多いこと。
+- `REQ-0020` がハイライト対象として付与されていること。
