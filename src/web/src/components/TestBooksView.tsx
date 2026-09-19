@@ -53,10 +53,14 @@ export function TestBooksView({
 }: TestBooksViewProps) {
   const [detailCaseId, setDetailCaseId] = useState<string | null>(null);
 
-  const catalog = useMemo(
-    () => testStratumCatalog ?? buildTestStratumCatalog(nodes, requirements),
-    [testStratumCatalog, nodes, requirements]
-  );
+  // Always derive from nodes so retired split parents stay excluded (ADR-0010), even when
+  // embedded testStratumCatalog in data.json predates catalog filtering.
+  const catalog = useMemo(() => {
+    if (nodes.length > 0) {
+      return buildTestStratumCatalog(nodes, requirements);
+    }
+    return testStratumCatalog ?? buildTestStratumCatalog(nodes, requirements);
+  }, [nodes, requirements, testStratumCatalog]);
 
   const specBookLevel = useMemo(
     () => resolveSpecBookLevel(catalog, activeLevel),

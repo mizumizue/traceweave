@@ -56,3 +56,56 @@ test('退役分割親 TC はトレーサビリティとテストブック一覧�
   assert.ok(catalog.chapters.some(ch => ch.cases.some(c => c.id === 'TC-ITb-0099-01')));
   assert.ok(!catalog.chapters.some(ch => ch.cases.some(c => c.id === 'TC-ITb-0099')));
 });
+
+test('退役親が nodes に残る古いペイロードでもカタログ再構築で一覧から除外されること', () => {
+  const parent: DocNode = {
+    id: 'TC-ITb-0099',
+    kind: 'test_case',
+    title: 'retired parent',
+    status: 'deprecated',
+    test_level: 'integration_external',
+    test_method: 'api_contract',
+    verifies: ['REQ-0001'],
+    supersedes: ['TC-ITb-0099-01'],
+    depends_on: [],
+    tags: [],
+    links: [],
+    created: '2026-09-19',
+    updated: '2026-09-19',
+    scope: 'local',
+  };
+  const child: DocNode = {
+    id: 'TC-ITb-0099-01',
+    kind: 'test_case',
+    title: 'active child',
+    status: 'accepted',
+    test_level: 'integration_external',
+    test_method: 'api_contract',
+    verifies: ['REQ-0001'],
+    derived_from: 'TC-ITb-0099',
+    depends_on: [],
+    tags: [],
+    links: [],
+    created: '2026-09-19',
+    updated: '2026-09-19',
+    scope: 'local',
+  };
+
+  const staleCatalog = buildTestStratumCatalog([parent, child]);
+  assert.equal(staleCatalog.totalCases, 1);
+
+  const nodesWithStaleParent = [parent, child];
+  const freshCatalog = buildTestStratumCatalog(nodesWithStaleParent);
+  assert.equal(freshCatalog.totalCases, 1);
+  assert.ok(freshCatalog.chapters.some(ch => ch.cases.some(c => c.id === 'TC-ITb-0099-01')));
+  assert.ok(!freshCatalog.chapters.some(ch => ch.cases.some(c => c.id === 'TC-ITb-0099')));
+
+  // Simulate pre-AL-010 embedded catalog that still lists the parent (2 rows).
+  const legacyEmbedded = buildTestStratumCatalog([
+    { ...parent, status: 'accepted' },
+    child,
+  ]);
+  assert.equal(legacyEmbedded.totalCases, 2);
+  const recovered = buildTestStratumCatalog(nodesWithStaleParent);
+  assert.equal(recovered.totalCases, 1);
+});
